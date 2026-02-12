@@ -2,9 +2,24 @@
 
 import { Globe, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StaggerContainer, StaggerItem } from "@/components/motion"
 
-export default function TalentRadar() {
+interface TalentRadarProps {
+  type?: "policy" | "tech" | "competitor"
+}
+
+export default function TalentRadar({ type = "policy" }: TalentRadarProps) {
+  const getTitleByType = () => {
+    switch (type) {
+      case "policy":
+        return "政策相关人才雷达"
+      case "tech":
+        return "技术领域人才雷达"
+      case "competitor":
+        return "竞对机构人才雷达"
+      default:
+        return "全球人才回流雷达"
+    }
+  }
   const scholars = [
     {
       name: "刘凯文 博士",
@@ -41,7 +56,7 @@ export default function TalentRadar() {
         <div className="flex items-center gap-2">
           <Globe className="h-5 w-5 text-blue-500" />
           <h2 className="text-base font-semibold text-foreground">
-            人才雷达 (海外)
+            {getTitleByType()}
           </h2>
         </div>
         <div className="flex gap-1">
@@ -63,7 +78,7 @@ export default function TalentRadar() {
       {/* Map placeholder */}
       <Card className="shadow-card hover:shadow-card-hover transition-all rounded-xl border-0">
         <CardContent className="p-0">
-          <div className="relative h-48 overflow-hidden rounded-t-xl bg-slate-100">
+          <div className="relative h-48 overflow-hidden rounded-t-xl bg-gradient-to-br from-slate-100 to-blue-50">
             <div className="absolute inset-0 flex items-center justify-center">
               <svg
                 viewBox="0 0 800 400"
@@ -141,10 +156,8 @@ export default function TalentRadar() {
                 </tr>
               </thead>
               <tbody>
-                <StaggerContainer>
                   {scholars.map((s) => (
-                    <StaggerItem key={s.name}>
-                      <tr className="border-b last:border-0">
+                      <tr key={s.name} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                         <td className="py-3">
                           <div className="flex items-center gap-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600">
@@ -214,9 +227,7 @@ export default function TalentRadar() {
                           )}
                         </td>
                       </tr>
-                    </StaggerItem>
                   ))}
-                </StaggerContainer>
               </tbody>
             </table>
           </div>

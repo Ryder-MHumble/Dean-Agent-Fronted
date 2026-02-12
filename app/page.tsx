@@ -7,7 +7,9 @@ import HomeBriefingPage from "@/components/pages/home-briefing"
 import IntelligencePage from "@/components/pages/intelligence"
 import OperationsPage from "@/components/pages/operations"
 import PolicyPage from "@/components/pages/policy"
+import SchedulePage from "@/components/pages/schedule"
 import { MotionPage } from "@/components/motion"
+import { Toaster } from "sonner"
 
 const pageMeta: Record<string, { title: string; subtitle?: string }> = {
   home: { title: "院长早报", subtitle: "今日态势 · 全局掌控" },
@@ -22,6 +24,10 @@ const pageMeta: Record<string, { title: string; subtitle?: string }> = {
   network: {
     title: "政策与人脉",
     subtitle: "人才追踪 · 关系维护",
+  },
+  schedule: {
+    title: "智能日程",
+    subtitle: "日程ROI · 冲突管理 · 会谈助手",
   },
 }
 
@@ -38,18 +44,23 @@ export default function Page() {
         collapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
       />
-      <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'ml-[70px]' : 'ml-[220px]'}`}>
+      <main
+        className="flex-1 transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+        style={{ marginLeft: sidebarCollapsed ? 70 : 220 }}
+      >
         <TopBar title={meta.title} subtitle={meta.subtitle} />
         <div className="min-h-[calc(100vh-64px)]">
           <MotionPage pageKey={activePage}>
-            {activePage === "home" && <HomeBriefingPage />}
+            {activePage === "home" && <HomeBriefingPage onNavigate={setActivePage} />}
             {activePage === "radar" && <IntelligencePage />}
             {activePage === "internal" && <OperationsPage />}
             {activePage === "network" && <PolicyPage />}
+            {activePage === "schedule" && <SchedulePage />}
           </MotionPage>
         </div>
       </main>
       <FloatingAIAssistant />
+      <Toaster position="top-right" richColors closeButton />
     </div>
   )
 }

@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8080",
-    "dev:turbo": "next dev --turbo --port 8080",
+    "dev": "next dev --turbo --port 8080",
     "build": "next build",
     "start": "next start --port 8080",
-    "lint": "next lint"
+    "lint": "next lint",
+    "stop": "lsof -ti:8080 | xargs kill -9 2>/dev/null; echo 'Port 8080 cleared'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

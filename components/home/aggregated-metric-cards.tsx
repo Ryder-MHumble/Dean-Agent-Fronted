@@ -108,36 +108,26 @@ export default function AggregatedMetricCards({
               {/* Top gradient accent line */}
               <div className={`h-0.5 rounded-t-lg bg-gradient-to-r ${iconStyle.gradient}`} />
 
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground mb-1 group-hover:text-blue-600 transition-colors">
-                      {card.title}
-                    </h3>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${iconStyle.bg} ${iconStyle.text} transition-colors`}>
+                    <Icon className="h-4.5 w-4.5" />
                   </div>
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconStyle.bg} ${iconStyle.text} group-hover:${iconStyle.hoverBg} transition-colors`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
+                  <h3 className="font-semibold text-sm text-foreground group-hover:text-blue-600 transition-colors">
+                    {card.title}
+                  </h3>
+                  <ArrowRight className="ml-auto h-3.5 w-3.5 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
                 </div>
 
-                <div className="space-y-2.5">
+                <div className="flex items-center gap-3">
                   {card.metrics.map((metric, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        {metric.label}
-                      </span>
-                      <span
-                        className={`text-sm font-semibold ${getVariantColor(metric.variant)}`}
-                      >
+                    <div key={index} className="flex items-center gap-1.5 text-xs">
+                      <span className="text-muted-foreground">{metric.label}</span>
+                      <span className={`font-semibold font-tabular ${getVariantColor(metric.variant)}`}>
                         {metric.value}
                       </span>
                     </div>
                   ))}
-                </div>
-
-                <div className="mt-4 pt-0 flex items-center justify-end text-xs text-blue-600 group-hover:text-blue-700">
-                  <span className="font-medium">查看详情</span>
-                  <ArrowRight className="ml-1 h-3 w-3 group-hover:translate-x-1 transition-transform" />
                 </div>
               </CardContent>
             </Card>

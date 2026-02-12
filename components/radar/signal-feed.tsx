@@ -3,9 +3,26 @@
 import { Rss, SlidersHorizontal, RefreshCw, Sparkles } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { StaggerContainer, StaggerItem } from "@/components/motion"
 
-export default function SignalFeed() {
+interface SignalFeedProps {
+  type?: "policy" | "tech" | "competitor"
+}
+
+export default function SignalFeed({ type = "policy" }: SignalFeedProps) {
+  const getTitleByType = () => {
+    switch (type) {
+      case "policy":
+        return "政策红利信号"
+      case "tech":
+        return "技术突破信号"
+      case "competitor":
+        return "竞对动态信号"
+      default:
+        return "全球人工智能信号"
+    }
+  }
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -13,7 +30,7 @@ export default function SignalFeed() {
         <div className="flex items-center gap-2">
           <Rss className="h-5 w-5 text-blue-500" />
           <h2 className="text-base font-semibold text-foreground">
-            全球人工智能信号
+            {getTitleByType()}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -33,10 +50,11 @@ export default function SignalFeed() {
       </div>
 
       {/* Signal Cards */}
+      <ScrollArea className="max-h-[600px]">
       <StaggerContainer>
         <StaggerItem>
           <Card className="shadow-card hover:shadow-card-hover transition-all rounded-xl border-0">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <Badge className="bg-red-100 text-red-700 hover:bg-red-100 text-[10px] font-medium border-0">
                   ARXIV 论文
@@ -68,7 +86,7 @@ export default function SignalFeed() {
 
         <StaggerItem>
           <Card className="shadow-card hover:shadow-card-hover transition-all rounded-xl border-0">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <Badge
                   variant="secondary"
@@ -115,7 +133,7 @@ export default function SignalFeed() {
 
         <StaggerItem>
           <Card className="shadow-card hover:shadow-card-hover transition-all rounded-xl border-0">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-center justify-between">
                 <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-[10px] font-medium border-0">
                   TECHCRUNCH
@@ -142,6 +160,7 @@ export default function SignalFeed() {
           </Card>
         </StaggerItem>
       </StaggerContainer>
+      </ScrollArea>
     </div>
   )
 }

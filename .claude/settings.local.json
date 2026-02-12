@@ -32,7 +32,11 @@
       "Bash(cmd /c \"if exist .next\\\\dev rmdir /s /q .next\\\\dev\")",
       "Bash(powershell -Command:*)",
       "Bash(cmd /c \"if exist .next rmdir /s /q .next\")",
-      "Bash(if exist .next rmdir /s /q .next)"
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(find:*)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
     ]
   },
   "enableAllProjectMcpServers": true,

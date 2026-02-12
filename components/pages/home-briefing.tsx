@@ -7,6 +7,10 @@ import AggregatedMetricCards, { type MetricCardData } from "@/components/home/ag
 import TimelineView, { type TimelineEvent } from "@/components/home/timeline-view"
 import { type PriorityItemWithScore, filterForHomePage } from "@/lib/priority-scoring"
 import { MotionCard } from "@/components/motion"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { TrendingDown } from "lucide-react"
+import { toast } from "sonner"
 
 // Mock - Safety Index
 const mockSafetyIndex: SafetyIndexData = {
@@ -265,53 +269,66 @@ const mockLongTermEvents: TimelineEvent[] = [
   },
 ]
 
-export default function HomeBriefingPage() {
+export default function HomeBriefingPage({ onNavigate }: { onNavigate?: (page: string) => void }) {
   const handleSafetyIndexClick = () => {
-    console.log('查看安全指数详情')
+    toast("安全指数详情", { description: "当前评分76/100，较昨日下降3分" })
   }
 
   const handleAlertClick = (alertId: string) => {
-    console.log('查看提醒详情:', alertId)
+    toast("查看详情", { description: "已打开提醒 #" + alertId })
   }
 
   const handleActionClick = (alertId: string, actionType: string) => {
-    console.log('执行操作:', alertId, actionType)
+    toast.success("操作已执行: " + actionType)
   }
 
   const handleMetricCardClick = (cardId: string) => {
-    console.log('导航到详情页:', cardId)
+    if (cardId === "radar") toast("正在跳转到战略雷达...")
+    else if (cardId === "internal") toast("正在跳转到院内事务...")
+    else if (cardId === "network") toast("正在跳转到政策与人脉...")
+    else if (cardId === "schedule") toast("正在跳转到智能日程...")
+    else toast("正在跳转到详情页...")
+  }
+
+  const getScoreBadgeStyle = (score: number) => {
+    if (score >= 90) return 'bg-green-100 text-green-700 border-green-200'
+    if (score >= 70) return 'bg-amber-100 text-amber-700 border-amber-200'
+    return 'bg-red-100 text-red-700 border-red-200'
   }
 
   return (
-    <div className="p-6 space-y-5">
-      {/* Greeting header */}
+    <div className="p-5 space-y-4">
+      {/* Compact Header Row */}
       <MotionCard delay={0}>
-        <div className="flex items-center justify-between mb-1">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold text-foreground">
               早安，院长
             </h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
+            <Separator orientation="vertical" className="h-5" />
+            <span className="text-sm text-muted-foreground">
               {new Date().toLocaleDateString('zh-CN', {
                 month: 'long',
                 day: 'numeric',
                 weekday: 'long',
-              })} · 今日情报概览已生成，安全指数{' '}
-              <span className="font-semibold text-blue-600">{mockSafetyIndex.overallScore}</span>
-            </p>
+              })}
+            </span>
+            <Separator orientation="vertical" className="h-5" />
+            <Badge
+              variant="outline"
+              className={`px-2.5 py-0.5 gap-1.5 font-tabular ${getScoreBadgeStyle(mockSafetyIndex.overallScore)}`}
+            >
+              <span className="text-sm font-bold">{mockSafetyIndex.overallScore}</span>
+              <span className="text-[10px]">/100</span>
+              <TrendingDown className="h-3 w-3" />
+            </Badge>
           </div>
         </div>
       </MotionCard>
 
-      {/* Main 3-column layout */}
-      <div className="grid grid-cols-12 gap-5">
-        {/* Left: Safety Index */}
-        <MotionCard delay={0.1} className="col-span-3">
-          <SafetyIndexGauge data={mockSafetyIndex} onViewDetails={handleSafetyIndexClick} />
-        </MotionCard>
-
-        {/* Center: Must-Know Alerts */}
-        <MotionCard delay={0.15} className="col-span-6">
+      {/* Main 2-column layout: Alerts (8) + AI Summary & Safety (4) */}
+      <div className="grid grid-cols-12 gap-4">
+        <MotionCard delay={0.1} className="col-span-8">
           <MustKnowAlerts
             alerts={mockAlerts}
             onAlertClick={handleAlertClick}
@@ -319,24 +336,30 @@ export default function HomeBriefingPage() {
           />
         </MotionCard>
 
-        {/* Right: AI Summary */}
-        <MotionCard delay={0.2} className="col-span-3">
-          <AIDailySummary data={mockDailySummary} />
-        </MotionCard>
+        <div className="col-span-4 space-y-4">
+          <MotionCard delay={0.15}>
+            <AIDailySummary data={mockDailySummary} />
+          </MotionCard>
+
+          <MotionCard delay={0.2}>
+            <SafetyIndexGauge data={mockSafetyIndex} onViewDetails={handleSafetyIndexClick} />
+          </MotionCard>
+        </div>
       </div>
 
-      {/* Aggregated Metric Cards */}
-      <MotionCard delay={0.3}>
-        <AggregatedMetricCards cards={mockMetricCards} onCardClick={handleMetricCardClick} />
-      </MotionCard>
-
       {/* Timeline View */}
-      <MotionCard delay={0.4}>
+      <MotionCard delay={0.25}>
         <TimelineView
           todayEvents={mockTodayEvents}
           weekEvents={mockWeekEvents}
           longTermEvents={mockLongTermEvents}
+          onNavigateToSchedule={() => onNavigate?.("schedule")}
         />
+      </MotionCard>
+
+      {/* Aggregated Metric Cards - Navigator */}
+      <MotionCard delay={0.3}>
+        <AggregatedMetricCards cards={mockMetricCards} onCardClick={handleMetricCardClick} />
       </MotionCard>
     </div>
   )

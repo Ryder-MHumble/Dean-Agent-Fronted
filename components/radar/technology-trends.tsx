@@ -173,7 +173,7 @@ function TrendCard({ trend }: { trend: TechnologyTrend }) {
     <Card
       className={cn(
         "shadow-card hover:shadow-card-hover rounded-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer",
-        hasHighRisk && "border-l-4 border-l-red-500"
+        hasHighRisk && "border-l-4 border-l-red-500 bg-red-50/30"
       )}
     >
       <CardHeader className="pb-3">
@@ -256,7 +256,7 @@ export default function TechnologyTrends() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">技术风向标</h2>
+          <h2 className="text-xl font-bold">技术风向标</h2>
           <p className="text-sm text-muted-foreground mt-1">
             实时技术热点监测与我院布局差距分析
           </p>
@@ -269,7 +269,7 @@ export default function TechnologyTrends() {
         )}
       </div>
 
-      <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {mockTrends.map((trend) => (
           <StaggerItem key={trend.id}>
             <TrendCard trend={trend} />

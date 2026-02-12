@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import {
   FileText,
   UserPlus,
@@ -164,7 +165,10 @@ function ActionItem({ action }: { action: CompetitorAction }) {
       <div className="absolute left-3 top-8 bottom-0 w-0.5 bg-gray-200 last:hidden" />
 
       {/* Severity dot */}
-      <div
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.2 }}
         className={cn(
           "absolute left-1.5 top-2 h-3 w-3 rounded-full ring-4 ring-white",
           severityData.color
@@ -277,7 +281,7 @@ export default function CompetitorMonitoring() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">竞对监测</h2>
+          <h2 className="text-xl font-bold">竞对监测</h2>
           <p className="text-sm text-muted-foreground mt-1">
             追踪竞争机构的关键动态与战略布局
           </p>
@@ -295,7 +299,7 @@ export default function CompetitorMonitoring() {
         </div>
       </div>
 
-      <StaggerContainer className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <StaggerContainer className="grid grid-cols-1 gap-6">
         {mockCompetitors.map((competitor) => (
           <StaggerItem key={competitor.id}>
             <CompetitorCard competitor={competitor} />

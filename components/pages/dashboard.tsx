@@ -53,7 +53,7 @@ function KpiCard({
 
   return (
     <Card className={`${variantStyles[variant]} relative overflow-hidden`}>
-      <CardContent className="p-5">
+      <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-muted-foreground">{label}</p>
@@ -133,64 +133,37 @@ function AlertBanner() {
 }
 
 // ==================
-// Sentiment Gauge
+// Sentiment Gauge Badge (Compact)
 // ==================
-function SentimentGauge() {
+function SentimentGaugeBadge() {
   const score = 82
+  const filledDots = Math.round((score / 100) * 4) // 4 dots max
+
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-semibold">
           {"师生舆情指数"}
         </CardTitle>
-        <button type="button" className="text-xs text-muted-foreground">{"..."}</button>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="flex flex-col items-center py-4">
-          {/* Gauge SVG */}
-          <div className="relative h-32 w-48">
-            <svg viewBox="0 0 200 120" className="h-full w-full">
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="#f1f5f9"
-                strokeWidth="16"
-                strokeLinecap="round"
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-foreground">{score}</span>
+            <span className="text-sm text-green-600 font-medium">{"积极向好"}</span>
+          </div>
+          <div className="flex gap-1">
+            {[...Array(4)].map((_, i) => (
+              <div
+                key={i}
+                className={`h-2 w-2 rounded-full ${
+                  i < filledDots ? "bg-green-500" : "bg-slate-200"
+                }`}
               />
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="url(#gaugeGradient)"
-                strokeWidth="16"
-                strokeLinecap="round"
-                strokeDasharray={`${(score / 100) * 251} 251`}
-              />
-              <defs>
-                <linearGradient
-                  id="gaugeGradient"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="0%"
-                >
-                  <stop offset="0%" stopColor="#ef4444" />
-                  <stop offset="40%" stopColor="#f59e0b" />
-                  <stop offset="70%" stopColor="#22c55e" />
-                  <stop offset="100%" stopColor="#3b82f6" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-end pb-1">
-              <span className="text-3xl font-bold text-foreground">
-                {score}
-              </span>
-              <span className="text-xs text-green-600 font-medium">
-                {"积极向好"}
-              </span>
-            </div>
+            ))}
           </div>
         </div>
-        <p className="text-center text-[11px] text-muted-foreground">
+        <p className="mt-2 text-[10px] text-muted-foreground">
           {"基于月度满意度调查数据"}
         </p>
       </CardContent>
@@ -418,16 +391,10 @@ function ScheduleSidebar() {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="space-y-5">
+        <div className="space-y-3">
           {events.map((event) => (
-            <div key={event.title} className="relative flex gap-3">
-              <div className="flex flex-col items-center">
-                <div
-                  className={`mt-1 h-2.5 w-2.5 rounded-full ${event.dotColor}`}
-                />
-                <div className="w-px flex-1 bg-border" />
-              </div>
-              <div className="flex-1 pb-4">
+            <div key={event.title} className="relative flex gap-2 border-l-2 border-muted pl-3">
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-medium ${event.dotColor === "bg-blue-500" ? "text-blue-600" : "text-muted-foreground"}`}>
                     {event.time}
@@ -547,7 +514,7 @@ function RiskMonitor() {
 // ==================
 export default function DashboardPage() {
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5 p-6 max-w-7xl mx-auto">
       {/* Alert Banner */}
       <AlertBanner />
 
@@ -590,17 +557,8 @@ export default function DashboardPage() {
           value="85"
           unit="篇论文"
           icon={FileText}
-          extra={
-            <div className="flex items-center gap-2 text-xs">
-              <Badge
-                variant="secondary"
-                className="bg-yellow-100 text-yellow-700 text-[10px]"
-              >
-                {"12 待审"}
-              </Badge>
-              <span className="text-muted-foreground">{"需要评审"}</span>
-            </div>
-          }
+          change="+8"
+          changeLabel="较上月"
         />
         <KpiCard
           label="高风险事项"
@@ -608,30 +566,21 @@ export default function DashboardPage() {
           unit="项紧急"
           icon={AlertTriangle}
           variant="danger"
-          extra={
-            <div className="flex items-center gap-2 text-xs">
-              <Badge
-                variant="secondary"
-                className="bg-red-100 text-red-700 text-[10px]"
-              >
-                {"+1 新增"}
-              </Badge>
-              <span className="text-muted-foreground">{"自昨日起"}</span>
-            </div>
-          }
+          change="+1"
+          changeLabel="新增"
         />
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-12 gap-4">
         {/* Left: Sentiment + Risk */}
-        <div className="col-span-3 space-y-5">
-          <SentimentGauge />
+        <div className="col-span-4 space-y-4">
+          <SentimentGaugeBadge />
           <RiskMonitor />
         </div>
 
         {/* Center: News Feed */}
-        <div className="col-span-6">
+        <div className="col-span-5">
           <NewsFeed />
         </div>
 

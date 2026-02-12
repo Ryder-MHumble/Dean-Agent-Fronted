@@ -109,6 +109,18 @@ const config: Config = {
           from: { backgroundPosition: '-200% 0' },
           to: { backgroundPosition: '200% 0' },
         },
+        'glow-pulse': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgb(59 130 246 / 0.2)' },
+          '50%': { boxShadow: '0 0 0 8px rgb(59 130 246 / 0)' },
+        },
+        'slide-up': {
+          from: { opacity: '0', transform: 'translateY(4px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'pulse-subtle': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgb(239 68 68 / 0.15)' },
+          '50%': { boxShadow: '0 0 0 4px rgb(239 68 68 / 0.08)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -119,6 +131,9 @@ const config: Config = {
         'scale-in': 'scale-in 0.3s ease-out forwards',
         'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
         'shimmer': 'shimmer 2s linear infinite',
+        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+        'slide-up': 'slide-up 0.3s ease-out forwards',
+        'pulse-subtle': 'pulse-subtle 2.5s ease-in-out infinite',
       },
     },
   },

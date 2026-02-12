@@ -9,6 +9,7 @@ import {
   useSpring,
   useInView,
 } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 // ==================
 // MotionCard - Fade-in card with stagger support
@@ -213,6 +214,35 @@ export function ExpandableSection({
         </motion.div>
       )}
     </AnimatePresence>
+  )
+}
+
+// ==================
+// MotionNumber - Formatted animated number with prefix/suffix
+// ==================
+interface MotionNumberProps {
+  value: number
+  prefix?: string
+  suffix?: string
+  className?: string
+  duration?: number
+  formatFn?: (n: number) => string
+}
+
+export function MotionNumber({
+  value,
+  prefix = "",
+  suffix = "",
+  className,
+  duration = 0.8,
+  formatFn,
+}: MotionNumberProps) {
+  return (
+    <span className={cn("font-tabular", className)}>
+      {prefix}
+      <AnimatedNumber value={value} duration={duration} formatFn={formatFn} />
+      {suffix}
+    </span>
   )
 }
 

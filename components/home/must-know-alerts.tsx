@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card"
 import { ArrowRight, AlertTriangle, Clock, DollarSign, TrendingUp, FileText, User, CheckCircle2 } from "lucide-react"
 import { StaggerContainer, StaggerItem } from "@/components/motion"
 import { cn } from "@/lib/utils"
@@ -84,7 +85,7 @@ export default function MustKnowAlerts({
             </div>
           </div>
         ) : (
-          <StaggerContainer className="space-y-3">
+          <StaggerContainer className="space-y-2">
             {alerts.map((alert) => {
               const categoryBadge = getCategoryBadge(alert.category)
               const actionInfo = getActionInfo(alert.actionType)
@@ -92,100 +93,141 @@ export default function MustKnowAlerts({
               const urgencyStatus = getUrgencyStatus(alert.deadline)
               const CategoryIcon = getCategoryIcon(alert.category)
               const borderColor = getCategoryBorderColor(alert.category)
+              const isUrgent = alert.category === 'risk'
 
               return (
                 <StaggerItem key={alert.id}>
-                  <div
-                    className={cn(
-                      "group relative rounded-xl p-4 transition-all cursor-pointer",
-                      "shadow-card hover:shadow-card-hover",
-                      "border border-transparent hover:border-blue-200/50",
-                      "bg-white hover:translate-x-0.5",
-                      "border-l-[3px]",
-                      borderColor
-                    )}
-                    onClick={() => onAlertClick?.(alert.id)}
-                  >
-                    {/* 顶部：类别标签和优先级 */}
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge
-                        className={`${categoryBadge.bgColor} ${categoryBadge.color} flex items-center gap-1`}
-                        variant="secondary"
-                      >
-                        <CategoryIcon className="h-3 w-3" />
-                        {categoryBadge.text}
-                      </Badge>
-                      <Badge
-                        className={`${priorityBadge.bgColor} ${priorityBadge.color}`}
-                        variant="secondary"
-                      >
-                        {priorityBadge.text}
-                      </Badge>
-                      {alert.deadline && (
-                        <Badge
-                          className={`ml-auto ${urgencyStatus.color}`}
-                          variant="secondary"
-                        >
-                          {urgencyStatus.icon} {urgencyStatus.text}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* 标题 */}
-                    <h3 className="font-semibold text-foreground mb-1 group-hover:text-blue-600 transition-colors">
-                      {alert.title}
-                    </h3>
-
-                    {/* 描述 */}
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {alert.description}
-                    </p>
-
-                    {/* Metadata */}
-                    {alert.metadata && (
-                      <div className="text-xs text-muted-foreground mb-3 bg-muted/50 rounded px-2 py-1 inline-block">
-                        {alert.metadata}
-                      </div>
-                    )}
-
-                    {/* 底部：负责人和操作按钮 */}
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {alert.responsiblePerson && (
-                          <>
-                            <User className="h-3 w-3" />
-                            <span>{alert.responsiblePerson}</span>
-                          </>
+                  <HoverCard openDelay={200} closeDelay={100}>
+                    <HoverCardTrigger asChild>
+                      <div
+                        className={cn(
+                          "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all cursor-pointer",
+                          "shadow-sm hover:shadow-md",
+                          "border border-transparent hover:border-blue-200/50",
+                          "bg-white hover:translate-x-0.5",
+                          "border-l-[3px]",
+                          borderColor,
+                          isUrgent && "animate-pulse-subtle"
                         )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-xs active:scale-95 transition-all duration-150"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onAlertClick?.(alert.id)
-                          }}
-                        >
-                          查看详情
-                          <ArrowRight className="ml-1 h-3 w-3" />
-                        </Button>
-                        {alert.actionType !== 'fyi' && (
-                          <Button
-                            size="sm"
-                            className={`text-xs active:scale-95 transition-all duration-150 ${actionInfo.bgColor} ${actionInfo.color}`}
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onActionClick?.(alert.id, alert.actionType)
-                            }}
+                        onClick={() => onAlertClick?.(alert.id)}
+                      >
+                        {/* Left: Category Icon */}
+                        <div className={cn(
+                          "flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-md",
+                          categoryBadge.bgColor
+                        )}>
+                          <CategoryIcon className={cn("h-4 w-4", categoryBadge.color)} />
+                        </div>
+
+                        {/* Center: Title + inline metadata */}
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground truncate group-hover:text-blue-600 transition-colors">
+                            {alert.title}
+                          </span>
+                          {alert.deadline && (
+                            <span className={cn("text-xs whitespace-nowrap flex-shrink-0", urgencyStatus.color)}>
+                              {urgencyStatus.icon} {urgencyStatus.text}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Right: Badges + Action Button */}
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Badge
+                            className={cn("text-[10px] px-1.5 py-0", priorityBadge.bgColor, priorityBadge.color)}
+                            variant="secondary"
                           >
-                            {actionInfo.text}
-                          </Button>
-                        )}
+                            {priorityBadge.text}
+                          </Badge>
+                          <Badge
+                            className={cn("text-[10px] px-1.5 py-0", categoryBadge.bgColor, categoryBadge.color)}
+                            variant="secondary"
+                          >
+                            {categoryBadge.text}
+                          </Badge>
+                          {alert.actionType !== 'fyi' ? (
+                            <Button
+                              size="sm"
+                              className={cn(
+                                "h-7 text-xs px-2.5 active:scale-95 transition-all duration-150",
+                                actionInfo.bgColor,
+                                actionInfo.color
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onActionClick?.(alert.id, alert.actionType)
+                              }}
+                            >
+                              {actionInfo.text}
+                              <ArrowRight className="ml-1 h-3 w-3" />
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 text-xs px-2.5 active:scale-95 transition-all duration-150"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                onAlertClick?.(alert.id)
+                              }}
+                            >
+                              查看
+                              <ArrowRight className="ml-1 h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </HoverCardTrigger>
+
+                    {/* HoverCard popup: full details */}
+                    <HoverCardContent
+                      side="bottom"
+                      align="start"
+                      className="w-80 p-4"
+                    >
+                      <div className="space-y-3">
+                        {/* Title row */}
+                        <div className="flex items-start gap-2">
+                          <CategoryIcon className={cn("h-4 w-4 mt-0.5 flex-shrink-0", categoryBadge.color)} />
+                          <h4 className="text-sm font-semibold text-foreground leading-tight">
+                            {alert.title}
+                          </h4>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {alert.description}
+                        </p>
+
+                        {/* Metadata */}
+                        {alert.metadata && (
+                          <div className="text-xs text-muted-foreground bg-muted/50 rounded px-2.5 py-1.5">
+                            {alert.metadata}
+                          </div>
+                        )}
+
+                        {/* Footer: responsible person + deadline */}
+                        <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                          {alert.responsiblePerson ? (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <User className="h-3 w-3" />
+                              <span>{alert.responsiblePerson}</span>
+                            </div>
+                          ) : (
+                            <div />
+                          )}
+                          {alert.deadline && (
+                            <Badge
+                              className={cn("text-[10px]", urgencyStatus.color)}
+                              variant="secondary"
+                            >
+                              {urgencyStatus.icon} {urgencyStatus.text}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
                 </StaggerItem>
               )
             })}

@@ -213,7 +213,7 @@ export default function PolicyOpportunityPool() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">政策红利池</h2>
+          <h2 className="text-xl font-bold">政策红利池</h2>
           <p className="text-sm text-muted-foreground mt-1">
             AI智能匹配的政策机会，按匹配度和紧急度排序
           </p>
@@ -223,7 +223,7 @@ export default function PolicyOpportunityPool() {
         </Badge>
       </div>
 
-      <StaggerContainer className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {mockPolicies.map((policy) => (
           <StaggerItem key={policy.id}>
             <PolicyCard policy={policy} />
