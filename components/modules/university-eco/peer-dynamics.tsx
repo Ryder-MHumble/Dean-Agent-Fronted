@@ -143,54 +143,56 @@ export default function PeerDynamics() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <StaggerContainer className="space-y-3">
-                {mockPeers.map((peer) => (
-                  <StaggerItem key={peer.id}>
-                    <button
-                      type="button"
-                      className="w-full rounded-lg border p-4 hover:border-blue-200 hover:shadow-sm transition-all group cursor-pointer text-left"
-                      onClick={() => setSelectedPeer(peer)}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                            {peer.name.charAt(0)}
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-semibold group-hover:text-blue-600 transition-colors">
-                              {peer.name}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <ActivityBar level={peer.activityLevel} />
-                              <span className="text-[11px] text-muted-foreground">
-                                活跃度 {peer.activityLevel}
-                              </span>
+              <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
+                <StaggerContainer className="space-y-3">
+                  {mockPeers.map((peer) => (
+                    <StaggerItem key={peer.id}>
+                      <button
+                        type="button"
+                        className="w-full rounded-lg border p-4 hover:border-blue-200 hover:shadow-sm transition-all group cursor-pointer text-left"
+                        onClick={() => setSelectedPeer(peer)}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                              {peer.name.charAt(0)}
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-semibold group-hover:text-blue-600 transition-colors">
+                                {peer.name}
+                              </h4>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <ActivityBar level={peer.activityLevel} />
+                                <span className="text-[11px] text-muted-foreground">
+                                  活跃度 {peer.activityLevel}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="flex items-center gap-2">
+                            <ThreatBadge level={peer.threatLevel} />
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <ThreatBadge level={peer.threatLevel} />
-                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                        <div className="flex items-center gap-2 ml-[52px]">
+                          <Badge variant="outline" className="text-[10px]">
+                            {peer.actionType}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {peer.latestAction}
+                          </span>
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] ml-auto"
+                          >
+                            {peer.recentCount}条动态
+                          </Badge>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 ml-[52px]">
-                        <Badge variant="outline" className="text-[10px]">
-                          {peer.actionType}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {peer.latestAction}
-                        </span>
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] ml-auto"
-                        >
-                          {peer.recentCount}条动态
-                        </Badge>
-                      </div>
-                    </button>
-                  </StaggerItem>
-                ))}
-              </StaggerContainer>
+                      </button>
+                    </StaggerItem>
+                  ))}
+                </StaggerContainer>
+              </div>
             </CardContent>
           </Card>
         </div>

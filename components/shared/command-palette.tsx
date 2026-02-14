@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback } from "react";
 import {
   CommandDialog,
   CommandInput,
@@ -9,7 +9,7 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   FileText,
   Cpu,
@@ -25,49 +25,114 @@ import {
   DollarSign,
   Clock,
   Search,
-} from "lucide-react"
-import { rawAlerts } from "@/lib/mock-data/home-briefing"
+} from "lucide-react";
+import { rawAlerts } from "@/lib/mock-data/home-briefing";
 
 interface CommandPaletteProps {
-  onNavigate: (page: string) => void
+  onNavigate: (page: string) => void;
 }
 
 const moduleItems = [
-  { id: "home", label: "院长早报", icon: LayoutDashboard, keywords: "首页 早报 home briefing" },
-  { id: "policy-intel", label: "政策情报", icon: FileText, keywords: "政策 国家 北京 申报 policy" },
-  { id: "tech-frontier", label: "科技前沿", icon: Cpu, keywords: "技术 科技 AI 前沿 趋势 tech" },
-  { id: "talent-radar", label: "人才雷达", icon: Globe, keywords: "人才 回流 招聘 talent" },
-  { id: "university-eco", label: "高校生态", icon: GraduationCap, keywords: "高校 清华 北大 同行 university" },
-  { id: "internal-mgmt", label: "院内管理", icon: Building, keywords: "财务 项目 预算 管理 internal" },
-  { id: "network", label: "人脉网络", icon: Users, keywords: "人脉 关系 联系人 network" },
-  { id: "smart-schedule", label: "智能日程", icon: Calendar, keywords: "日程 会议 邀约 schedule" },
-]
+  {
+    id: "home",
+    label: "院长早报",
+    icon: LayoutDashboard,
+    keywords: "首页 早报 home briefing",
+  },
+  {
+    id: "policy-intel",
+    label: "政策情报",
+    icon: FileText,
+    keywords: "政策 国家 北京 申报 policy",
+  },
+  {
+    id: "tech-frontier",
+    label: "科技前沿",
+    icon: Cpu,
+    keywords: "技术 科技 AI 前沿 趋势 tech",
+  },
+  {
+    id: "talent-radar",
+    label: "人事动态",
+    icon: Globe,
+    keywords: "人事 动态 人才 领导 变动 高校 政府 personnel",
+  },
+  {
+    id: "university-eco",
+    label: "高校生态",
+    icon: GraduationCap,
+    keywords: "高校 清华 北大 同行 university",
+  },
+  {
+    id: "internal-mgmt",
+    label: "院内管理",
+    icon: Building,
+    keywords: "财务 项目 预算 管理 internal",
+  },
+  {
+    id: "network",
+    label: "人脉网络",
+    icon: Users,
+    keywords: "人脉 关系 联系人 network",
+  },
+  {
+    id: "smart-schedule",
+    label: "智能日程",
+    icon: Calendar,
+    keywords: "日程 会议 邀约 schedule",
+  },
+];
 
 const quickActions = [
-  { id: "action-report", label: "生成今日工作报告", icon: FileText, keywords: "报告 report" },
-  { id: "action-schedule", label: "查看今日日程", icon: Clock, keywords: "日程 今天 today" },
-  { id: "action-budget", label: "查看预算执行情况", icon: DollarSign, keywords: "预算 财务 budget" },
-  { id: "action-talent", label: "查看人才引进进展", icon: UserCheck, keywords: "人才 引进 talent" },
-  { id: "action-trends", label: "查看技术趋势简报", icon: TrendingUp, keywords: "技术 趋势 trend" },
-]
+  {
+    id: "action-report",
+    label: "生成今日工作报告",
+    icon: FileText,
+    keywords: "报告 report",
+  },
+  {
+    id: "action-schedule",
+    label: "查看今日日程",
+    icon: Clock,
+    keywords: "日程 今天 today",
+  },
+  {
+    id: "action-budget",
+    label: "查看预算执行情况",
+    icon: DollarSign,
+    keywords: "预算 财务 budget",
+  },
+  {
+    id: "action-talent",
+    label: "查看最新人事动态",
+    icon: UserCheck,
+    keywords: "人事 动态 人才 personnel",
+  },
+  {
+    id: "action-trends",
+    label: "查看技术趋势简报",
+    icon: TrendingUp,
+    keywords: "技术 趋势 trend",
+  },
+];
 
 export default function CommandPalette({ onNavigate }: CommandPaletteProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((o) => !o)
+        e.preventDefault();
+        setOpen((o) => !o);
       }
-    }
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
-  }, [])
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
 
   const handleSelect = useCallback(
     (id: string) => {
-      setOpen(false)
+      setOpen(false);
       if (id.startsWith("action-")) {
         // Quick actions map to modules
         const actionMap: Record<string, string> = {
@@ -76,16 +141,16 @@ export default function CommandPalette({ onNavigate }: CommandPaletteProps) {
           "action-budget": "internal-mgmt",
           "action-talent": "talent-radar",
           "action-trends": "tech-frontier",
-        }
-        onNavigate(actionMap[id] || "home")
+        };
+        onNavigate(actionMap[id] || "home");
       } else if (id.startsWith("alert-")) {
-        onNavigate("home")
+        onNavigate("home");
       } else {
-        onNavigate(id)
+        onNavigate(id);
       }
     },
-    [onNavigate]
-  )
+    [onNavigate],
+  );
 
   return (
     <>
@@ -94,9 +159,7 @@ export default function CommandPalette({ onNavigate }: CommandPaletteProps) {
         className="flex h-9 w-72 items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground transition-all duration-200 hover:bg-white hover:shadow-sm hover:border-blue-200"
       >
         <Search className="h-4 w-4" />
-        <span className="flex-1 text-left">
-          全局搜索
-        </span>
+        <span className="flex-1 text-left">全局搜索</span>
         <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
           <span className="text-xs">⌘</span>K
         </kbd>
@@ -152,5 +215,5 @@ export default function CommandPalette({ onNavigate }: CommandPaletteProps) {
         </CommandList>
       </CommandDialog>
     </>
-  )
+  );
 }

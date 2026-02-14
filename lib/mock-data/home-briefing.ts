@@ -1,7 +1,7 @@
 import type { PriorityItemWithScore } from "@/lib/priority-scoring";
 import type { DailySummaryData } from "@/components/home/ai-daily-summary";
 import type { MetricCardData } from "@/components/home/aggregated-metric-cards";
-import type { TimelineEvent } from "@/components/home/timeline-view";
+import type { AgendaItem } from "@/components/home/today-agenda";
 
 export const rawAlerts: PriorityItemWithScore[] = [
   {
@@ -83,9 +83,47 @@ export const rawAlerts: PriorityItemWithScore[] = [
 ];
 
 export const mockDailySummary: DailySummaryData = {
-  summary:
-    "今日重点关注北京科委发布的算力补贴政策（关联度High，建议李副主任牵头申报）；内部需督办大模型基座项目的采购进度（延期15天，卡在李某某处）；清华AIR发布2项新成果（具身智能方向），建议关注竞争态势并评估我院布局。",
   generatedAt: new Date(),
+  paragraphs: [
+    [
+      "院长，今日有3件事项需要您优先关注。",
+      {
+        text: "北京科委发布算力补贴政策",
+        moduleId: "policy-intel",
+        action: "查看政策",
+      },
+      "（匹配度98%，资金规模500-1000万），与我院算力平台二期高度匹配，建议李副主任牵头紧急组织申报。同时，",
+      {
+        text: "科技部AI专项申报截止仅剩3天",
+        moduleId: "policy-intel",
+        action: "督办进度",
+      },
+      "，材料准备进度仅30%，需督促王教授加快进度。",
+    ],
+    [
+      "内部管理方面，",
+      {
+        text: "大模型基座项目采购审批延期15天",
+        moduleId: "internal-mgmt",
+        action: "查看详情",
+      },
+      "，卡在李某某（采购处）处，建议直接联系推动。另外Q1预算执行率仅12%（红线25%），多个项目采购流程受阻。",
+    ],
+    [
+      "外部动态方面，",
+      {
+        text: "清华AIR发布2项具身智能新成果",
+        moduleId: "university-eco",
+        action: "查看前沿",
+      },
+      "，建议关注竞争态势并评估我院在该方向的布局。此外，",
+      {
+        text: "教育部副部长近日发表研究生教育改革讲话",
+        moduleId: "talent-radar",
+      },
+      "，交叉学科招生名额将扩大、博士生淘汰机制趋严，对我院研究生培养有直接影响。",
+    ],
+  ],
 };
 
 export const mockMetricCards: MetricCardData[] = [
@@ -111,12 +149,12 @@ export const mockMetricCards: MetricCardData[] = [
   },
   {
     id: "talent-radar",
-    title: "人才雷达",
+    title: "人事动态",
     icon: "talent",
     metrics: [
-      { label: "高意向", value: "3人", variant: "success" },
-      { label: "回流追踪", value: "12人" },
-      { label: "新动态", value: "5条" },
+      { label: "今日要闻", value: "3条", variant: "success" },
+      { label: "本周更新", value: "8条" },
+      { label: "重要事项", value: "2条" },
     ],
   },
   {
@@ -161,9 +199,10 @@ export const mockMetricCards: MetricCardData[] = [
   },
 ];
 
-export const mockTodayEvents: TimelineEvent[] = [
+export const mockAgendaItems: AgendaItem[] = [
+  // Scheduled events (sorted by time)
   {
-    id: "1",
+    id: "evt-1",
     time: "09:00",
     title: "Q3战略技术审查会",
     type: "meeting",
@@ -172,70 +211,52 @@ export const mockTodayEvents: TimelineEvent[] = [
     actionLabel: "查看简报",
   },
   {
-    id: "2",
+    id: "evt-2",
     time: "14:00",
     title: "人才引进委员会",
     type: "meeting",
     status: "conflict",
-    metadata: '与"部委电话会议"时间冲突',
+    metadata: "与「部委电话会议」时间冲突",
     actionLabel: "处理冲突",
   },
   {
-    id: "3",
+    id: "evt-3",
     time: "18:00",
     title: "审查伦理委员会报告",
-    type: "task",
+    type: "deadline",
     status: "upcoming",
     metadata: "截止今天18:00",
     actionLabel: "开始审阅",
   },
-];
-
-export const mockWeekEvents: TimelineEvent[] = [
+  // Unscheduled pending tasks (no time)
   {
-    id: "4",
-    time: "明天 10:00",
-    title: "科技部AI专项申报截止",
-    type: "deadline",
-    status: "incomplete",
-    metadata: "准备度: 30% | 负责人: 王教授",
-    actionLabel: "督办进度",
+    id: "qa-1",
+    title: "审批：量子计算中心设备采购",
+    type: "approve",
+    status: "urgent",
+    source: "财务处",
+    actionLabel: "去审批",
   },
   {
-    id: "5",
-    time: "周三 09:00",
-    title: "中关村管委会调研",
-    type: "meeting",
-    status: "upcoming",
-    metadata: "ROI: 92 | 重点汇报算力平台进展",
-    actionLabel: "查看材料",
+    id: "qa-2",
+    title: "回复：教育部座谈会邀请函",
+    type: "reply",
+    status: "urgent",
+    source: "办公室",
+    actionLabel: "去回复",
   },
   {
-    id: "6",
-    time: "周五 14:00",
-    title: "学术委员会季度会议",
-    type: "meeting",
-    status: "upcoming",
-    metadata: "审议3个重大项目立项",
-  },
-];
-
-export const mockLongTermEvents: TimelineEvent[] = [
-  {
-    id: "7",
-    time: "3月25日",
-    title: "北京市科技创新大会",
-    type: "meeting",
-    status: "upcoming",
-    metadata: "ROI: 95 | 同框：市长、科委主任",
-    actionLabel: "确认出席",
+    id: "qa-3",
+    title: "审阅：Q1预算执行情况报告",
+    type: "review",
+    source: "财务处",
+    actionLabel: "去审阅",
   },
   {
-    id: "8",
-    time: "4月10日",
-    title: "Q2重点项目中期评审",
-    type: "task",
-    status: "upcoming",
-    metadata: "涉及8个项目，需提前准备评审材料",
+    id: "qa-4",
+    title: "确认：张明远博士面谈时间",
+    type: "reply",
+    source: "人事处",
+    actionLabel: "去确认",
   },
 ];

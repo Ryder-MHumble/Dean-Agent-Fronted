@@ -10,6 +10,7 @@ export interface PolicyItem {
   status: "urgent" | "active" | "tracking";
   aiInsight: string;
   detail: string;
+  sourceUrl?: string;
 }
 
 export interface TechTrend {

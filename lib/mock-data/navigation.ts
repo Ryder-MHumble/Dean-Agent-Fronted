@@ -19,7 +19,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { id: "policy-intel", label: "政策情报", icon: FileText, badge: 3 },
       { id: "tech-frontier", label: "科技前沿", icon: Cpu },
-      { id: "talent-radar", label: "人才雷达", icon: Globe },
+      { id: "talent-radar", label: "人事动态", icon: Globe },
       { id: "university-eco", label: "高校生态", icon: GraduationCap },
     ],
   },
@@ -47,8 +47,8 @@ export const pageMeta: Record<string, PageMeta> = {
     subtitle: "技术趋势 · 行业动态 · 前沿追踪",
   },
   "talent-radar": {
-    title: "人才雷达",
-    subtitle: "人才回流 · 指数追踪 · 学术流动",
+    title: "人事动态",
+    subtitle: "政府人事 · 高校人事 · 人才要闻",
   },
   "university-eco": {
     title: "高校生态",

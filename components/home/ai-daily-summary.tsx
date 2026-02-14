@@ -1,83 +1,94 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Sparkles, FileText, Users, AlertTriangle } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card";
+import { Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+/**
+ * A segment is either plain text (string) or an interactive link.
+ * Interactive links render as highlighted clickable phrases in the narrative.
+ */
+export type BriefingSegment =
+  | string
+  | { text: string; moduleId: string; action?: string };
 
 export interface DailySummaryData {
-  summary: string
-  generatedAt: Date
-  sections?: {
-    icon: "policy" | "talent" | "risk"
-    label: string
-    text: string
-  }[]
+  /** Array of paragraphs; each paragraph is an array of segments */
+  paragraphs: BriefingSegment[][];
+  generatedAt: Date;
+  /** Legacy field kept for backward compat — ignored if paragraphs exist */
+  summary?: string;
+  sections?: unknown[];
 }
 
 interface AIDailySummaryProps {
-  data: DailySummaryData
+  data: DailySummaryData;
+  onNavigate?: (moduleId: string) => void;
 }
 
-const sectionIcons = {
-  policy: FileText,
-  talent: Users,
-  risk: AlertTriangle,
-}
-
-const sectionColors = {
-  policy: "text-blue-500 bg-blue-50",
-  talent: "text-green-500 bg-green-50",
-  risk: "text-amber-500 bg-amber-50",
-}
-
-export default function AIDailySummary({ data }: AIDailySummaryProps) {
-  const sections = data.sections || [
-    {
-      icon: "policy" as const,
-      label: "重要政策",
-      text: "北京科委发布算力补贴政策，关联度High，建议李副主任牵头申报",
-    },
-    {
-      icon: "talent" as const,
-      label: "人才动态",
-      text: "清华AIR发布2项新成果（具身智能方向），建议关注竞争态势",
-    },
-    {
-      icon: "risk" as const,
-      label: "风险预警",
-      text: "大模型基座项目采购审批延期15天，卡在李某某处，需督办",
-    },
-  ]
-
+export default function AIDailySummary({
+  data,
+  onNavigate,
+}: AIDailySummaryProps) {
   return (
-    <Card className="bg-gradient-to-br from-blue-50/90 via-indigo-50/60 to-violet-50/40 border-blue-200/50 shadow-card h-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4 text-blue-600 animate-pulse-soft" />
-          <CardTitle className="text-sm font-semibold">AI 每日综述</CardTitle>
-          <span className="ml-auto text-[10px] text-muted-foreground">
-            {data.generatedAt.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} 生成
+    <Card className="bg-gradient-to-br from-slate-50/80 via-blue-50/40 to-slate-50/80 border-border/60 shadow-card">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-1.5 mb-2.5">
+          <Sparkles className="h-3.5 w-3.5 text-blue-500" />
+          <span className="text-xs font-semibold text-foreground">
+            AI 早报
+          </span>
+          <span className="text-[10px] text-muted-foreground ml-auto">
+            {data.generatedAt.toLocaleTimeString("zh-CN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}{" "}
+            生成
           </span>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {sections.map((section, i) => {
-          const Icon = sectionIcons[section.icon]
-          const colorClass = sectionColors[section.icon]
-          return (
-            <div key={i} className="flex items-start gap-2.5">
-              <div className={`flex h-6 w-6 items-center justify-center rounded-md shrink-0 mt-0.5 ${colorClass}`}>
-                <Icon className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <span className="text-[11px] font-semibold text-foreground">{section.label}</span>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                  {section.text}
-                </p>
-              </div>
-            </div>
-          )
-        })}
+        <div className="space-y-2">
+          {data.paragraphs.map((segments, pIdx) => (
+            <p
+              key={pIdx}
+              className="text-[13px] leading-relaxed text-muted-foreground"
+            >
+              {segments.map((seg, sIdx) => {
+                if (typeof seg === "string") {
+                  return <span key={sIdx}>{seg}</span>;
+                }
+                const isClickable = !!seg.moduleId && !!onNavigate;
+                return (
+                  <span key={sIdx} className="inline">
+                    <button
+                      type="button"
+                      disabled={!isClickable}
+                      className={cn(
+                        "inline text-foreground font-medium",
+                        isClickable &&
+                          "underline decoration-blue-300 decoration-1 underline-offset-2 hover:decoration-blue-500 hover:text-blue-700 transition-colors cursor-pointer",
+                      )}
+                      onClick={() =>
+                        isClickable && onNavigate!(seg.moduleId)
+                      }
+                    >
+                      {seg.text}
+                    </button>
+                    {seg.action && isClickable && (
+                      <button
+                        type="button"
+                        className="inline-flex items-center ml-1 px-1.5 py-0 rounded text-[10px] font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200/60 transition-colors cursor-pointer align-baseline"
+                        onClick={() => onNavigate!(seg.moduleId)}
+                      >
+                        {seg.action}
+                      </button>
+                    )}
+                  </span>
+                );
+              })}
+            </p>
+          ))}
+        </div>
       </CardContent>
     </Card>
-  )
+  );
 }

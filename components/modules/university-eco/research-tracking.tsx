@@ -17,8 +17,6 @@ import {
   Trophy,
   Sparkles,
   ChevronRight,
-  FileText,
-  TrendingUp,
 } from "lucide-react";
 import {
   MotionNumber,
@@ -113,140 +111,73 @@ export default function ResearchTracking() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
-          <Card className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">
-                  同行机构科研成果追踪
-                </CardTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  按影响力排序
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <StaggerContainer className="space-y-3">
-                {mockResearchOutputs.map((output) => (
-                  <StaggerItem key={output.id}>
-                    <button
-                      type="button"
-                      className="w-full rounded-lg border p-4 hover:border-purple-200 hover:shadow-sm transition-all group cursor-pointer text-left"
-                      onClick={() => setSelectedOutput(output)}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                            {output.institution.charAt(0)}
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-semibold group-hover:text-purple-600 transition-colors">
-                              {output.title}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[11px] text-muted-foreground">
-                                {output.institution}
-                              </span>
-                              <span className="text-[11px] text-muted-foreground">
-                                ·
-                              </span>
-                              <span className="text-[11px] text-muted-foreground">
-                                {output.field}
-                              </span>
-                              <span className="text-[11px] text-muted-foreground">
-                                ·
-                              </span>
-                              <span className="text-[11px] text-muted-foreground">
-                                {output.date}
-                              </span>
-                            </div>
+      <Card className="shadow-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold">
+              同行机构科研成果追踪
+            </CardTitle>
+            <Badge variant="secondary" className="text-[10px]">
+              按影响力排序
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
+            <StaggerContainer className="space-y-3">
+              {mockResearchOutputs.map((output) => (
+                <StaggerItem key={output.id}>
+                  <button
+                    type="button"
+                    className="w-full rounded-lg border p-4 hover:border-purple-200 hover:shadow-sm transition-all group cursor-pointer text-left"
+                    onClick={() => setSelectedOutput(output)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                          {output.institution.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold group-hover:text-purple-600 transition-colors">
+                            {output.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[11px] text-muted-foreground">
+                              {output.institution}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              ·
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {output.field}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              ·
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {output.date}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <InfluenceBadge level={output.influence} />
-                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all" />
-                        </div>
                       </div>
-                      <div className="flex items-center gap-2 ml-[52px]">
-                        <TypeBadge type={output.type} />
-                        <span className="text-xs text-muted-foreground truncate max-w-[300px]">
-                          {output.authors}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <InfluenceBadge level={output.influence} />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all" />
                       </div>
-                    </button>
-                  </StaggerItem>
-                ))}
-              </StaggerContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="col-span-4">
-          <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-purple-400" />
-                <span className="text-sm font-semibold">AI 竞争态势分析</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                近期同行机构科研产出活跃，清华在具身智能方向连续发表顶会论文，中科院在量子计算取得突破，北大获国家级奖项。建议重点关注具身智能和量子计算两个方向的人才和资源布局。
-              </p>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    清华具身智能方向形成系统性领先
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    中科院量子纠错码突破，国际领先
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    浙大新能源专利产业化加速
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    北大脑机接口获国家自然科学奖
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    上交自动驾驶方向稳步推进
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Button
-                  size="sm"
-                  className="w-full bg-purple-500 hover:bg-purple-600 text-white text-xs"
-                  onClick={() => toast.success("正在生成科研竞争态势报告...")}
-                >
-                  <FileText className="h-3.5 w-3.5 mr-1.5" />
-                  生成竞争分析报告
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white text-xs"
-                  onClick={() => toast.success("已订阅科研动态周报")}
-                >
-                  <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
-                  订阅科研动态周报
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-[52px]">
+                      <TypeBadge type={output.type} />
+                      <span className="text-xs text-muted-foreground truncate max-w-[500px]">
+                        {output.authors}
+                      </span>
+                    </div>
+                  </button>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Sheet
         open={!!selectedOutput}

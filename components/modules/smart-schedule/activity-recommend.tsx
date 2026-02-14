@@ -107,66 +107,68 @@ export default function ActivityRecommend() {
 
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-8">
-          <StaggerContainer className="space-y-3">
-            {mockActivities.map((activity) => (
-              <StaggerItem key={activity.id}>
-                <Card
-                  className="shadow-card hover:shadow-md transition-shadow cursor-pointer group"
-                  onClick={() => setSelectedActivity(activity)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-sm font-semibold group-hover:text-indigo-600 transition-colors truncate">
-                            {activity.name}
-                          </h3>
-                          <Badge
-                            variant="secondary"
-                            className="text-[10px] shrink-0"
-                          >
-                            {activity.category}
-                          </Badge>
+          <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
+            <StaggerContainer className="space-y-3">
+              {mockActivities.map((activity) => (
+                <StaggerItem key={activity.id}>
+                  <Card
+                    className="shadow-card hover:shadow-md transition-shadow cursor-pointer group"
+                    onClick={() => setSelectedActivity(activity)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-sm font-semibold group-hover:text-indigo-600 transition-colors truncate">
+                              {activity.name}
+                            </h3>
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] shrink-0"
+                            >
+                              {activity.category}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <CalendarDays className="h-3 w-3" />
+                              {activity.date}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {activity.location}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3" />
-                            {activity.date}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {activity.location}
-                          </span>
+                        <div className="flex items-center gap-2 shrink-0 ml-3">
+                          <RelevanceBadge score={activity.relevanceScore} />
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0 ml-3">
-                        <RelevanceBadge score={activity.relevanceScore} />
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all" />
+                      <div className="flex items-center gap-2 mt-2">
+                        <Target className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                        <p className="text-xs text-muted-foreground line-clamp-1">
+                          {activity.reason}
+                        </p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Target className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {activity.reason}
-                      </p>
-                    </div>
-                    {activity.highlights.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {activity.highlights.map((h, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] text-indigo-600"
-                          >
-                            {h}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
+                      {activity.highlights.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {activity.highlights.map((h, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] text-indigo-600"
+                            >
+                              {h}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
         </div>
 
         <div className="col-span-4">

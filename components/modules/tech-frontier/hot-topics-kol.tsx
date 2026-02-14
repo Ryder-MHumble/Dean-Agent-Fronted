@@ -12,15 +12,15 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import {
-  Flame,
-  Users,
-  BookOpen,
-  Sparkles,
-  ChevronRight,
-  FileText,
   TrendingUp,
-  MessageSquare,
+  Newspaper,
   GraduationCap,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Sparkles,
+  Hash,
 } from "lucide-react";
 import {
   MotionNumber,
@@ -29,15 +29,69 @@ import {
 } from "@/components/motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import type { HotTopic, KOL } from "@/lib/types/tech-frontier";
-import { mockHotTopics, mockKOLs } from "@/lib/mock-data/tech-frontier";
+import type { IndustryNews, KOL } from "@/lib/types/tech-frontier";
+import {
+  mockIndustryNews,
+  mockKOLs,
+  mockTrendingKeywords,
+} from "@/lib/mock-data/tech-frontier";
+
+const platformColors: Record<string, string> = {
+  X: "bg-black text-white",
+  YouTube: "bg-red-600 text-white",
+  ArXiv: "bg-red-100 text-red-700",
+  GitHub: "bg-gray-800 text-white",
+  微信公众号: "bg-green-600 text-white",
+  知乎: "bg-blue-600 text-white",
+};
+
+const trendConfig: Record<string, { label: string; color: string }> = {
+  surging: { label: "爆发", color: "bg-red-100 text-red-700 border-red-200" },
+  rising: {
+    label: "上升",
+    color: "bg-amber-100 text-amber-700 border-amber-200",
+  },
+  stable: {
+    label: "稳定",
+    color: "bg-green-100 text-green-700 border-green-200",
+  },
+};
+
+const typeConfig: Record<IndustryNews["type"], { color: string; bg: string }> =
+  {
+    投融资: { color: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
+    新产品: { color: "text-green-700", bg: "bg-green-50 border-green-200" },
+    政策: { color: "text-purple-700", bg: "bg-purple-50 border-purple-200" },
+    收购: { color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
+  };
+
+const impactConfig: Record<
+  IndustryNews["impact"],
+  { color: string; bg: string }
+> = {
+  重大: { color: "text-red-700", bg: "bg-red-50 border-red-200" },
+  较大: { color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
+  一般: { color: "text-gray-700", bg: "bg-gray-50 border-gray-200" },
+};
 
 type DetailItem =
-  | { kind: "topic"; data: HotTopic }
+  | { kind: "news"; data: IndustryNews }
   | { kind: "kol"; data: KOL };
 
-export default function HotTopicsKol() {
+export default function DynamicsAndTrending() {
+  const [expandedKeywords, setExpandedKeywords] = useState<Set<string>>(
+    new Set([mockTrendingKeywords[0]?.id]),
+  );
   const [selected, setSelected] = useState<DetailItem | null>(null);
+
+  const toggleKeyword = (id: string) => {
+    setExpandedKeywords((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <>
@@ -45,12 +99,28 @@ export default function HotTopicsKol() {
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
-              <Flame className="h-5 w-5" />
+              <Hash className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground">热门话题</p>
+              <p className="text-[11px] text-muted-foreground">热门关键词</p>
               <p className="text-xl font-bold font-tabular">
-                <MotionNumber value={12} suffix="个" />
+                <MotionNumber
+                  value={mockTrendingKeywords.length}
+                  suffix="个"
+                />
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="shadow-card">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-50 text-cyan-500">
+              <Newspaper className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] text-muted-foreground">行业动态</p>
+              <p className="text-xl font-bold font-tabular text-cyan-600">
+                <MotionNumber value={mockIndustryNews.length} suffix="条" />
               </p>
             </div>
           </CardContent>
@@ -58,258 +128,356 @@ export default function HotTopicsKol() {
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
-              <Users className="h-5 w-5" />
+              <GraduationCap className="h-5 w-5" />
             </div>
             <div>
               <p className="text-[11px] text-muted-foreground">活跃KOL</p>
               <p className="text-xl font-bold font-tabular text-blue-600">
-                <MotionNumber value={28} suffix="位" />
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 text-green-500">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">高引用论文</p>
-              <p className="text-xl font-bold font-tabular text-green-600">
-                <MotionNumber value={5} suffix="篇" />
+                <MotionNumber value={mockKOLs.length} suffix="位" />
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8 space-y-4">
-          {/* Hot Topics Section */}
-          <Card className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-orange-500" />
-                  热门话题
-                </CardTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  按热度排序
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <StaggerContainer className="grid grid-cols-2 gap-3">
-                {mockHotTopics.map((topic) => (
-                  <StaggerItem key={topic.id}>
-                    <button
-                      type="button"
-                      className="w-full text-left rounded-lg border p-3 hover:bg-muted/30 transition-colors group cursor-pointer"
-                      onClick={() =>
-                        setSelected({ kind: "topic", data: topic })
-                      }
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <span className="text-sm font-medium group-hover:text-blue-600 transition-colors line-clamp-1">
-                          {topic.title}
-                        </span>
-                        {topic.trend === "new" && (
-                          <Badge className="bg-red-500 text-white text-[9px] shrink-0 ml-1">
-                            NEW
-                          </Badge>
-                        )}
-                        {topic.trend === "up" && (
-                          <TrendingUp className="h-3.5 w-3.5 text-red-500 shrink-0 ml-1" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mb-2">
-                        {topic.tags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="outline"
-                            className="text-[9px] px-1.5 py-0"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-muted-foreground">热度</span>
-                          <span className="font-medium">{topic.heat}/100</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              topic.heat >= 85
-                                ? "bg-red-500"
-                                : topic.heat >= 70
-                                  ? "bg-orange-400"
-                                  : "bg-amber-300",
-                            )}
-                            style={{
-                              width: `${(topic.heat / topic.maxHeat) * 100}%`,
-                            }}
-                          />
-                        </div>
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground pt-0.5">
-                          <MessageSquare className="h-3 w-3" />
-                          <span>{topic.discussions.toLocaleString()} 讨论</span>
-                        </div>
-                      </div>
-                    </button>
-                  </StaggerItem>
-                ))}
-              </StaggerContainer>
-            </CardContent>
-          </Card>
-
-          {/* KOL Section */}
-          <Card className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4 text-blue-500" />
-                  学术KOL动态
-                </CardTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  按影响力排序
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="overflow-hidden">
-                <div className="grid grid-cols-[1fr_120px_70px_70px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
-                  <span>姓名</span>
-                  <span>机构</span>
-                  <span>h-index</span>
-                  <span>影响力</span>
-                  <span>近期动态</span>
-                  <span></span>
-                </div>
-                <StaggerContainer>
-                  {mockKOLs.map((kol) => (
-                    <StaggerItem key={kol.id}>
+      <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-320px)]">
+        {/* Trending Keywords Section */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-orange-500" />
+                热门关键词
+              </CardTitle>
+              <Badge variant="secondary" className="text-[10px]">
+                按热度排序
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <StaggerContainer className="space-y-2">
+              {mockTrendingKeywords.map((kw) => {
+                const isExpanded = expandedKeywords.has(kw.id);
+                const trend = trendConfig[kw.trend];
+                return (
+                  <StaggerItem key={kw.id}>
+                    <div className="rounded-lg border">
                       <button
                         type="button"
-                        className="w-full grid grid-cols-[1fr_120px_70px_70px_1fr_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
-                        onClick={() => setSelected({ kind: "kol", data: kol })}
+                        className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => toggleKeyword(kw.id)}
                       >
-                        <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
-                          {kol.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {kol.affiliation}
-                        </span>
-                        <span className="text-xs font-mono font-medium">
-                          {kol.hIndex}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn("text-[10px] w-fit", {
-                            "border-red-200 bg-red-50 text-red-700":
-                              kol.influence === "极高",
-                            "border-amber-200 bg-amber-50 text-amber-700":
-                              kol.influence === "高",
-                            "border-gray-200 bg-gray-50 text-gray-700":
-                              kol.influence === "中",
-                          })}
-                        >
-                          {kol.influence}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {kol.recentActivity}
-                        </span>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-semibold">
+                            {kw.keyword}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={cn("text-[10px]", trend.color)}
+                          >
+                            {trend.label}
+                          </Badge>
+                          <span className="text-[11px] text-muted-foreground">
+                            {kw.postCount} 条相关内容
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            {kw.tags.map((tag) => (
+                              <Badge
+                                key={tag}
+                                variant="secondary"
+                                className="text-[9px] px-1.5 py-0"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
                       </button>
-                    </StaggerItem>
-                  ))}
-                </StaggerContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                      {isExpanded && (
+                        <div className="border-t px-3 pb-3 pt-2 space-y-2">
+                          {kw.posts.map((post) => (
+                            <a
+                              key={post.id}
+                              href={post.sourceUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/40 transition-colors group"
+                            >
+                              <Badge
+                                className={cn(
+                                  "text-[9px] px-1.5 py-0.5 shrink-0 mt-0.5",
+                                  platformColors[post.platform] ||
+                                    "bg-gray-100 text-gray-700",
+                                )}
+                              >
+                                {post.platform}
+                              </Badge>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium group-hover:text-blue-600 transition-colors line-clamp-1">
+                                    {post.title}
+                                  </span>
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                                  {post.summary}
+                                </p>
+                                <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
+                                  <span>{post.author}</span>
+                                  <span>{post.date}</span>
+                                  {post.engagement && (
+                                    <span className="font-medium text-foreground/70">
+                                      {post.engagement}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          </CardContent>
+        </Card>
 
-        <div className="col-span-4">
-          <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-orange-400" />
-                <span className="text-sm font-semibold">AI 热点趋势</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                本周学术热点集中在Scaling
-                Law反思和世界模型两大方向。多位顶级KOL对大模型发展路线发表重要观点，可能影响未来1-2年的研究资源配置。
-              </p>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    Scaling Law争论或改变大模型研究路线
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    LeCun力推World Model，建议跟踪研究
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    AI安全方向人才和经费机遇窗口打开
-                  </span>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs"
-                onClick={() => toast.success("正在生成热点趋势分析报告...")}
-              >
-                <FileText className="h-3.5 w-3.5 mr-1.5" />
-                生成趋势报告
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Industry News Section */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Newspaper className="h-4 w-4 text-cyan-500" />
+                行业动态
+              </CardTitle>
+              <Badge variant="secondary" className="text-[10px]">
+                按影响等级排序
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-[1fr_70px_70px_80px_70px_40px_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
+              <span>标题</span>
+              <span>来源</span>
+              <span>类型</span>
+              <span>日期</span>
+              <span>影响</span>
+              <span>原文</span>
+              <span></span>
+            </div>
+            <StaggerContainer>
+              {mockIndustryNews.map((news) => (
+                <StaggerItem key={news.id}>
+                  <button
+                    type="button"
+                    className="w-full grid grid-cols-[1fr_70px_70px_80px_70px_40px_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
+                    onClick={() => setSelected({ kind: "news", data: news })}
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        {news.impact === "重大" && (
+                          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
+                        )}
+                        <span className="text-sm font-medium group-hover:text-blue-600 transition-colors truncate">
+                          {news.title}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-muted-foreground truncate">
+                        {news.summary}
+                      </span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {news.source}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] w-fit",
+                        typeConfig[news.type].bg,
+                        typeConfig[news.type].color,
+                      )}
+                    >
+                      {news.type}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {news.date}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] w-fit",
+                        impactConfig[news.impact].bg,
+                        impactConfig[news.impact].color,
+                      )}
+                    >
+                      {news.impact}
+                    </Badge>
+                    <a
+                      href={news.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-blue-500 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                  </button>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </CardContent>
+        </Card>
+
+        {/* KOL Section */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-blue-500" />
+                学术KOL动态
+              </CardTitle>
+              <Badge variant="secondary" className="text-[10px]">
+                按影响力排序
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-[1fr_160px_70px_70px_1fr_40px_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
+              <span>姓名</span>
+              <span>机构</span>
+              <span>h-index</span>
+              <span>影响力</span>
+              <span>近期动态</span>
+              <span>主页</span>
+              <span></span>
+            </div>
+            <StaggerContainer>
+              {mockKOLs.map((kol) => (
+                <StaggerItem key={kol.id}>
+                  <button
+                    type="button"
+                    className="w-full grid grid-cols-[1fr_160px_70px_70px_1fr_40px_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
+                    onClick={() => setSelected({ kind: "kol", data: kol })}
+                  >
+                    <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
+                      {kol.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {kol.affiliation}
+                    </span>
+                    <span className="text-xs font-mono font-medium">
+                      {kol.hIndex}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn("text-[10px] w-fit", {
+                        "border-red-200 bg-red-50 text-red-700":
+                          kol.influence === "极高",
+                        "border-amber-200 bg-amber-50 text-amber-700":
+                          kol.influence === "高",
+                        "border-gray-200 bg-gray-50 text-gray-700":
+                          kol.influence === "中",
+                      })}
+                    >
+                      {kol.influence}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {kol.recentActivity}
+                    </span>
+                    <a
+                      href={kol.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-muted-foreground hover:text-blue-500 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                  </button>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </CardContent>
+        </Card>
       </div>
 
+      {/* Detail Sheet */}
       <Sheet open={!!selected} onOpenChange={() => setSelected(null)}>
         <SheetContent className="sm:max-w-lg">
-          {selected?.kind === "topic" && (
+          {selected?.kind === "news" && (
             <>
               <SheetHeader>
                 <SheetTitle className="text-lg flex items-center gap-2">
                   {selected.data.title}
                 </SheetTitle>
                 <SheetDescription>
-                  热度: {selected.data.heat}/100 · 讨论数:{" "}
-                  {selected.data.discussions.toLocaleString()}
+                  来源: {selected.data.source} · {selected.data.date} ·
+                  影响评估: {selected.data.impact}
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  {selected.data.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
                 <div>
-                  <h4 className="text-sm font-semibold mb-2">话题概要</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs",
+                        typeConfig[selected.data.type].bg,
+                        typeConfig[selected.data.type].color,
+                      )}
+                    >
+                      {selected.data.type}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs",
+                        impactConfig[selected.data.impact].bg,
+                        impactConfig[selected.data.impact].color,
+                      )}
+                    >
+                      影响: {selected.data.impact}
+                    </Badge>
+                  </div>
+                  <h4 className="text-sm font-semibold mb-2">事件概要</h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {selected.data.summary}
                   </p>
                 </div>
-                <div className="rounded-lg bg-orange-50 border border-orange-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-semibold text-orange-700">
-                      AI 趋势分析
+                <a
+                  href={selected.data.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  查看原始报道
+                </a>
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">与我院关联</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {selected.data.relevance}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-muted/50 border p-3">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Sparkles className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-xs font-medium text-foreground">
+                      AI 参考分析
                     </span>
                   </div>
-                  <p className="text-sm text-orange-700/80">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {selected.data.aiAnalysis}
                   </p>
                 </div>
@@ -317,17 +485,17 @@ export default function HotTopicsKol() {
                   <Button
                     className="flex-1"
                     onClick={() => {
-                      toast.success("已加入重点关注话题");
+                      toast.success("已加入院长关注清单");
                       setSelected(null);
                     }}
                   >
-                    重点关注
+                    加入关注清单
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => toast.success("相关论文汇总已生成")}
+                    onClick={() => toast.success("深度分析报告已生成")}
                   >
-                    汇总论文
+                    生成报告
                   </Button>
                 </div>
               </div>
@@ -353,8 +521,8 @@ export default function HotTopicsKol() {
                   </Badge>
                 </SheetTitle>
                 <SheetDescription>
-                  {selected.data.affiliation} · h-index: {selected.data.hIndex}{" "}
-                  · 领域: {selected.data.field}
+                  {selected.data.affiliation} · h-index:{" "}
+                  {selected.data.hIndex} · 领域: {selected.data.field}
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-4">
@@ -364,20 +532,29 @@ export default function HotTopicsKol() {
                     {selected.data.recentActivity}
                   </p>
                 </div>
+                <a
+                  href={selected.data.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  查看学术主页
+                </a>
                 <div>
                   <h4 className="text-sm font-semibold mb-2">人物简介</h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {selected.data.summary}
                   </p>
                 </div>
-                <div className="rounded-lg bg-orange-50 border border-orange-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-semibold text-orange-700">
+                <div className="rounded-lg bg-muted/50 border p-3">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Sparkles className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-xs font-medium text-foreground">
                       AI 合作建议
                     </span>
                   </div>
-                  <p className="text-sm text-orange-700/80">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     {selected.data.aiAnalysis}
                   </p>
                 </div>

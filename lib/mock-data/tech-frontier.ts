@@ -1,7 +1,7 @@
 import type { TechTrend } from "@/lib/types/intelligence";
 import type {
   IndustryNews,
-  HotTopic,
+  TrendingKeyword,
   KOL,
   Opportunity,
 } from "@/lib/types/tech-frontier";
@@ -81,114 +81,261 @@ export const mockIndustryNews: IndustryNews[] = [
     id: "n1",
     title: "OpenAI完成新一轮融资，估值达3000亿美元",
     source: "Reuters",
+    sourceUrl: "https://www.reuters.com/technology/openai-funding-round-2025",
     type: "投融资",
     date: "2025-01-10",
     impact: "重大",
-    summary: "OpenAI完成由软银领投的新一轮融资，估值达3000亿美元，创下AI领域融资纪录。资金将用于扩大算力基础设施和AGI研究。",
-    aiAnalysis: "OpenAI估值飙升反映市场对AGI路线的高度认可。建议关注其技术路线变化，我院在大模型对齐和安全方向可寻求合作窗口。该融资可能引发新一轮人才争夺，需警惕核心研究人员被高薪挖角。",
+    summary:
+      "OpenAI完成由软银领投的新一轮融资，估值达3000亿美元，创下AI领域融资纪录。资金将用于扩大算力基础设施和AGI研究。",
+    aiAnalysis:
+      "OpenAI估值飙升反映市场对AGI路线的高度认可。建议关注其技术路线变化，我院在大模型对齐和安全方向可寻求合作窗口。该融资可能引发新一轮人才争夺，需警惕核心研究人员被高薪挖角。",
     relevance: "与我院大模型研究方向高度相关，可探索学术合作机会",
   },
   {
     id: "n2",
     title: "Google正式发布Gemini 2.0，多模态能力大幅提升",
     source: "TechCrunch",
+    sourceUrl: "https://techcrunch.com/2025/01/08/google-gemini-2-launch",
     type: "新产品",
     date: "2025-01-08",
     impact: "重大",
-    summary: "Google发布新一代多模态模型Gemini 2.0，在视觉理解、代码生成和推理能力上均有显著突破，支持100万token上下文窗口。",
-    aiAnalysis: "Gemini 2.0在多模态基准测试中部分超越GPT-4o。建议我院多模态团队密切跟踪其技术报告，评估我院现有模型的差距。长上下文窗口技术值得重点研究。",
+    summary:
+      "Google发布新一代多模态模型Gemini 2.0，在视觉理解、代码生成和推理能力上均有显著突破，支持100万token上下文窗口。",
+    aiAnalysis:
+      "Gemini 2.0在多模态基准测试中部分超越GPT-4o。建议我院多模态团队密切跟踪其技术报告，评估我院现有模型的差距。长上下文窗口技术值得重点研究。",
     relevance: "与我院多模态大模型研究直接相关",
   },
   {
     id: "n3",
     title: "字节跳动收购AI芯片设计公司芯驰科技",
     source: "36氪",
+    sourceUrl: "https://36kr.com/p/bytedance-acquires-xinchi-ai-chip",
     type: "收购",
     date: "2025-01-06",
     impact: "较大",
-    summary: "字节跳动以约50亿元收购芯驰科技，加速布局AI推理芯片自研。此举标志着大型互联网公司加速向AI全栈自主化方向发展。",
-    aiAnalysis: "字节收购芯片公司表明大厂正加速AI全栈化布局。端侧AI芯片领域我院尚未布局，建议通过产学研合作方式参与。可与字节跳动探讨联合实验室可能性。",
+    summary:
+      "字节跳动以约50亿元收购芯驰科技，加速布局AI推理芯片自研。此举标志着大型互联网公司加速向AI全栈自主化方向发展。",
+    aiAnalysis:
+      "字节收购芯片公司表明大厂正加速AI全栈化布局。端侧AI芯片领域我院尚未布局，建议通过产学研合作方式参与。可与字节跳动探讨联合实验室可能性。",
     relevance: "与我院AI芯片方向潜在研究契合",
   },
   {
     id: "n4",
     title: "百度发布文心大模型5.0，首次集成多Agent协作",
     source: "界面新闻",
+    sourceUrl: "https://www.jiemian.com/article/baidu-ernie-5-multi-agent",
     type: "新产品",
     date: "2025-01-05",
     impact: "较大",
-    summary: "百度发布文心大模型5.0版本，首次内置多Agent协作框架，支持自动化工作流编排，在企业应用场景中表现突出。",
-    aiAnalysis: "多Agent协作是我院AI Agent方向的重要落地场景。建议与百度AI研究院对接，探讨在Agent协作框架上的学术合作。该方向可作为我院Agent研究工程化的突破口。",
+    summary:
+      "百度发布文心大模型5.0版本，首次内置多Agent协作框架，支持自动化工作流编排，在企业应用场景中表现突出。",
+    aiAnalysis:
+      "多Agent协作是我院AI Agent方向的重要落地场景。建议与百度AI研究院对接，探讨在Agent协作框架上的学术合作。该方向可作为我院Agent研究工程化的突破口。",
     relevance: "与我院AI Agent研究方向紧密相关",
   },
   {
     id: "n5",
     title: "国务院发布《人工智能产业高质量发展指导意见》",
     source: "新华社",
+    sourceUrl: "https://www.gov.cn/zhengce/202501/ai-industry-guidelines",
     type: "政策",
     date: "2025-01-03",
     impact: "重大",
-    summary: "国务院正式发布AI产业发展指导意见，明确提出加大基础研究投入、培育AI人才梯队、推动产学研深度融合等重点任务，配套设立500亿元AI发展专项基金。",
-    aiAnalysis: "国家级政策利好明显，500亿专项基金为高校AI研究提供重大机遇。建议立即组织政策解读会，梳理可申报方向。重点关注基础研究和人才培育两个板块的资金申请窗口。",
+    summary:
+      "国务院正式发布AI产业发展指导意见，明确提出加大基础研究投入、培育AI人才梯队、推动产学研深度融合等重点任务，配套设立500亿元AI发展专项基金。",
+    aiAnalysis:
+      "国家级政策利好明显，500亿专项基金为高校AI研究提供重大机遇。建议立即组织政策解读会，梳理可申报方向。重点关注基础研究和人才培育两个板块的资金申请窗口。",
     relevance: "直接影响我院科研经费申请和学科建设",
   },
 ];
 
-export const mockHotTopics: HotTopic[] = [
+export const mockTrendingKeywords: TrendingKeyword[] = [
   {
-    id: "tp1",
-    title: "Scaling Law是否已触及天花板",
-    heat: 92,
-    maxHeat: 100,
-    discussions: 3420,
-    trend: "up",
-    tags: ["大模型", "理论"],
-    summary: "近期多篇论文对Scaling Law的持续有效性提出质疑，认为在特定任务上模型规模增长带来的性能提升正在放缓。OpenAI内部也传出调整策略的消息，社区讨论激烈。",
-    aiAnalysis: "该话题直接影响我院大模型研究路线选择。如果Scaling Law收益递减，Small Model和高效推理方向将成为新重点。建议组织学术研讨会深入讨论，评估是否需要调整研究资源配置。",
+    id: "tk1",
+    keyword: "SeedDance2",
+    postCount: 47,
+    trend: "surging",
+    tags: ["具身智能", "机器人", "字节跳动"],
+    posts: [
+      {
+        id: "p1-1",
+        title: "ByteDance releases SeedDance2: humanoid robots that can dance and do backflips",
+        platform: "X",
+        author: "@AK_ntn",
+        date: "2025-01-12",
+        sourceUrl: "https://x.com/ak_ntn/status/1878234567890",
+        summary:
+          "字节跳动发布SeedDance2全身运动控制模型，人形机器人可完成舞蹈、后空翻等复杂动作，展示具身智能重大突破。",
+        engagement: "12.3k likes",
+      },
+      {
+        id: "p1-2",
+        title: "SeedDance2: Scalable Whole-Body Motion Synthesis for Humanoid Robots",
+        platform: "ArXiv",
+        author: "ByteDance Research",
+        date: "2025-01-11",
+        sourceUrl: "https://arxiv.org/abs/2501.06789",
+        summary:
+          "论文提出基于扩散模型的全身运动生成框架，在多个基准测试上超越现有方法。",
+        engagement: "324 citations",
+      },
+      {
+        id: "p1-3",
+        title: "SeedDance2 Demo: 字节机器人跳街舞完整演示",
+        platform: "YouTube",
+        author: "Two Minute Papers",
+        date: "2025-01-13",
+        sourceUrl: "https://www.youtube.com/watch?v=SeedDance2Demo",
+        summary: "Two Minute Papers对SeedDance2的技术解析和演示视频。",
+        engagement: "890k views",
+      },
+    ],
   },
   {
-    id: "tp2",
-    title: "World Model与视频生成新范式",
-    heat: 87,
-    maxHeat: 100,
-    discussions: 2180,
-    trend: "new",
-    tags: ["世界模型", "视频生成"],
-    summary: "Sora引发的世界模型讨论持续升温。学术界对物理世界模拟能力的研究快速推进，多个团队发布了结合物理引擎的视频生成模型，引发对AGI路线的新思考。",
-    aiAnalysis: "世界模型是AGI研究的潜在关键方向。我院在视觉理解方面有一定积累，可考虑拓展至世界模型领域。建议与计算机视觉团队联合立项，抢占学术制高点。",
+    id: "tk2",
+    keyword: "Scaling Law争议",
+    postCount: 32,
+    trend: "rising",
+    tags: ["大模型", "理论", "研究范式"],
+    posts: [
+      {
+        id: "p2-1",
+        title: "Has Scaling Hit a Wall? New Evidence from Frontier Labs",
+        platform: "ArXiv",
+        author: "Kaplan et al.",
+        date: "2025-01-09",
+        sourceUrl: "https://arxiv.org/abs/2501.04321",
+        summary:
+          "多篇论文指出在特定任务上，模型规模增长的性能收益正在递减，引发对Scaling Law可持续性的重新审视。",
+        engagement: "187 citations",
+      },
+      {
+        id: "p2-2",
+        title: "Ilya Sutskever在SSI发布会上暗示「规模不是一切」",
+        platform: "X",
+        author: "@tsaboris",
+        date: "2025-01-10",
+        sourceUrl: "https://x.com/tsaboris/status/1877654321098",
+        summary:
+          "Sutskever在SSI发布会上表示，未来AI突破不会仅靠规模扩展，需要新的架构创新。",
+        engagement: "8.7k likes",
+      },
+      {
+        id: "p2-3",
+        title: "从Scaling Law到Smart Scaling：大模型研究范式转变",
+        platform: "知乎",
+        author: "量子位",
+        date: "2025-01-11",
+        sourceUrl: "https://zhuanlan.zhihu.com/p/scaling-law-debate-2025",
+        summary:
+          "深度分析Scaling Law争议对国内AI研究方向的影响，建议高校调整资源配置策略。",
+        engagement: "2.1k 赞同",
+      },
+    ],
   },
   {
-    id: "tp3",
-    title: "AI安全与对齐研究的紧迫性",
-    heat: 78,
-    maxHeat: 100,
-    discussions: 1560,
-    trend: "up",
-    tags: ["AI安全", "对齐"],
-    summary: "随着模型能力增强，AI安全问题引发广泛关注。Anthropic发布新的安全评估框架，多国政府加速AI监管立法。学术界关于对齐技术的研究论文数量激增。",
-    aiAnalysis: "AI安全是国家战略重点方向，经费充裕且竞争相对较小。建议尽快组建AI安全研究小组，可从RLHF改进和模型可解释性两个方向切入。",
+    id: "tk3",
+    keyword: "Sora竞品大战",
+    postCount: 28,
+    trend: "rising",
+    tags: ["视频生成", "多模态", "商业化"],
+    posts: [
+      {
+        id: "p3-1",
+        title: "Kling 2.0 vs Sora vs Runway Gen-4: 2025视频生成模型大横评",
+        platform: "YouTube",
+        author: "Matt Wolfe",
+        date: "2025-01-08",
+        sourceUrl: "https://www.youtube.com/watch?v=VideoGenComparison2025",
+        summary:
+          "对比测评三大视频生成模型，Kling 2.0在中文场景和物理一致性上表现突出。",
+        engagement: "1.2M views",
+      },
+      {
+        id: "p3-2",
+        title: "快手Kling 2.0开放API，视频生成进入应用爆发期",
+        platform: "微信公众号",
+        author: "机器之心",
+        date: "2025-01-07",
+        sourceUrl: "https://mp.weixin.qq.com/s/kling-2-api-launch",
+        summary:
+          "快手正式开放Kling 2.0 API，支持4K分辨率60秒视频生成，定价仅为Sora的1/3。",
+        engagement: "10万+阅读",
+      },
+    ],
   },
   {
-    id: "tp4",
-    title: "端侧大模型部署与量化技术",
-    heat: 71,
-    maxHeat: 100,
-    discussions: 1230,
+    id: "tk4",
+    keyword: "Claude Code & AI Coding",
+    postCount: 56,
+    trend: "surging",
+    tags: ["AI编程", "开发工具", "Agent"],
+    posts: [
+      {
+        id: "p4-1",
+        title: "Claude Code is changing how I build software - a developer's honest review",
+        platform: "X",
+        author: "@swyx",
+        date: "2025-01-14",
+        sourceUrl: "https://x.com/swyx/status/1879012345678",
+        summary:
+          "知名开发者swyx分享Claude Code使用体验，认为AI辅助编程已经从玩具进入生产力工具阶段。",
+        engagement: "15.6k likes",
+      },
+      {
+        id: "p4-2",
+        title: "anthropics/claude-code: Claude Code official repository",
+        platform: "GitHub",
+        author: "Anthropic",
+        date: "2025-01-10",
+        sourceUrl: "https://github.com/anthropics/claude-code",
+        summary:
+          "Anthropic开源Claude Code CLI工具，支持自主编程、代码审查和项目管理。",
+        engagement: "32.1k stars",
+      },
+      {
+        id: "p4-3",
+        title: "AI编程工具2025年度盘点：从Copilot到Claude Code的进化",
+        platform: "知乎",
+        author: "阿里技术",
+        date: "2025-01-12",
+        sourceUrl: "https://zhuanlan.zhihu.com/p/ai-coding-tools-2025",
+        summary:
+          "全面梳理AI编程工具发展历程，分析Claude Code、Cursor、Copilot等工具的技术路线差异。",
+        engagement: "3.4k 赞同",
+      },
+    ],
+  },
+  {
+    id: "tk5",
+    keyword: "DeepSeek-R1开源",
+    postCount: 39,
     trend: "stable",
-    tags: ["模型压缩", "端侧部署"],
-    summary: "Apple、Qualcomm等芯片厂商推动端侧AI，模型量化和蒸馏技术成为焦点。1B参数级别模型在手机端达到可用水平，催生新的应用场景和研究课题。",
-    aiAnalysis: "端侧部署是模型落地的关键环节。建议与硬件团队合作，在模型压缩和推理优化方向加大投入。可争取手机厂商横向课题。",
-  },
-  {
-    id: "tp5",
-    title: "多智能体协作系统设计",
-    heat: 85,
-    maxHeat: 100,
-    discussions: 1890,
-    trend: "up",
-    tags: ["Agent", "协作"],
-    summary: "多Agent系统在复杂任务中展现出超越单Agent的能力。AutoGen、CrewAI等框架获得广泛关注，企业级应用案例开始涌现。学术界关于Agent间通信和协调机制的研究快速增长。",
-    aiAnalysis: "该方向与我院AI Agent研究高度契合。建议将多Agent协作作为重点研究方向之一，可结合我院强化学习团队的优势，在协作策略优化方向形成突破。",
+    tags: ["开源模型", "推理", "国产大模型"],
+    posts: [
+      {
+        id: "p5-1",
+        title: "DeepSeek-R1: 中国开源推理模型的新标杆",
+        platform: "ArXiv",
+        author: "DeepSeek AI",
+        date: "2025-01-06",
+        sourceUrl: "https://arxiv.org/abs/2501.03456",
+        summary:
+          "DeepSeek发布R1推理模型，在数学和代码推理任务上达到o1级别水平，完全开源。",
+        engagement: "512 citations",
+      },
+      {
+        id: "p5-2",
+        title: "DeepSeek R1 is genuinely impressive - matches o1 on most reasoning benchmarks",
+        platform: "X",
+        author: "@karpathy",
+        date: "2025-01-07",
+        sourceUrl: "https://x.com/karpathy/status/1876543210987",
+        summary:
+          "Karpathy对DeepSeek-R1给出高度评价，认为开源推理模型首次达到闭源模型水平。",
+        engagement: "21.4k likes",
+      },
+    ],
   },
 ];
 
@@ -200,9 +347,12 @@ export const mockKOLs: KOL[] = [
     hIndex: 168,
     field: "深度学习",
     recentActivity: "公开质疑LLM路线，力推World Model",
+    sourceUrl: "https://scholar.google.com/citations?user=WLN3QrAAAAAJ",
     influence: "极高",
-    summary: "图灵奖得主，Meta首席AI科学家。近期频繁发声反对纯LLM路线，主张结合世界模型和因果推理，对学术界研究方向有重要引导作用。",
-    aiAnalysis: "LeCun的观点值得高度关注。他提出的JEPA架构可能成为下一代AI架构候选方案。建议安排研究团队深入研读其最新论文，评估JEPA方向的布局可能性。",
+    summary:
+      "图灵奖得主，Meta首席AI科学家。近期频繁发声反对纯LLM路线，主张结合世界模型和因果推理，对学术界研究方向有重要引导作用。",
+    aiAnalysis:
+      "LeCun的观点值得高度关注。他提出的JEPA架构可能成为下一代AI架构候选方案。建议安排研究团队深入研读其最新论文，评估JEPA方向的布局可能性。",
   },
   {
     id: "k2",
@@ -211,9 +361,12 @@ export const mockKOLs: KOL[] = [
     hIndex: 112,
     field: "通用人工智能",
     recentActivity: "发布「通智2.0」通用智能体平台",
+    sourceUrl: "https://www.bigai.ai/team/songchun-zhu",
     influence: "极高",
-    summary: "北京大学讲席教授，通用人工智能研究院院长。其团队在具身智能和认知架构方向处于国内领先地位，「通智」平台已成为学术界标杆。",
-    aiAnalysis: "朱松纯团队是具身智能领域国内最重要的合作伙伴候选。建议院长亲自对接，探讨联合培养博士生和共建实验室的可能性。",
+    summary:
+      "北京大学讲席教授，通用人工智能研究院院长。其团队在具身智能和认知架构方向处于国内领先地位，「通智」平台已成为学术界标杆。",
+    aiAnalysis:
+      "朱松纯团队是具身智能领域国内最重要的合作伙伴候选。建议院长亲自对接，探讨联合培养博士生和共建实验室的可能性。",
   },
   {
     id: "k3",
@@ -222,9 +375,12 @@ export const mockKOLs: KOL[] = [
     hIndex: 98,
     field: "知识图谱与大模型",
     recentActivity: "ChatGLM系列模型持续更新，发布GLM-4-Plus",
+    sourceUrl: "https://keg.cs.tsinghua.edu.cn/jietang/",
     influence: "高",
-    summary: "清华大学计算机系教授，智谱AI联合创始人。在知识图谱和大模型领域有深厚积累，ChatGLM系列是国内最具影响力的开源大模型之一。",
-    aiAnalysis: "唐杰教授团队在产学研结合方面是标杆。建议学习其智谱AI模式，评估我院是否可在特定垂直领域打造类似的产学研平台。",
+    summary:
+      "清华大学计算机系教授，智谱AI联合创始人。在知识图谱和大模型领域有深厚积累，ChatGLM系列是国内最具影响力的开源大模型之一。",
+    aiAnalysis:
+      "唐杰教授团队在产学研结合方面是标杆。建议学习其智谱AI模式，评估我院是否可在特定垂直领域打造类似的产学研平台。",
   },
   {
     id: "k4",
@@ -233,9 +389,12 @@ export const mockKOLs: KOL[] = [
     hIndex: 132,
     field: "AI安全与超级对齐",
     recentActivity: "创办SSI公司，融资超10亿美元",
+    sourceUrl: "https://ssi.inc/about",
     influence: "极高",
-    summary: "前OpenAI首席科学家，AlexNet论文共同作者。离开OpenAI后创办专注超级AI安全的公司SSI，引发学术界对AI安全方向的新一轮关注。",
-    aiAnalysis: "Sutskever的转向表明AI安全将成为顶级研究者的首选方向。建议我院在AI安全领域提前布局，可尝试联系SSI探讨学术合作。",
+    summary:
+      "前OpenAI首席科学家，AlexNet论文共同作者。离开OpenAI后创办专注超级AI安全的公司SSI，引发学术界对AI安全方向的新一轮关注。",
+    aiAnalysis:
+      "Sutskever的转向表明AI安全将成为顶级研究者的首选方向。建议我院在AI安全领域提前布局，可尝试联系SSI探讨学术合作。",
   },
   {
     id: "k5",
@@ -244,9 +403,12 @@ export const mockKOLs: KOL[] = [
     hIndex: 95,
     field: "AI for Science",
     recentActivity: "发表AI驱动分子动力学新方法，Nature正刊",
+    sourceUrl: "https://scholar.google.com/citations?user=EXAMPLE_EWN",
     influence: "高",
-    summary: "中科院院士，在AI与科学计算交叉领域有深远影响。其Deep Potential方法已成为AI for Science领域的标志性工作。",
-    aiAnalysis: "鄂维南院士团队在AI for Science方向是国内翘楚。我院已有相关布局，建议加强与其团队在分子模拟和科学计算方向的合作深度。",
+    summary:
+      "中科院院士，在AI与科学计算交叉领域有深远影响。其Deep Potential方法已成为AI for Science领域的标志性工作。",
+    aiAnalysis:
+      "鄂维南院士团队在AI for Science方向是国内翘楚。我院已有相关布局，建议加强与其团队在分子模拟和科学计算方向的合作深度。",
   },
 ];
 
@@ -258,8 +420,10 @@ export const mockOpportunities: Opportunity[] = [
     source: "ICML组委会",
     priority: "紧急",
     deadline: "2025-01-20",
-    summary: "ICML 2025组委会发来特邀报告邀请，主题为「大模型时代的AI安全与对齐」。这是顶级会议的高规格邀请，需尽快确认是否出席并提交摘要。会议定于7月在维也纳举办。",
-    aiAssessment: "ICML特邀报告是提升我院国际影响力的重要机会，建议院长亲自出席或指定顶级教授代表。该报告主题与我院AI安全研究方向契合，可借此机会展示研究成果并拓展国际合作网络。",
+    summary:
+      "ICML 2025组委会发来特邀报告邀请，主题为「大模型时代的AI安全与对齐」。这是顶级会议的高规格邀请，需尽快确认是否出席并提交摘要。会议定于7月在维也纳举办。",
+    aiAssessment:
+      "ICML特邀报告是提升我院国际影响力的重要机会，建议院长亲自出席或指定顶级教授代表。该报告主题与我院AI安全研究方向契合，可借此机会展示研究成果并拓展国际合作网络。",
     actionSuggestion: "建议3日内确认出席，安排教授准备报告大纲",
   },
   {
@@ -269,8 +433,10 @@ export const mockOpportunities: Opportunity[] = [
     source: "华为2012实验室",
     priority: "高",
     deadline: "2025-02-15",
-    summary: "华为2012实验室拟与5所高校共建AI联合实验室，涉及大模型训练优化、端侧推理和AI编译器方向。每个联合实验室配套经费约2000万元/年，共建期3年。",
-    aiAssessment: "华为联合实验室项目资金充裕且技术方向前沿。我院在大模型训练优化方向有积累，建议重点申报该方向。需注意知识产权条款的谈判，确保学术发表自由度。",
+    summary:
+      "华为2012实验室拟与5所高校共建AI联合实验室，涉及大模型训练优化、端侧推理和AI编译器方向。每个联合实验室配套经费约2000万元/年，共建期3年。",
+    aiAssessment:
+      "华为联合实验室项目资金充裕且技术方向前沿。我院在大模型训练优化方向有积累，建议重点申报该方向。需注意知识产权条款的谈判，确保学术发表自由度。",
     actionSuggestion: "建议立即成立申报团队，2周内完成项目计划书",
   },
   {
@@ -280,8 +446,10 @@ export const mockOpportunities: Opportunity[] = [
     source: "MIT CSAIL",
     priority: "高",
     deadline: "2025-03-01",
-    summary: "MIT计算机科学与人工智能实验室发来学术访问邀请，拟开展为期6个月的联合研究计划，方向为多模态学习与机器人控制。可派遣2-3名青年教师及博士生。",
-    aiAssessment: "MIT CSAIL是全球顶级AI实验室，此次访问机会对我院青年教师成长和国际化布局具有战略意义。多模态+机器人方向也有助于弥补我院在具身智能方向的空白。",
+    summary:
+      "MIT计算机科学与人工智能实验室发来学术访问邀请，拟开展为期6个月的联合研究计划，方向为多模态学习与机器人控制。可派遣2-3名青年教师及博士生。",
+    aiAssessment:
+      "MIT CSAIL是全球顶级AI实验室，此次访问机会对我院青年教师成长和国际化布局具有战略意义。多模态+机器人方向也有助于弥补我院在具身智能方向的空白。",
     actionSuggestion: "建议遴选2名青年骨干教师和3名优秀博士生",
   },
   {
@@ -291,8 +459,10 @@ export const mockOpportunities: Opportunity[] = [
     source: "教育部高教司",
     priority: "中",
     deadline: "2025-02-28",
-    summary: "教育部高教司征集「AI赋能高等教育改革」内参稿件，拟选编10篇优秀内参报送国务院参考。这是展示我院AI教育实践成果的良好契机。",
-    aiAssessment: "内参报送是提升我院在教育系统影响力的重要渠道。建议围绕「AI赋能计算机专业教学改革」主题撰写，结合我院LLM辅助教学试点项目的实际数据和成效。",
+    summary:
+      "教育部高教司征集「AI赋能高等教育改革」内参稿件，拟选编10篇优秀内参报送国务院参考。这是展示我院AI教育实践成果的良好契机。",
+    aiAssessment:
+      "内参报送是提升我院在教育系统影响力的重要渠道。建议围绕「AI赋能计算机专业教学改革」主题撰写，结合我院LLM辅助教学试点项目的实际数据和成效。",
     actionSuggestion: "建议指派副院长牵头，1周内完成内参初稿",
   },
   {
@@ -302,8 +472,10 @@ export const mockOpportunities: Opportunity[] = [
     source: "国家自然科学基金委",
     priority: "紧急",
     deadline: "2025-01-25",
-    summary: "国家自然科学基金委发布2025年度AI重大研究专项预申报通知，涵盖基础理论、关键技术和应用示范三个板块，单项资助额度最高5000万元。",
-    aiAssessment: "重大专项是获取大规模科研经费的核心渠道。建议组织3-5个方向的预申报团队，重点布局AI基础理论（大模型可解释性）和关键技术（高效推理）两个板块。需院长亲自协调跨课题组资源。",
+    summary:
+      "国家自然科学基金委发布2025年度AI重大研究专项预申报通知，涵盖基础理论、关键技术和应用示范三个板块，单项资助额度最高5000万元。",
+    aiAssessment:
+      "重大专项是获取大规模科研经费的核心渠道。建议组织3-5个方向的预申报团队，重点布局AI基础理论（大模型可解释性）和关键技术（高效推理）两个板块。需院长亲自协调跨课题组资源。",
     actionSuggestion: "建议立即召开教授会议讨论申报策略，5日内确定方向",
   },
 ];

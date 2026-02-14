@@ -29,6 +29,8 @@ export const policyData: PolicyTrackingItem[] = [
       },
     ],
     tags: ["#AI伦理", "#合规"],
+    sourceUrl:
+      "https://www.most.gov.cn/xxgk/xinxifenlei/fdzdgknr/fgzc/gfxwj/gfxwj2023/202311/t20231114_example.htm",
   },
   {
     id: "2",
@@ -44,6 +46,8 @@ export const policyData: PolicyTrackingItem[] = [
         text: '为交通系统部门开辟了新的市政拨款窗口。与当前"智慧城市"计划一致。',
       },
     ],
+    sourceUrl:
+      "https://fgw.beijing.gov.cn/fgwzc/zcjd/202311/t20231113_example.htm",
   },
   {
     id: "3",
@@ -53,6 +57,8 @@ export const policyData: PolicyTrackingItem[] = [
     date: "2023-11-12",
     title: "关于加强高校基础研究人才培养的通知",
     description: "关于博士项目资助分配的一般性政策更新。",
+    sourceUrl:
+      "https://www.moe.gov.cn/srcsite/A22/s7065/202311/t20231112_example.htm",
   },
   {
     id: "4",
@@ -74,6 +80,7 @@ export const policyData: PolicyTrackingItem[] = [
       },
     ],
     tags: ["#算力", "#补贴"],
+    sourceUrl: "https://kw.beijing.gov.cn/art/2023/11/11/art_example.html",
   },
 ];
 

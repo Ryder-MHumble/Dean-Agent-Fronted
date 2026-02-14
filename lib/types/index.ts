@@ -27,16 +27,23 @@ export type {
 export type { Contact, RelationshipSummary } from "./network";
 
 // Tech Frontier
-export type { IndustryNews, HotTopic, KOL, Opportunity } from "./tech-frontier";
+export type {
+  IndustryNews,
+  TrendingPost,
+  TrendingKeyword,
+  KOL,
+  Opportunity,
+} from "./tech-frontier";
 
 // Policy Intel
 export type { SpeechItem } from "./policy-intel";
 
-// Talent Radar
+// 人事动态
 export type {
-  TalentEntry,
-  MobilityEvent,
-  TalentCandidate,
+  PersonnelNewsItem,
+  PersonProfile,
+  PersonnelNewsCategory,
+  ImportanceLevel,
 } from "./talent-radar";
 
 // Smart Schedule

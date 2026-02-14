@@ -101,124 +101,82 @@ export default function MemoOpportunities() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
-          <Card className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">
-                  机会追踪清单
-                </CardTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  按优先级排序
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="overflow-hidden">
-                <div className="grid grid-cols-[1fr_60px_90px_60px_85px_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
-                  <span>机会名称</span>
-                  <span>类型</span>
-                  <span>来源</span>
-                  <span>优先级</span>
-                  <span>截止日期</span>
-                  <span></span>
-                </div>
-                <StaggerContainer>
-                  {mockOpportunities.map((opp) => (
-                    <StaggerItem key={opp.id}>
-                      <button
-                        type="button"
-                        className="w-full grid grid-cols-[1fr_60px_90px_60px_85px_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
-                        onClick={() => setSelectedOpp(opp)}
-                      >
-                        <div className="flex items-center gap-2">
-                          {opp.priority === "紧急" && (
-                            <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
-                          )}
-                          <span className="text-sm font-medium group-hover:text-blue-600 transition-colors truncate">
-                            {opp.name}
-                          </span>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] w-fit",
-                            typeConfig[opp.type].bg,
-                            typeConfig[opp.type].color,
-                          )}
-                        >
-                          {opp.type}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground truncate">
-                          {opp.source}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] w-fit",
-                            priorityConfig[opp.priority].bg,
-                            priorityConfig[opp.priority].color,
-                          )}
-                        >
-                          {opp.priority}
-                        </Badge>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          <span>{opp.deadline}</span>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
-                      </button>
-                    </StaggerItem>
-                  ))}
-                </StaggerContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="col-span-4">
-          <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-teal-400" />
-                <span className="text-sm font-semibold">AI 机会评估</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                本周有2项紧急机会需院长决策：ICML特邀报告（1月20日截止）和国家自然科学基金重大专项预申报（1月25日截止）。华为联合实验室项目经费充裕，建议重点推进。
-              </p>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    2项紧急机会本月截止，需优先处理
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    华为联合实验室年均2000万配套经费
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    MIT访问有助弥补具身智能方向空白
-                  </span>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                className="w-full bg-teal-500 hover:bg-teal-600 text-white text-xs"
-                onClick={() => toast.success("正在生成机会优先级评估报告...")}
-              >
-                <FileText className="h-3.5 w-3.5 mr-1.5" />
-                生成评估报告
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <Card className="shadow-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold">
+              机会追踪清单
+            </CardTitle>
+            <Badge variant="secondary" className="text-[10px]">
+              按优先级排序
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="overflow-auto max-h-[calc(100vh-320px)]">
+            <div className="grid grid-cols-[1fr_60px_90px_60px_85px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b sticky top-0 bg-card z-10">
+              <span>机会名称</span>
+              <span>类型</span>
+              <span>来源</span>
+              <span>优先级</span>
+              <span>截止日期</span>
+              <span>概要</span>
+              <span></span>
+            </div>
+            <StaggerContainer>
+              {mockOpportunities.map((opp) => (
+                <StaggerItem key={opp.id}>
+                  <button
+                    type="button"
+                    className="w-full grid grid-cols-[1fr_60px_90px_60px_85px_1fr_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
+                    onClick={() => setSelectedOpp(opp)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {opp.priority === "紧急" && (
+                        <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
+                      )}
+                      <span className="text-sm font-medium group-hover:text-blue-600 transition-colors truncate">
+                        {opp.name}
+                      </span>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] w-fit",
+                        typeConfig[opp.type].bg,
+                        typeConfig[opp.type].color,
+                      )}
+                    >
+                      {opp.type}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground truncate">
+                      {opp.source}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] w-fit",
+                        priorityConfig[opp.priority].bg,
+                        priorityConfig[opp.priority].color,
+                      )}
+                    >
+                      {opp.priority}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{opp.deadline}</span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground truncate">
+                      {opp.summary}
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                  </button>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Sheet open={!!selectedOpp} onOpenChange={() => setSelectedOpp(null)}>
         <SheetContent className="sm:max-w-lg">

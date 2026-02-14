@@ -116,8 +116,8 @@ export default function StudentAffairs() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="overflow-hidden">
-                <div className="grid grid-cols-[80px_90px_80px_60px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
+              <div className="overflow-auto max-h-[calc(100vh-320px)]">
+                <div className="grid grid-cols-[80px_90px_80px_60px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b sticky top-0 bg-card z-10">
                   <span>学生</span>
                   <span>年级</span>
                   <span>类型</span>

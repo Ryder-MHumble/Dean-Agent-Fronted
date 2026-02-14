@@ -17,6 +17,7 @@ export interface PolicyTrackingItem {
   actionLabel?: string;
   insights?: PolicyTrackingInsight[];
   tags?: string[];
+  sourceUrl?: string;
 }
 
 export interface PolicyMatchItem {

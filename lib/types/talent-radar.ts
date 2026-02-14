@@ -1,44 +1,29 @@
-export interface TalentEntry {
-  id: string;
-  name: string;
-  institution: string;
-  discipline: string;
-  hIndex: number;
-  influenceScore: number;
-  cooperationStatus: "active" | "potential" | "none";
-  cooperationLabel: string;
-  topAwards: string[];
-  recentPapers: number;
-  aiAnalysis: string;
-  profile: string;
-}
+export type PersonnelNewsCategory = "政府人事" | "高校人事" | "人才要闻";
+export type ImportanceLevel = "重要" | "关注" | "一般";
 
-export interface MobilityEvent {
+/** 统一的人事动态新闻条目 */
+export interface PersonnelNewsItem {
   id: string;
-  talentName: string;
-  fromInstitution: string;
-  toInstitution: string;
-  direction: string;
-  impact: "high" | "medium" | "low";
-  impactLabel: string;
+  title: string;
+  summary: string;
+  category: PersonnelNewsCategory;
+  importance: ImportanceLevel;
   date: string;
-  type: "inflow" | "outflow" | "external";
-  typeLabel: string;
-  aiAnalysis: string;
-  detail: string;
+  source: string;
+  sourceUrl?: string;
+  people: string[];
+  organizations: string[];
+  personProfile?: PersonProfile;
+  relevanceNote?: string;
 }
 
-export interface TalentCandidate {
-  id: string;
+/** 人物信息卡片 */
+export interface PersonProfile {
   name: string;
-  institution: string;
-  country: string;
-  direction: string;
-  intention: "high" | "medium" | "low";
-  intentionLabel: string;
-  status: string;
-  yearsAbroad: number;
-  publications: number;
-  aiStrategy: string;
-  profile: string;
+  title: string;
+  organization: string;
+  previousTitle?: string;
+  previousOrganization?: string;
+  field?: string;
+  background?: string;
 }

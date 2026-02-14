@@ -4,6 +4,7 @@ export interface IndustryNews {
   id: string;
   title: string;
   source: string;
+  sourceUrl: string;
   type: "投融资" | "新产品" | "政策" | "收购";
   date: string;
   impact: "重大" | "较大" | "一般";
@@ -12,16 +13,24 @@ export interface IndustryNews {
   relevance: string;
 }
 
-export interface HotTopic {
+export interface TrendingPost {
   id: string;
   title: string;
-  heat: number;
-  maxHeat: number;
-  discussions: number;
-  trend: "up" | "stable" | "new";
-  tags: string[];
+  platform: "X" | "YouTube" | "ArXiv" | "GitHub" | "微信公众号" | "知乎";
+  author: string;
+  date: string;
+  sourceUrl: string;
   summary: string;
-  aiAnalysis: string;
+  engagement?: string;
+}
+
+export interface TrendingKeyword {
+  id: string;
+  keyword: string;
+  postCount: number;
+  trend: "surging" | "rising" | "stable";
+  tags: string[];
+  posts: TrendingPost[];
 }
 
 export interface KOL {
@@ -31,6 +40,7 @@ export interface KOL {
   hIndex: number;
   field: string;
   recentActivity: string;
+  sourceUrl: string;
   influence: "极高" | "高" | "中";
   summary: string;
   aiAnalysis: string;

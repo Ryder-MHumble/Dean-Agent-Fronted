@@ -140,8 +140,8 @@ export default function ConflictResolver() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="overflow-hidden">
-                <div className="grid grid-cols-[1fr_100px_90px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
+              <div className="overflow-auto max-h-[calc(100vh-320px)]">
+                <div className="grid grid-cols-[1fr_100px_90px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b sticky top-0 bg-card z-10">
                   <span>冲突事项</span>
                   <span>时间</span>
                   <span>冲突类型</span>

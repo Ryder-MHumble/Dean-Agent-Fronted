@@ -6,9 +6,7 @@ export {
   rawAlerts,
   mockDailySummary,
   mockMetricCards,
-  mockTodayEvents,
-  mockWeekEvents,
-  mockLongTermEvents,
+  mockAgendaItems,
 } from "./home-briefing";
 
 // Intelligence
@@ -47,7 +45,7 @@ export { mockContacts, relationshipSummary } from "./network";
 export {
   mockModuleTechTrends,
   mockIndustryNews,
-  mockHotTopics,
+  mockTrendingKeywords,
   mockKOLs,
   mockOpportunities,
 } from "./tech-frontier";
@@ -55,12 +53,8 @@ export {
 // Policy Intel
 export { mockPolicyMatches, mockSpeeches } from "./policy-intel";
 
-// Talent Radar
-export {
-  mockTalents,
-  mockMobilityEvents,
-  mockReturnCandidates,
-} from "./talent-radar";
+// 人事动态
+export { mockPersonnelNews, mockPersonProfiles } from "./talent-radar";
 
 // Smart Schedule
 export {

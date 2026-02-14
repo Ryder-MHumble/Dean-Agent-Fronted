@@ -17,8 +17,6 @@ import {
   UserMinus,
   Sparkles,
   ChevronRight,
-  FileText,
-  Bell,
 } from "lucide-react";
 import {
   MotionNumber,
@@ -107,137 +105,73 @@ export default function PersonnelTalent() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
-          <Card className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">
-                  同行机构人事变动追踪
-                </CardTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  按影响评估排序
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <StaggerContainer className="space-y-3">
-                {mockPersonnelChanges.map((change) => (
-                  <StaggerItem key={change.id}>
-                    <button
-                      type="button"
-                      className="w-full rounded-lg border p-4 hover:border-violet-200 hover:shadow-sm transition-all group cursor-pointer text-left"
-                      onClick={() => setSelectedChange(change)}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                            {change.person.charAt(0)}
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-semibold group-hover:text-violet-600 transition-colors">
-                              {change.person}
-                            </h4>
-                            <div className="flex items-center gap-1 mt-0.5">
-                              <span className="text-[11px] text-muted-foreground">
-                                {change.fromPosition}
-                              </span>
-                              <span className="text-[11px] text-violet-500 font-medium mx-1">
-                                →
-                              </span>
-                              <span className="text-[11px] text-muted-foreground">
-                                {change.toPosition}
-                              </span>
-                            </div>
+      <Card className="shadow-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold">
+              同行机构人事变动追踪
+            </CardTitle>
+            <Badge variant="secondary" className="text-[10px]">
+              按影响评估排序
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
+            <StaggerContainer className="space-y-3">
+              {mockPersonnelChanges.map((change) => (
+                <StaggerItem key={change.id}>
+                  <button
+                    type="button"
+                    className="w-full rounded-lg border p-4 hover:border-violet-200 hover:shadow-sm transition-all group cursor-pointer text-left"
+                    onClick={() => setSelectedChange(change)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                          {change.person.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold group-hover:text-violet-600 transition-colors">
+                            {change.person}
+                          </h4>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <span className="text-[11px] text-muted-foreground">
+                              {change.fromPosition}
+                            </span>
+                            <span className="text-[11px] text-violet-500 font-medium mx-1">
+                              →
+                            </span>
+                            <span className="text-[11px] text-muted-foreground">
+                              {change.toPosition}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <ImpactBadge level={change.impact} />
-                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all" />
-                        </div>
                       </div>
-                      <div className="flex items-center gap-2 ml-[52px]">
-                        <TypeBadge type={change.type} />
-                        <span className="text-[11px] text-muted-foreground">
-                          {change.institution}
-                        </span>
-                        <span className="text-[11px] text-muted-foreground ml-auto">
-                          {change.date}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <ImpactBadge level={change.impact} />
+                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all" />
                       </div>
-                    </button>
-                  </StaggerItem>
-                ))}
-              </StaggerContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="col-span-4">
-          <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-violet-400" />
-                <span className="text-sm font-semibold">AI 人事影响分析</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                近期同行机构人事变动频繁，清华AI研究院新院长上任将强化其竞争力。北大NLP领军人物离职带来引才窗口。建议把握当前人才流动期，主动出击争取优质人才资源。
-              </p>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    清华AI研究院换帅，竞争力将提升
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    北大NLP方向人才流散，引才窗口期
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    中科院量子方向人才集聚加速
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    浙大能源方向产学研整合加强
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    上交芯片方向教授创业，影响有限
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Button
-                  size="sm"
-                  className="w-full bg-violet-500 hover:bg-violet-600 text-white text-xs"
-                  onClick={() => toast.success("正在生成人事影响分析报告...")}
-                >
-                  <FileText className="h-3.5 w-3.5 mr-1.5" />
-                  生成人事分析报告
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white text-xs"
-                  onClick={() => toast.success("已开启人事变动实时提醒")}
-                >
-                  <Bell className="h-3.5 w-3.5 mr-1.5" />
-                  开启变动提醒
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-[52px]">
+                      <TypeBadge type={change.type} />
+                      <span className="text-[11px] text-muted-foreground">
+                        {change.institution}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground ml-auto">
+                        {change.date}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground truncate ml-[52px] mt-1">
+                      {change.background}
+                    </p>
+                  </button>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Sheet
         open={!!selectedChange}

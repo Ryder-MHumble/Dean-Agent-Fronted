@@ -17,7 +17,6 @@ import {
   ThumbsDown,
   Sparkles,
   ChevronRight,
-  FileText,
   UserCheck,
   CalendarCheck,
 } from "lucide-react";
@@ -144,170 +143,112 @@ export default function InvitationEval() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
-          <Card className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">
-                  邀约评估列表
-                </CardTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  按ROI评分排序
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="overflow-hidden">
-                <div className="grid grid-cols-[1fr_100px_90px_80px_80px_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
-                  <span>活动名称</span>
-                  <span>主办方</span>
-                  <span>日期</span>
-                  <span>ROI评分</span>
-                  <span>AI建议</span>
-                  <span></span>
-                </div>
-                <StaggerContainer>
-                  {mockInvitations.map((item) => {
-                    const status = processedItems.get(item.id);
-                    return (
-                      <StaggerItem key={item.id}>
-                        <button
-                          type="button"
+      <Card className="shadow-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold">
+              邀约评估列表
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-[10px]">
+                已处理 {processedCount}/{mockInvitations.length}
+              </Badge>
+              <Badge variant="secondary" className="text-[10px]">
+                按ROI评分排序
+              </Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="overflow-auto max-h-[calc(100vh-320px)]">
+            <div className="grid grid-cols-[1fr_100px_120px_90px_80px_80px_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b sticky top-0 bg-card z-10">
+              <span>活动名称</span>
+              <span>主办方</span>
+              <span>地点</span>
+              <span>日期</span>
+              <span>ROI评分</span>
+              <span>AI建议</span>
+              <span></span>
+            </div>
+            <StaggerContainer>
+              {mockInvitations.map((item) => {
+                const status = processedItems.get(item.id);
+                return (
+                  <StaggerItem key={item.id}>
+                    <button
+                      type="button"
+                      className={cn(
+                        "w-full grid grid-cols-[1fr_100px_120px_90px_80px_80px_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 transition-colors group cursor-pointer",
+                        status ? "bg-muted/20 opacity-60" : "hover:bg-muted/30",
+                      )}
+                      onClick={() => !status && setSelectedItem(item)}
+                      disabled={!!status}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {status === "accepted" ? (
+                          <CalendarCheck className="h-4 w-4 text-green-500 shrink-0" />
+                        ) : status === "declined" ? (
+                          <ThumbsDown className="h-4 w-4 text-red-400 shrink-0" />
+                        ) : item.aiSuggestion === "拒绝" ? (
+                          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
+                        ) : null}
+                        <span
                           className={cn(
-                            "w-full grid grid-cols-[1fr_100px_90px_80px_80px_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 transition-colors group cursor-pointer",
+                            "text-sm font-medium truncate transition-colors",
                             status
-                              ? "bg-muted/20 opacity-60"
-                              : "hover:bg-muted/30",
+                              ? "text-muted-foreground"
+                              : "group-hover:text-violet-600",
                           )}
-                          onClick={() => !status && setSelectedItem(item)}
-                          disabled={!!status}
                         >
-                          <div className="flex items-center gap-2 min-w-0">
-                            {status === "accepted" ? (
-                              <CalendarCheck className="h-4 w-4 text-green-500 shrink-0" />
-                            ) : status === "declined" ? (
-                              <ThumbsDown className="h-4 w-4 text-red-400 shrink-0" />
-                            ) : item.aiSuggestion === "拒绝" ? (
-                              <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
-                            ) : null}
-                            <span
-                              className={cn(
-                                "text-sm font-medium truncate transition-colors",
-                                status
-                                  ? "text-muted-foreground"
-                                  : "group-hover:text-violet-600",
-                              )}
-                            >
-                              {item.eventName}
-                            </span>
-                          </div>
-                          <span className="text-xs text-muted-foreground truncate">
-                            {item.host}
-                          </span>
-                          <span className="text-xs text-foreground font-tabular">
-                            {item.date}
-                          </span>
-                          <RoiScoreBadge score={item.roiScore} />
-                          {status ? (
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "text-[10px] w-fit",
-                                status === "accepted"
-                                  ? "border-green-200 bg-green-50 text-green-700"
-                                  : status === "declined"
-                                    ? "border-red-200 bg-red-50 text-red-700"
-                                    : "border-blue-200 bg-blue-50 text-blue-700",
-                              )}
-                            >
-                              {status === "accepted"
-                                ? "已确认"
-                                : status === "declined"
-                                  ? "已婉拒"
-                                  : "已转发"}
-                            </Badge>
-                          ) : (
-                            <SuggestionBadge suggestion={item.aiSuggestion} />
+                          {item.eventName}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {item.host}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {item.location}
+                      </span>
+                      <span className="text-xs text-foreground font-tabular">
+                        {item.date}
+                      </span>
+                      <RoiScoreBadge score={item.roiScore} />
+                      {status ? (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px] w-fit",
+                            status === "accepted"
+                              ? "border-green-200 bg-green-50 text-green-700"
+                              : status === "declined"
+                                ? "border-red-200 bg-red-50 text-red-700"
+                                : "border-blue-200 bg-blue-50 text-blue-700",
                           )}
-                          <ChevronRight
-                            className={cn(
-                              "h-4 w-4 text-muted-foreground transition-all",
-                              !status &&
-                                "group-hover:text-violet-500 group-hover:translate-x-0.5",
-                            )}
-                          />
-                        </button>
-                      </StaggerItem>
-                    );
-                  })}
-                </StaggerContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="col-span-4">
-          <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-violet-400" />
-                <span className="text-sm font-semibold">AI 邀约价值分析</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                本周收到{pendingCount}封邀约，其中{highValueCount}
-                个为高价值活动（ROI&ge;75），{rejectCount}
-                个建议拒绝。重点推荐参加教育部全国AI教育大会和IEEE智能系统研讨会。
-              </p>
-              <div className="space-y-2 mb-4">
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    教育部大会ROI最高（92分），可争取AI教育试点
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    IEEE研讨会有助于拓展国际学术网络
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    恒达地产发布会存在声誉风险，建议婉拒
-                  </span>
-                </div>
-                <div className="flex items-start gap-2 text-xs">
-                  <div className="h-1.5 w-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
-                  <span className="text-slate-300">
-                    星云科技晚宴可委派副院长代为出席
-                  </span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="flex-1 bg-violet-500 hover:bg-violet-600 text-white text-xs"
-                  onClick={() => toast.success("正在生成邀约分析报告...")}
-                >
-                  <FileText className="h-3.5 w-3.5 mr-1.5" />
-                  分析报告
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700 text-xs"
-                  onClick={() => toast.success("已批量处理低价值邀约...")}
-                >
-                  <CalendarCheck className="h-3.5 w-3.5 mr-1.5" />
-                  批量处理
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                        >
+                          {status === "accepted"
+                            ? "已确认"
+                            : status === "declined"
+                              ? "已婉拒"
+                              : "已转发"}
+                        </Badge>
+                      ) : (
+                        <SuggestionBadge suggestion={item.aiSuggestion} />
+                      )}
+                      <ChevronRight
+                        className={cn(
+                          "h-4 w-4 text-muted-foreground transition-all",
+                          !status &&
+                            "group-hover:text-violet-500 group-hover:translate-x-0.5",
+                        )}
+                      />
+                    </button>
+                  </StaggerItem>
+                );
+              })}
+            </StaggerContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       <Sheet open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
         <SheetContent className="sm:max-w-lg">

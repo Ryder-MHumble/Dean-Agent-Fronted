@@ -1,250 +1,383 @@
-import type { TalentEntry, MobilityEvent, TalentCandidate } from "@/lib/types/talent-radar";
+import type {
+  PersonnelNewsItem,
+  PersonProfile,
+} from "@/lib/types/talent-radar";
 
-export const mockTalents: TalentEntry[] = [
+/** 可搜索的人物 Profile 库 */
+export const mockPersonProfiles: PersonProfile[] = [
   {
-    id: "ti1",
-    name: "Andrew Ng",
-    institution: "Stanford University",
-    discipline: "机器学习",
-    hIndex: 168,
-    influenceScore: 98,
-    cooperationStatus: "potential",
-    cooperationLabel: "意向中",
-    topAwards: ["AAAI Fellow", "ACM Fellow"],
-    recentPapers: 12,
-    aiAnalysis:
-      "吴恩达教授在AI教育和产业化方面具有全球影响力。建议通过其在线教育平台合作切入，探讨联合开设AI课程或共建AI教育实验室的可能性。",
-    profile:
-      "斯坦福大学计算机系客座教授，Coursera联合创始人，Landing AI创始人。曾任百度首席科学家、Google Brain创始人。在深度学习和AI教育方面具有开创性贡献。",
+    name: "龚旗煌",
+    title: "校长",
+    organization: "北京大学",
+    field: "非线性光学",
+    background:
+      "中国科学院院士，光学与光子学领域专家。2023年4月起任北京大学校长。",
   },
   {
-    id: "ti2",
-    name: "Yann LeCun",
-    institution: "Meta AI / NYU",
-    discipline: "深度学习",
-    hIndex: 182,
-    influenceScore: 97,
-    cooperationStatus: "none",
-    cooperationLabel: "未接触",
-    topAwards: ["图灵奖", "IEEE Fellow", "ACM Fellow"],
-    recentPapers: 8,
-    aiAnalysis:
-      "LeCun教授是深度学习三巨头之一，学术影响力极高。建议通过其在NYU的实验室寻找博士后合作机会，或邀请其参加我院学术论坛作为主讲嘉宾。",
-    profile:
-      "Meta首席AI科学家，纽约大学Silver教授。2018年图灵奖获得者（与Hinton、Bengio共享）。卷积神经网络先驱，对计算机视觉和自监督学习有奠基性贡献。",
+    name: "李路明",
+    title: "校长",
+    organization: "清华大学",
+    field: "神经工程",
+    background:
+      "中国科学院院士，脑机接口与神经调控领域专家。2024年9月起任清华大学校长。",
   },
   {
-    id: "ti3",
-    name: "李飞飞",
-    institution: "Stanford HAI",
-    discipline: "计算机视觉",
-    hIndex: 145,
-    influenceScore: 95,
-    cooperationStatus: "active",
-    cooperationLabel: "合作中",
-    topAwards: ["ACM Fellow", "NAE Member"],
-    recentPapers: 15,
-    aiAnalysis:
-      "李飞飞教授已与我院建立合作关系，联合培养2名博士生。建议深化合作：共同申请中美联合研究基金，并邀请其担任我院国际学术委员会成员。",
-    profile:
-      "斯坦福大学计算机系教授，Stanford HAI联合主任。ImageNet创始人，视觉智能领域先驱。美国国家工程院院士。曾任Google Cloud AI/ML首席科学家。",
+    name: "杜江峰",
+    title: "校长",
+    organization: "浙江大学",
+    field: "量子物理",
+    background:
+      "中国科学院院士，量子计算与量子精密测量专家。2023年7月起任浙江大学校长。",
   },
   {
-    id: "ti4",
-    name: "Demis Hassabis",
-    institution: "Google DeepMind",
-    discipline: "人工通用智能",
-    hIndex: 98,
-    influenceScore: 96,
-    cooperationStatus: "potential",
-    cooperationLabel: "意向中",
-    topAwards: ["诺贝尔化学奖", "FRS"],
-    recentPapers: 6,
-    aiAnalysis:
-      "Hassabis博士领导的DeepMind在AI for Science方面成果卓著。建议通过AlphaFold相关的蛋白质研究方向寻求合作切入点，与我院生物计算课题组对接。",
-    profile:
-      "Google DeepMind联合创始人兼CEO。2024年诺贝尔化学奖获得者（AlphaFold）。在强化学习、神经科学与AI交叉领域做出突破性贡献。",
+    name: "丁奎岭",
+    title: "校长",
+    organization: "上海交通大学",
+    field: "有机化学",
+    background:
+      "中国科学院院士，手性催化与绿色合成领域专家。2022年11月起任上海交通大学校长。",
   },
   {
-    id: "ti5",
+    name: "吴岩",
+    title: "科技部党组成员、副部长",
+    organization: "科技部",
+    previousTitle: "副部长",
+    previousOrganization: "教育部",
+    field: "高等教育管理",
+    background:
+      "长期主管高等教育工作，推动新工科、新文科建设，主持高校学科评估改革。",
+  },
+  {
+    name: "张兆田",
+    title: "信息科学部主任",
+    organization: "国家自然科学基金委",
+    previousTitle: "副主任",
+    previousOrganization: "国家自然科学基金委信息科学部",
+    field: "信号处理与模式识别",
+    background: "长期从事智能信息处理研究，主持多项国家级科研项目。",
+  },
+  {
+    name: "张亚勤",
+    title: "人工智能研究院院长",
+    organization: "清华大学",
+    previousTitle: "智能产业研究院院长",
+    previousOrganization: "清华大学",
+    field: "人工智能、多媒体计算",
+    background:
+      "澳大利亚国家工程院外籍院士，IEEE Fellow。曾任百度总裁、微软亚洲研究院院长。",
+  },
+  {
     name: "朱松纯",
-    institution: "北京大学",
-    discipline: "认知AI",
-    hIndex: 112,
-    influenceScore: 92,
-    cooperationStatus: "active",
-    cooperationLabel: "合作中",
-    topAwards: ["Helmholtz Prize", "ACM Fellow"],
-    recentPapers: 18,
-    aiAnalysis:
-      "朱松纯教授在通用人工智能理论方面国内领先。当前合作项目进展顺利，建议扩展合作范围至具身智能和认知推理方向，共同申请科技部重点研发计划。",
-    profile:
-      "北京大学人工智能研究院院长，讲席教授。曾任UCLA统计系与计算机系教授20余年。在视觉认知、场景理解和通用AI理论方面有深厚积累。Marr Prize获得者。",
+    title: "人工智能研究院院长",
+    organization: "北京大学",
+    field: "认知AI、通用人工智能",
+    background:
+      "讲席教授，曾任UCLA统计系与计算机系教授20余年。Marr Prize获得者，ACM Fellow。",
+  },
+  {
+    name: "田永鸿",
+    title: "教授",
+    organization: "北京大学",
+    field: "视频编码与视觉智能",
+    background:
+      "2025年当选ACM Fellow，在视频编码和视觉智能方面有突出贡献。IEEE Fellow。",
+  },
+  {
+    name: "许强",
+    title: "主任",
+    organization: "北京市发改委",
+    previousTitle: "主任",
+    previousOrganization: "北京市科委",
+    field: "科技政策管理",
+    background:
+      "在科委期间推动多项AI和高新技术产业扶持政策，建立中关村AI产业集群。",
   },
 ];
 
-export const mockMobilityEvents: MobilityEvent[] = [
+/** 人事动态新闻 Feed */
+export const mockPersonnelNews: PersonnelNewsItem[] = [
+  // ===== 今天 =====
   {
-    id: "am1",
-    talentName: "赵伟强",
-    fromInstitution: "清华大学",
-    toInstitution: "我院",
-    direction: "强化学习",
-    impact: "high",
-    impactLabel: "重大利好",
-    date: "2025-01-15",
-    type: "inflow",
-    typeLabel: "流入",
-    aiAnalysis:
-      "赵伟强教授从清华大学加盟我院，将显著增强我院在强化学习方向的研究实力。建议为其配备3名博士生和1名博士后，优先安排其参与国家重点研发项目申报。其在清华的研究团队中有2名学生有意随行，建议积极争取。",
-    detail:
-      "赵伟强，清华大学计算机系副教授，强化学习方向知名学者。发表NeurIPS/ICML论文22篇。因获得我院人才特聘计划支持，决定全职加盟。预计2月正式入职。",
+    id: "pn1",
+    title: "教育部副部长吴岩调任科技部党组成员",
+    summary:
+      "教育部副部长吴岩调任科技部党组成员、副部长。吴岩此前主管高等教育和学科建设工作，此次调动被视为科教融合的重要人事安排。",
+    category: "政府人事",
+    importance: "重要",
+    date: "2026-02-14",
+    source: "新华社",
+    people: ["吴岩"],
+    organizations: ["教育部", "科技部"],
+    personProfile: {
+      name: "吴岩",
+      title: "科技部党组成员、副部长",
+      organization: "科技部",
+      previousTitle: "副部长",
+      previousOrganization: "教育部",
+      field: "高等教育管理",
+      background:
+        "长期主管高等教育工作，推动新工科、新文科建设，主持高校学科评估改革。",
+    },
+    relevanceNote:
+      "吴岩此前负责高校学科评估和基金分配，其调任可能影响科技部对高校AI项目的资助方向。",
   },
   {
-    id: "am2",
-    talentName: "孙梦瑶",
-    fromInstitution: "我院",
-    toInstitution: "上海交通大学",
-    direction: "自然语言处理",
-    impact: "high",
-    impactLabel: "重大损失",
-    date: "2025-01-08",
-    type: "outflow",
-    typeLabel: "流出",
-    aiAnalysis:
-      "孙梦瑶教授的离职对我院NLP方向影响重大，她带走了3个在研项目和2名核心博士生。建议紧急启动NLP方向人才补充计划，同时与孙教授保持学术联系，争取后续合作可能。短期内可安排其他教师接手在研课题。",
-    detail:
-      "孙梦瑶，我院NLP方向学术带头人，副教授。上海交通大学以长聘教授岗位、实验室主任职位及200万安家费将其挖走。她在我院工作6年，培养硕博士15人。",
+    id: "pn2",
+    title: "清华大学人工智能研究院院长换帅：张亚勤接任",
+    summary:
+      "清华大学宣布张亚勤教授正式就任人工智能研究院院长，接替前任院长。张亚勤此前担任百度总裁，并在清华智能产业研究院担任院长。",
+    category: "高校人事",
+    importance: "重要",
+    date: "2026-02-14",
+    source: "清华新闻网",
+    people: ["张亚勤"],
+    organizations: ["清华大学", "清华大学人工智能研究院"],
+    personProfile: {
+      name: "张亚勤",
+      title: "人工智能研究院院长",
+      organization: "清华大学",
+      previousTitle: "智能产业研究院院长",
+      previousOrganization: "清华大学",
+      field: "人工智能、多媒体计算",
+      background:
+        "澳大利亚国家工程院外籍院士，IEEE Fellow。曾任百度总裁、微软亚洲研究院院长。",
+    },
+    relevanceNote:
+      "张亚勤工业界资源丰富，其就任可能改变清华AI研究院的产学研合作模式，需关注对人才竞争的影响。",
   },
   {
-    id: "am3",
-    talentName: "陈国栋",
-    fromInstitution: "浙江大学",
-    toInstitution: "我院",
-    direction: "计算机视觉",
-    impact: "medium",
-    impactLabel: "正面影响",
-    date: "2024-12-20",
-    type: "inflow",
-    typeLabel: "流入",
-    aiAnalysis:
-      "陈国栋博士以特聘研究员身份加盟，填补了我院在3D视觉方向的空白。建议安排其与现有CV团队整合，共同开展跨方向合作研究。可推荐其申报北京市科技新星计划。",
-    detail:
-      "陈国栋，浙江大学博士后出站，3D计算机视觉方向。在CVPR/ICCV发表论文12篇，获CVPR 2024最佳论文提名。我院以特聘研究员岗位和50万启动经费引进。",
+    id: "pn3",
+    title: "MIT华人学者陈明宇获聘北京大学博雅讲席教授",
+    summary:
+      "MIT CSAIL资深研究员陈明宇正式接受北京大学聘书，将全职回国担任博雅讲席教授，研究方向为具身智能与机器人学习。",
+    category: "人才要闻",
+    importance: "重要",
+    date: "2026-02-14",
+    source: "北京大学新闻网",
+    people: ["陈明宇"],
+    organizations: ["MIT", "北京大学"],
+    personProfile: {
+      name: "陈明宇",
+      title: "博雅讲席教授",
+      organization: "北京大学",
+      previousTitle: "资深研究员",
+      previousOrganization: "MIT CSAIL",
+      field: "具身智能、机器人学习",
+      background:
+        "ICRA/RSS顶会论文50余篇，Google Scholar引用量12000+。IEEE Fellow。",
+    },
+    relevanceNote:
+      "具身智能方向与我院重点发展方向高度重合，需关注北大在此方向的人才布局。",
   },
-  {
-    id: "am4",
-    talentName: "林志远",
-    fromInstitution: "北京大学",
-    toInstitution: "中国科学院",
-    direction: "AI for Science",
-    impact: "medium",
-    impactLabel: "值得关注",
-    date: "2024-12-10",
-    type: "external",
-    typeLabel: "外部",
-    aiAnalysis:
-      "林志远教授从北大转入中科院，反映出AI for Science方向人才竞争加剧。我院该方向目前有2名教师，建议关注北大因此空出的合作机会，同时加强与中科院的联系。",
-    detail:
-      "林志远，北京大学前沿计算研究中心副教授，AI for Science方向。中科院以研究员岗位+重大科学装置使用权吸引其加盟。此举将影响北大在AI+生物方向的布局。",
-  },
-  {
-    id: "am5",
-    talentName: "黄晓峰",
-    fromInstitution: "我院",
-    toInstitution: "华为2012实验室",
-    direction: "大模型训练",
-    impact: "medium",
-    impactLabel: "人才流失",
-    date: "2024-11-28",
-    type: "outflow",
-    typeLabel: "流出",
-    aiAnalysis:
-      "黄晓峰副教授转投产业界，薪资是原来的4倍。这反映了大模型方向高校人才向产业流失的趋势。建议出台产学研融合政策，允许教师在保留教职的同时参与企业研发，从机制上减少人才流失。",
-    detail:
-      "黄晓峰，我院副教授，大模型分布式训练方向。华为2012实验室以年薪200万+股票期权将其挖走。其在我院负责的GPU集群管理和大模型训练平台工作需要紧急交接。",
-  },
-];
 
-export const mockReturnCandidates: TalentCandidate[] = [
+  // ===== 本周 =====
   {
-    id: "rc1",
-    name: "张明远",
-    institution: "MIT CSAIL",
-    country: "美国",
-    direction: "具身智能",
-    intention: "high",
-    intentionLabel: "高意向",
-    status: "已接触",
-    yearsAbroad: 8,
-    publications: 42,
-    aiStrategy:
-      "张明远博士近期在社交媒体提及回国意向，且其配偶已回国任职。建议院长亲自发出邀请函，提供实验室启动经费500万元及博士生名额5个，安排下月校园参观。",
-    profile:
-      "MIT计算机科学与人工智能实验室资深研究科学家，具身智能方向领军人物。发表ICRA/RSS顶会论文42篇，Google Scholar引用量8200+。近期获得NSF Career Award。",
+    id: "pn4",
+    title: "北京市科委主任许强转任市发改委主任",
+    summary:
+      "北京市科学技术委员会主任许强调任北京市发展和改革委员会主任。许强在科委期间推动了多项AI和高新技术产业扶持政策。",
+    category: "政府人事",
+    importance: "关注",
+    date: "2026-02-12",
+    source: "北京日报",
+    people: ["许强"],
+    organizations: ["北京市科委", "北京市发改委"],
+    personProfile: {
+      name: "许强",
+      title: "主任",
+      organization: "北京市发改委",
+      previousTitle: "主任",
+      previousOrganization: "北京市科委",
+      field: "科技政策管理",
+    },
+    relevanceNote:
+      "许强在科委期间是我院多项市级项目的支持者，其调任后需关注新任科委主任的政策倾向。",
   },
   {
-    id: "rc2",
-    name: "李思琪",
-    institution: "Stanford HAI",
-    country: "美国",
-    direction: "AI安全与对齐",
-    intention: "high",
-    intentionLabel: "高意向",
-    status: "面谈中",
-    yearsAbroad: 6,
-    publications: 35,
-    aiStrategy:
-      "李思琪教授已确认参加下月北京AI安全论坛，这是面对面沟通的最佳时机。建议提供长聘教授岗位，年薪80万+安家费，并承诺组建AI安全实验室。",
-    profile:
-      "斯坦福人工智能研究所副教授，AI安全方向权威学者。NeurIPS/ICML最佳论文奖获得者。曾任OpenAI安全团队顾问。",
+    id: "pn5",
+    title: "ACM公布2025年度Fellow名单，3位华人学者入选",
+    summary:
+      "ACM公布2025年度Fellow名单，北京大学田永鸿、上海交通大学卢策吾、香港中文大学贾佳亚三位华人学者入选。田永鸿因在视频编码与视觉智能方面的贡献当选。",
+    category: "人才要闻",
+    importance: "关注",
+    date: "2026-02-11",
+    source: "ACM官网",
+    people: ["田永鸿", "卢策吾", "贾佳亚"],
+    organizations: ["北京大学", "上海交通大学", "香港中文大学", "ACM"],
+    relevanceNote:
+      "田永鸿教授与我院在视觉智能方向有合作基础，可借此契机深化合作。",
   },
   {
-    id: "rc3",
-    name: "王浩然",
-    institution: "Google DeepMind",
-    country: "英国",
-    direction: "多模态大模型",
-    intention: "medium",
-    intentionLabel: "中意向",
-    status: "初步沟通",
-    yearsAbroad: 10,
-    publications: 58,
-    aiStrategy:
-      "王浩然在DeepMind工作稳定但近期关注国内发展。建议通过学术合作（联合发表论文、联合培养博士生）建立长期联系，逐步提升回国意向。",
-    profile:
-      "Google DeepMind高级研究科学家，多模态学习方向核心成员。参与Gemini项目研发。Nature Machine Intelligence发表3篇论文。",
+    id: "pn6",
+    title: "浙江大学副校长吴朝晖调任中国科学院副院长",
+    summary:
+      "原浙江大学副校长、中国科学院院士吴朝晖调任中国科学院副院长，分管数理与信息科学领域。",
+    category: "高校人事",
+    importance: "关注",
+    date: "2026-02-11",
+    source: "中国科学院官网",
+    people: ["吴朝晖"],
+    organizations: ["浙江大学", "中国科学院"],
+    personProfile: {
+      name: "吴朝晖",
+      title: "副院长",
+      organization: "中国科学院",
+      previousTitle: "副校长",
+      previousOrganization: "浙江大学",
+      field: "人工智能、脑机接口",
+      background:
+        "中国科学院院士，曾任浙大校长（2015-2021），在脑机智能和跨媒体计算领域有重要贡献。",
+    },
+    relevanceNote: "吴朝晖分管信息科学，可能影响中科院AI相关项目的资助布局。",
   },
   {
-    id: "rc4",
-    name: "陈雨桐",
-    institution: "CMU Robotics Institute",
-    country: "美国",
-    direction: "机器人学习",
-    intention: "high",
-    intentionLabel: "高意向",
-    status: "即将回国",
-    yearsAbroad: 5,
-    publications: 28,
-    aiStrategy:
-      "陈雨桐已获得国家级青年人才计划资助，预计3个月内回国。建议尽快落实实验室空间（200平米）、设备采购预算及行政支持，确保其顺利入职。",
-    profile:
-      "CMU机器人研究所博士后研究员，机器人强化学习方向新锐学者。CoRL最佳论文奖。已获批国家海外高层次青年人才引进计划。",
+    id: "pn7",
+    title: "上海交通大学人工智能学院成立，卢策吾任首任院长",
+    summary:
+      "上海交通大学正式成立人工智能学院，从电子信息与电气工程学院独立。计算机视觉与机器人学者卢策吾教授担任首任院长。",
+    category: "高校人事",
+    importance: "关注",
+    date: "2026-02-10",
+    source: "上海交通大学新闻网",
+    people: ["卢策吾"],
+    organizations: ["上海交通大学", "上海交通大学人工智能学院"],
+    personProfile: {
+      name: "卢策吾",
+      title: "人工智能学院院长",
+      organization: "上海交通大学",
+      field: "计算机视觉、机器人",
+      background:
+        "上海交通大学教授，2025年ACM Fellow。在3D视觉和人体姿态估计方面有重要贡献。",
+    },
   },
   {
-    id: "rc5",
-    name: "刘芳华",
-    institution: "ETH Zurich",
-    country: "瑞士",
-    direction: "计算机视觉",
-    intention: "low",
-    intentionLabel: "低意向",
-    status: "持续关注",
-    yearsAbroad: 12,
-    publications: 76,
-    aiStrategy:
-      "刘芳华教授在ETH任正教授，短期回国可能性较低。建议采取柔性引才策略：聘为兼职教授，每年来校2-3次进行学术交流和研究生指导。",
-    profile:
-      "苏黎世联邦理工学院正教授，计算机视觉方向国际顶尖学者。CVPR/ICCV/ECCV发表论文76篇，H指数62。IEEE Fellow。",
+    id: "pn8",
+    title: "国家自然科学基金委信息科学部主任换任",
+    summary:
+      "国家自然科学基金委员会信息科学部主任郝占军到龄卸任，新任主任由原副主任张兆田接任。张兆田长期从事智能信息处理研究。",
+    category: "政府人事",
+    importance: "重要",
+    date: "2026-02-10",
+    source: "基金委官网",
+    people: ["郝占军", "张兆田"],
+    organizations: ["国家自然科学基金委"],
+    personProfile: {
+      name: "张兆田",
+      title: "信息科学部主任",
+      organization: "国家自然科学基金委",
+      previousTitle: "副主任",
+      previousOrganization: "国家自然科学基金委信息科学部",
+      field: "信号处理与模式识别",
+    },
+    relevanceNote:
+      "信息科学部主任直接影响AI相关基金项目的评审方向和资助重点，需持续关注新主任的学术倾向。",
+  },
+
+  // ===== 更早 =====
+  {
+    id: "pn9",
+    title: "科技部副部长张广军兼任国家重点研发计划AI专项负责人",
+    summary:
+      "科技部副部长张广军被任命为国家重点研发计划「新一代人工智能」重大专项负责人，统筹协调国家AI研发战略布局。",
+    category: "政府人事",
+    importance: "重要",
+    date: "2026-02-06",
+    source: "科技部官网",
+    people: ["张广军"],
+    organizations: ["科技部"],
+    relevanceNote:
+      "张广军分管AI专项，我院在研的3个国家重点研发项目均在其统筹范围内。",
+  },
+  {
+    id: "pn10",
+    title: "DeepMind华人研究员王浩然宣布全职加入中科院自动化所",
+    summary:
+      "Google DeepMind高级研究科学家王浩然宣布辞职回国，将全职加入中国科学院自动化研究所，担任研究员。王浩然曾参与Gemini项目研发。",
+    category: "人才要闻",
+    importance: "关注",
+    date: "2026-02-05",
+    source: "中科院自动化所官网",
+    people: ["王浩然"],
+    organizations: ["Google DeepMind", "中科院自动化所"],
+    personProfile: {
+      name: "王浩然",
+      title: "研究员",
+      organization: "中科院自动化所",
+      previousTitle: "高级研究科学家",
+      previousOrganization: "Google DeepMind",
+      field: "多模态大模型",
+      background:
+        "参与Gemini项目研发，Nature Machine Intelligence发表3篇论文。在多模态学习领域有重要贡献。",
+    },
+    relevanceNote:
+      "多模态方向与我院研究布局相关，中科院在此方向增加了有力竞争者。",
+  },
+  {
+    id: "pn11",
+    title: "中国工程院增选院士名单公布，AI领域2人当选",
+    summary:
+      "中国工程院2025年院士增选结果揭晓，AI领域清华大学孙茂松教授和华为诺亚方舟实验室主任田奇当选。孙茂松在自然语言处理方面有突出贡献。",
+    category: "人才要闻",
+    importance: "重要",
+    date: "2026-02-03",
+    source: "中国工程院官网",
+    people: ["孙茂松", "田奇"],
+    organizations: ["中国工程院", "清华大学", "华为"],
+    relevanceNote:
+      "孙茂松教授与我院NLP团队有学术交流，其当选院士后学术影响力进一步提升。",
+  },
+  {
+    id: "pn12",
+    title: "北京大学副校长孙庆伟兼任人文学部主任",
+    summary:
+      "北京大学副校长孙庆伟被任命兼任人文学部主任，主管文科建设与人文社科领域学科发展。此前该职位由张平文院士兼任。",
+    category: "高校人事",
+    importance: "一般",
+    date: "2026-02-01",
+    source: "北京大学新闻网",
+    people: ["孙庆伟", "张平文"],
+    organizations: ["北京大学"],
+  },
+  {
+    id: "pn13",
+    title: "CSRankings 2025年度AI领域排名更新：清华北大位列前十",
+    summary:
+      "CSRankings发布2025年度AI领域全球高校排名，清华大学排名第3，北京大学排名第8，上海交通大学首次进入前15。排名基于顶会论文发表数据。",
+    category: "人才要闻",
+    importance: "关注",
+    date: "2026-01-28",
+    source: "CSRankings",
+    people: [],
+    organizations: ["清华大学", "北京大学", "上海交通大学"],
+    relevanceNote:
+      "我院排名较去年上升2位，但与清华差距仍大。需关注上海交大的快速上升势头。",
+  },
+  {
+    id: "pn14",
+    title: "发改委高技术产业司副司长任命公示",
+    summary:
+      "国家发改委公示高技术产业司副司长人选，原中关村管委会创新处处长孙立明拟任。孙立明此前负责AI产业园区规划和创新政策制定。",
+    category: "政府人事",
+    importance: "关注",
+    date: "2026-01-25",
+    source: "国家发改委官网",
+    people: ["孙立明"],
+    organizations: ["国家发改委", "中关村管委会"],
+    relevanceNote:
+      "高技术产业司管辖AI产业发展基金和产业园区政策，与我院产学研合作密切相关。",
+  },
+  {
+    id: "pn15",
+    title: "斯坦福HAI年度AI指数报告发布，中国AI人才回流加速",
+    summary:
+      "斯坦福HAI发布2025年度AI Index Report，报告指出中国AI领域高端人才回流比例较去年提升28%，其中具身智能和大模型方向回流最为明显。",
+    category: "人才要闻",
+    importance: "关注",
+    date: "2026-01-20",
+    source: "Stanford HAI",
+    people: [],
+    organizations: ["Stanford HAI"],
+    relevanceNote:
+      "人才回流加速对我院引才工作是利好信号，具身智能和大模型为我院重点方向。",
   },
 ];

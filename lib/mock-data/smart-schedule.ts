@@ -1,4 +1,8 @@
-import type { ScheduleConflict, Invitation, RecommendedActivity } from "@/lib/types/smart-schedule";
+import type {
+  ScheduleConflict,
+  Invitation,
+  RecommendedActivity,
+} from "@/lib/types/smart-schedule";
 
 export const mockScheduleConflicts: ScheduleConflict[] = [
   {
@@ -309,7 +313,7 @@ export const mockActivities: RecommendedActivity[] = [
     preparation:
       "建议准备：1) 学院人才引进政策手册（中英文）；2) 拟引进岗位的JD（3-5个）；3) 已联系的目标候选人名单；4) 学院宣传视频。",
     aiExplanation:
-      "学院在具身智能、AI Agent两个方向亟需高端人才。根据AI分析，本次峰会参会学者中有8人与学院需求高度匹配，其中3人已在学院人才雷达系统中被标记为重点关注对象。",
+      "学院在具身智能、AI Agent两个方向亟需高端人才。根据AI分析，本次峰会参会学者中有8人与学院需求高度匹配，其中3人已在学院人事动态系统中被标记为重点关注对象。",
     highlights: [
       "200+海外华人AI学者",
       "深圳500万引才资金",

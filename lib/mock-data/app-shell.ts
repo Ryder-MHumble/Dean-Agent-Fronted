@@ -14,7 +14,7 @@ export const mockNotifications: NotificationItem[] = [
     module: "policy-intel",
   },
   {
-    title: "张明远博士确认面谈意向",
+    title: "清华AI研究院院长换帅：张亚勤接任",
     time: "1小时前",
     type: "info",
     module: "talent-radar",
