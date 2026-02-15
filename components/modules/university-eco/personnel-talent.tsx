@@ -1,16 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import {
   Users,
   UserPlus,
@@ -23,6 +15,8 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/motion";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { PersonnelChange } from "@/lib/types/university-eco";
@@ -57,9 +51,7 @@ function ImpactBadge({ level }: { level: PersonnelChange["impact"] }) {
 }
 
 export default function PersonnelTalent() {
-  const [selectedChange, setSelectedChange] = useState<PersonnelChange | null>(
-    null,
-  );
+  const { selectedItem: selectedChange, open, close, isOpen } = useDetailView<PersonnelChange>();
 
   return (
     <>
@@ -105,147 +97,161 @@ export default function PersonnelTalent() {
         </Card>
       </div>
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">
-              同行机构人事变动追踪
-            </CardTitle>
-            <Badge variant="secondary" className="text-[10px]">
-              按影响评估排序
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
-            <StaggerContainer className="space-y-3">
-              {mockPersonnelChanges.map((change) => (
-                <StaggerItem key={change.id}>
-                  <button
-                    type="button"
-                    className="w-full rounded-lg border p-4 hover:border-violet-200 hover:shadow-sm transition-all group cursor-pointer text-left"
-                    onClick={() => setSelectedChange(change)}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                          {change.person.charAt(0)}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-semibold group-hover:text-violet-600 transition-colors">
-                            {change.person}
-                          </h4>
-                          <div className="flex items-center gap-1 mt-0.5">
-                            <span className="text-[11px] text-muted-foreground">
-                              {change.fromPosition}
-                            </span>
-                            <span className="text-[11px] text-violet-500 font-medium mx-1">
-                              →
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">
-                              {change.toPosition}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ImpactBadge level={change.impact} />
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 ml-[52px]">
-                      <TypeBadge type={change.type} />
-                      <span className="text-[11px] text-muted-foreground">
-                        {change.institution}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground ml-auto">
-                        {change.date}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground truncate ml-[52px] mt-1">
-                      {change.background}
-                    </p>
-                  </button>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Sheet
-        open={!!selectedChange}
-        onOpenChange={() => setSelectedChange(null)}
-      >
-        <SheetContent className="sm:max-w-lg">
-          {selectedChange && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg flex items-center gap-2">
-                  {selectedChange.person}
-                  <TypeBadge type={selectedChange.type} />
-                </SheetTitle>
-                <SheetDescription>
-                  {selectedChange.institution} · {selectedChange.date}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <ImpactBadge level={selectedChange.impact} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-1">职位变动</h4>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{selectedChange.fromPosition}</span>
-                    <span className="text-violet-500 font-medium">→</span>
-                    <span>{selectedChange.toPosition}</span>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-1">人物背景</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedChange.background}
+      <MasterDetailView
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedChange
+            ? {
+                title: (
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    {selectedChange.person}
+                    <TypeBadge type={selectedChange.type} />
+                  </h2>
+                ),
+                subtitle: (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedChange.institution} · {selectedChange.date}
                   </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">详细信息</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedChange.detail}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-violet-50 border border-violet-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-violet-500" />
-                    <span className="text-sm font-semibold text-violet-700">
-                      AI 影响分析
-                    </span>
-                  </div>
-                  <p className="text-sm text-violet-700/80">
-                    {selectedChange.aiAnalysis}
-                  </p>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      toast.success("已加入重点关注人物");
-                      setSelectedChange(null);
-                    }}
-                  >
-                    重点关注
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("人事分析报告已生成")}
-                  >
-                    生成报告
-                  </Button>
+                ),
+              }
+            : undefined
+        }
+        detailContent={
+          selectedChange && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ImpactBadge level={selectedChange.impact} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">职位变动</h4>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{selectedChange.fromPosition}</span>
+                  <span className="text-violet-500 font-medium">→</span>
+                  <span>{selectedChange.toPosition}</span>
                 </div>
               </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">人物背景</h4>
+                <p className="text-sm text-muted-foreground">
+                  {selectedChange.background}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2">详细信息</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedChange.detail}
+                </p>
+              </div>
+              <div className="rounded-lg bg-violet-50 border border-violet-100 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-violet-500" />
+                  <span className="text-sm font-semibold text-violet-700">
+                    AI 影响分析
+                  </span>
+                </div>
+                <p className="text-sm text-violet-700/80">
+                  {selectedChange.aiAnalysis}
+                </p>
+              </div>
+            </div>
+          )
+        }
+        detailFooter={
+          selectedChange && (
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  toast.success("已加入重点关注人物");
+                  close();
+                }}
+              >
+                重点关注
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => toast.success("人事分析报告已生成")}
+              >
+                生成报告
+              </Button>
+            </div>
+          )
+        }
+      >
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold">
+                同行机构人事变动追踪
+              </CardTitle>
+              <Badge variant="secondary" className="text-[10px]">
+                按影响评估排序
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
+              <StaggerContainer className="space-y-3">
+                {mockPersonnelChanges.map((change) => (
+                  <StaggerItem key={change.id}>
+                    <button
+                      type="button"
+                      className={cn(
+                        "w-full rounded-lg border p-4 transition-all group cursor-pointer text-left",
+                        selectedChange?.id === change.id
+                          ? "border-violet-300 bg-violet-50/50 shadow-sm"
+                          : "hover:border-violet-200 hover:shadow-sm",
+                      )}
+                      onClick={() => open(change)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                            {change.person.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold group-hover:text-violet-600 transition-colors">
+                              {change.person}
+                            </h4>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-[11px] text-muted-foreground">
+                                {change.fromPosition}
+                              </span>
+                              <span className="text-[11px] text-violet-500 font-medium mx-1">
+                                →
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">
+                                {change.toPosition}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ImpactBadge level={change.impact} />
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-[52px]">
+                        <TypeBadge type={change.type} />
+                        <span className="text-[11px] text-muted-foreground">
+                          {change.institution}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground ml-auto">
+                          {change.date}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground truncate ml-[52px] mt-1">
+                        {change.background}
+                      </p>
+                    </button>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </MasterDetailView>
     </>
   );
 }

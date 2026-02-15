@@ -1,18 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import { ExternalLink, ChevronRight, Calendar } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import PersonCard from "./person-card";
@@ -56,9 +50,7 @@ interface NewsFeedProps {
 }
 
 export default function NewsFeed({ items }: NewsFeedProps) {
-  const [selectedItem, setSelectedItem] = useState<PersonnelNewsItem | null>(
-    null,
-  );
+  const { selectedItem, open, close, isOpen } = useDetailView<PersonnelNewsItem>();
   const groups = groupByDate(items);
 
   if (items.length === 0) {
@@ -72,7 +64,105 @@ export default function NewsFeed({ items }: NewsFeedProps) {
   }
 
   return (
-    <>
+    <MasterDetailView
+      isOpen={isOpen}
+      onClose={close}
+      detailHeader={
+        selectedItem
+          ? {
+              title: (
+                <h2 className="text-lg font-semibold leading-snug">
+                  {selectedItem.title}
+                </h2>
+              ),
+              subtitle: (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {selectedItem.source} &middot; {selectedItem.date}
+                </p>
+              ),
+            }
+          : undefined
+      }
+      detailContent={
+        selectedItem && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs",
+                  categoryConfig[selectedItem.category]?.bg,
+                  categoryConfig[selectedItem.category]?.color,
+                )}
+              >
+                {selectedItem.category}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={cn("text-xs", {
+                  "bg-red-50 text-red-700 border-red-200":
+                    selectedItem.importance === "重要",
+                  "bg-amber-50 text-amber-700 border-amber-200":
+                    selectedItem.importance === "关注",
+                  "bg-gray-50 text-gray-700 border-gray-200":
+                    selectedItem.importance === "一般",
+                })}
+              >
+                {selectedItem.importance}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {selectedItem.summary}
+            </p>
+            {selectedItem.sourceUrl && (
+              <a
+                href={selectedItem.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                查看原始报道
+              </a>
+            )}
+            {selectedItem.personProfile && (
+              <PersonCard profile={selectedItem.personProfile} compact />
+            )}
+            {selectedItem.relevanceNote && (
+              <div className="rounded-lg bg-muted/50 border p-3">
+                <span className="text-xs font-medium text-foreground">
+                  与我院相关
+                </span>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  {selectedItem.relevanceNote}
+                </p>
+              </div>
+            )}
+          </div>
+        )
+      }
+      detailFooter={
+        selectedItem && (
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={() => {
+                toast.success("已标记为重点关注");
+                close();
+              }}
+            >
+              标记关注
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast.success("已推送至人脉网络")}
+            >
+              推送至人脉
+            </Button>
+          </div>
+        )
+      }
+    >
       <div className="space-y-4">
         {groups.map((group) => (
           <Card key={group.label} className="shadow-card">
@@ -93,8 +183,13 @@ export default function NewsFeed({ items }: NewsFeedProps) {
                   <StaggerItem key={item.id}>
                     <button
                       type="button"
-                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors group cursor-pointer text-left"
-                      onClick={() => setSelectedItem(item)}
+                      className={cn(
+                        "w-full flex items-start gap-3 p-3 rounded-lg transition-colors group cursor-pointer text-left",
+                        selectedItem?.id === item.id
+                          ? "bg-blue-50/80 border-l-2 border-blue-500"
+                          : "hover:bg-muted/30",
+                      )}
+                      onClick={() => open(item)}
                     >
                       <span
                         className={cn(
@@ -148,97 +243,6 @@ export default function NewsFeed({ items }: NewsFeedProps) {
           </Card>
         ))}
       </div>
-
-      <Sheet
-        open={!!selectedItem}
-        onOpenChange={() => setSelectedItem(null)}
-      >
-        <SheetContent className="sm:max-w-lg">
-          {selectedItem && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg leading-snug">
-                  {selectedItem.title}
-                </SheetTitle>
-                <SheetDescription>
-                  {selectedItem.source} &middot; {selectedItem.date}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-xs",
-                      categoryConfig[selectedItem.category]?.bg,
-                      categoryConfig[selectedItem.category]?.color,
-                    )}
-                  >
-                    {selectedItem.category}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={cn("text-xs", {
-                      "bg-red-50 text-red-700 border-red-200":
-                        selectedItem.importance === "重要",
-                      "bg-amber-50 text-amber-700 border-amber-200":
-                        selectedItem.importance === "关注",
-                      "bg-gray-50 text-gray-700 border-gray-200":
-                        selectedItem.importance === "一般",
-                    })}
-                  >
-                    {selectedItem.importance}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {selectedItem.summary}
-                </p>
-                {selectedItem.sourceUrl && (
-                  <a
-                    href={selectedItem.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    查看原始报道
-                  </a>
-                )}
-                {selectedItem.personProfile && (
-                  <PersonCard profile={selectedItem.personProfile} compact />
-                )}
-                {selectedItem.relevanceNote && (
-                  <div className="rounded-lg bg-muted/50 border p-3">
-                    <span className="text-xs font-medium text-foreground">
-                      与我院相关
-                    </span>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      {selectedItem.relevanceNote}
-                    </p>
-                  </div>
-                )}
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      toast.success("已标记为重点关注");
-                      setSelectedItem(null);
-                    }}
-                  >
-                    标记关注
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("已推送至人脉网络")}
-                  >
-                    推送至人脉
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-    </>
+    </MasterDetailView>
   );
 }

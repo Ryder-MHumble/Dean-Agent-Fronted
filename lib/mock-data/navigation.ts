@@ -56,7 +56,7 @@ export const pageMeta: Record<string, PageMeta> = {
   },
   "internal-mgmt": {
     title: "院内管理",
-    subtitle: "财务 · 项目 · 学生 · 舆情 · 绩效",
+    subtitle: "中心动态 · 项目督办 · 学生管理 · 舆情监测",
   },
   network: {
     title: "人脉网络",

@@ -41,7 +41,7 @@ export default function Page() {
         onCollapsedChange={setSidebarCollapsed}
       />
       <main
-        className="flex-1 transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+        className="flex-1 transition-[margin-left] duration-200 ease-out"
         style={{ marginLeft: sidebarCollapsed ? 70 : 220 }}
       >
         <TopBar

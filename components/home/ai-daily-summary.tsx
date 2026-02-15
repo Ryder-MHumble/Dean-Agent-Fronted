@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,21 +31,27 @@ export default function AIDailySummary({
   data,
   onNavigate,
 }: AIDailySummaryProps) {
+  const [timeStr, setTimeStr] = useState("");
+  useEffect(() => {
+    setTimeStr(
+      data.generatedAt.toLocaleTimeString("zh-CN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    );
+  }, [data.generatedAt]);
+
   return (
     <Card className="bg-gradient-to-br from-slate-50/80 via-blue-50/40 to-slate-50/80 border-border/60 shadow-card">
       <CardContent className="p-4">
         <div className="flex items-center gap-1.5 mb-2.5">
           <Sparkles className="h-3.5 w-3.5 text-blue-500" />
-          <span className="text-xs font-semibold text-foreground">
-            AI 早报
-          </span>
-          <span className="text-[10px] text-muted-foreground ml-auto">
-            {data.generatedAt.toLocaleTimeString("zh-CN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
-            生成
-          </span>
+          <span className="text-xs font-semibold text-foreground">AI 早报</span>
+          {timeStr && (
+            <span className="text-[10px] text-muted-foreground ml-auto">
+              {timeStr} 生成
+            </span>
+          )}
         </div>
         <div className="space-y-2">
           {data.paragraphs.map((segments, pIdx) => (
@@ -67,9 +74,7 @@ export default function AIDailySummary({
                         isClickable &&
                           "underline decoration-blue-300 decoration-1 underline-offset-2 hover:decoration-blue-500 hover:text-blue-700 transition-colors cursor-pointer",
                       )}
-                      onClick={() =>
-                        isClickable && onNavigate!(seg.moduleId)
-                      }
+                      onClick={() => isClickable && onNavigate!(seg.moduleId)}
                     >
                       {seg.text}
                     </button>

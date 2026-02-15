@@ -1,16 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import {
   Cpu,
   TrendingUp,
@@ -26,12 +18,14 @@ import {
 } from "@/components/motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import { mockTechTrends } from "@/lib/mock-data/intelligence";
 import type { TechTrend } from "@/lib/types/intelligence";
 import { HeatIndicator } from "./helpers";
 
 export default function TechTab() {
-  const [selectedTech, setSelectedTech] = useState<TechTrend | null>(null);
+  const { selectedItem: selectedTech, open, close, isOpen } = useDetailView<TechTrend>();
 
   const highRiskCount = mockTechTrends.filter(
     (t) => t.gapLevel === "high",
@@ -41,7 +35,76 @@ export default function TechTab() {
   ).length;
 
   return (
-    <>
+    <MasterDetailView
+      isOpen={isOpen}
+      onClose={close}
+      detailHeader={
+        selectedTech
+          ? {
+              title: (
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  {selectedTech.topic}
+                  <HeatIndicator trend={selectedTech.heatTrend} />
+                </h2>
+              ),
+              subtitle: (
+                <p className="text-sm text-muted-foreground">
+                  热度变化: {selectedTech.heatLabel} · 覆盖程度:{" "}
+                  {selectedTech.gapLevel === "high"
+                    ? "高"
+                    : selectedTech.gapLevel === "medium"
+                      ? "中"
+                      : "低"}
+                </p>
+              ),
+            }
+          : undefined
+      }
+      detailContent={
+        selectedTech ? (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-2">详细分析</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {selectedTech.detail}
+              </p>
+            </div>
+            <div className="rounded-lg bg-purple-50 border border-purple-100 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-purple-500" />
+                <span className="text-sm font-semibold text-purple-700">
+                  AI 建议
+                </span>
+              </div>
+              <p className="text-sm text-purple-700/80">
+                {selectedTech.aiInsight}
+              </p>
+            </div>
+          </div>
+        ) : null
+      }
+      detailFooter={
+        selectedTech ? (
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={() => {
+                toast.success("已安排技术委员会评估");
+                close();
+              }}
+            >
+              安排技术评估
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast.success("详细技术报告已生成")}
+            >
+              生成报告
+            </Button>
+          </div>
+        ) : undefined
+      }
+    >
       {/* KPI Row */}
       <div className="grid grid-cols-3 gap-4 mb-4">
         <Card className="shadow-card">
@@ -115,8 +178,11 @@ export default function TechTab() {
                     <StaggerItem key={tech.id}>
                       <button
                         type="button"
-                        className="w-full grid grid-cols-[1fr_80px_90px_80px_1fr_50px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
-                        onClick={() => setSelectedTech(tech)}
+                        className={cn(
+                          "w-full grid grid-cols-[1fr_80px_90px_80px_1fr_50px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer",
+                          selectedTech?.id === tech.id && "bg-muted/40",
+                        )}
+                        onClick={() => open(tech)}
                       >
                         <div className="flex items-center gap-2">
                           {tech.gapLevel === "high" && (
@@ -220,66 +286,6 @@ export default function TechTab() {
           </Card>
         </div>
       </div>
-
-      {/* Tech Detail Sheet */}
-      <Sheet open={!!selectedTech} onOpenChange={() => setSelectedTech(null)}>
-        <SheetContent className="sm:max-w-lg">
-          {selectedTech && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg flex items-center gap-2">
-                  {selectedTech.topic}
-                  <HeatIndicator trend={selectedTech.heatTrend} />
-                </SheetTitle>
-                <SheetDescription>
-                  热度变化: {selectedTech.heatLabel} · 覆盖程度:{" "}
-                  {selectedTech.gapLevel === "high"
-                    ? "高"
-                    : selectedTech.gapLevel === "medium"
-                      ? "中"
-                      : "低"}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">详细分析</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedTech.detail}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-purple-50 border border-purple-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm font-semibold text-purple-700">
-                      AI 建议
-                    </span>
-                  </div>
-                  <p className="text-sm text-purple-700/80">
-                    {selectedTech.aiInsight}
-                  </p>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      toast.success("已安排技术委员会评估");
-                      setSelectedTech(null);
-                    }}
-                  >
-                    安排技术评估
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("详细技术报告已生成")}
-                  >
-                    生成报告
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-    </>
+    </MasterDetailView>
   );
 }

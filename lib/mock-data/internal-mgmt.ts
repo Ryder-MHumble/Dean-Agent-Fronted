@@ -1,79 +1,333 @@
 import type {
-  BudgetItem,
+  CenterEvent,
+  CenterBrief,
+  ProjectBrief,
+  TimelineProject,
+  Milestone,
+  StudentPaper,
+  EnrollmentData,
   StudentAlert,
-  StudentSummary,
-  SentimentData,
+  SocialMediaItem,
 } from "@/lib/types/internal-mgmt";
 
-export const mockBudgets: BudgetItem[] = [
+// ── 中心动态：事件 Feed ──
+
+export const mockCenterEvents: CenterEvent[] = [
   {
-    id: "b1",
-    department: "AI & 机器人实验室",
-    annualBudget: 2800,
-    spent: 980,
-    executionRate: 35,
-    status: "normal",
-    statusLabel: "正常",
-    recentChange: "本月支出120万（设备采购）",
-    aiInsight: "预算执行节奏正常，Q2有大额设备采购计划，建议提前启动审批流程。",
-    detail:
-      "年度预算2800万，主要用于算力平台建设、GPU集群扩容和实验室改造。当前已执行980万，执行率35%。Q2计划采购新一批A100 GPU集群（预算800万）。",
+    id: "e1",
+    type: "risk",
+    typeLabel: "风险预警",
+    title: "量子计算中心预算紧张",
+    summary: "低温设备维修追加150万，年度预算消耗加速，正与校财务处协商紧急拨款",
+    center: "量子计算中心",
+    time: "今天",
+    source: "财务系统",
   },
   {
-    id: "b2",
-    department: "量子计算中心",
-    annualBudget: 1500,
-    spent: 1425,
-    executionRate: 95,
-    status: "danger",
-    statusLabel: "超支预警",
-    recentChange: "超支提示：低温设备维修追加150万",
-    aiInsight:
-      "已超支预警，低温设备维修费用超出预期。建议紧急协调校级应急资金或从其他中心调剂。",
-    detail:
-      "年度预算1500万，因低温设备频繁故障已追加维修费用150万。若不及时调剂，预计Q2将出现资金断裂。建议与校财务处协商紧急拨款。",
+    id: "e2",
+    type: "achievement",
+    typeLabel: "重大成果",
+    title: "Nature Materials 论文投稿",
+    summary: "先进材料研究院1篇论文已提交Nature Materials同行评审，研究方向为新型二维材料",
+    center: "先进材料研究院",
+    time: "昨天",
+    source: "学院官网",
   },
   {
-    id: "b3",
-    department: "先进材料研究院",
-    annualBudget: 1200,
-    spent: 240,
-    executionRate: 20,
-    status: "warning",
-    statusLabel: "执行滞后",
-    recentChange: "采购审批卡在流程中",
-    aiInsight:
-      "执行率仅20%，远低于季度目标。主因是3个大额采购审批流程停滞。建议院长直接推动。",
-    detail:
-      "年度预算1200万，主要用于材料采购和仪器设备。当前执行滞后，3个大额采购（合计450万）审批停滞在采购处。",
+    id: "e3",
+    type: "personnel",
+    typeLabel: "人事变动",
+    title: "新引进海外人才到岗",
+    summary: "张博士（MIT，计算机视觉方向）正式入职AI & 机器人实验室，签约奖金50万已支出",
+    center: "AI & 机器人实验室",
+    time: "本周",
+    source: "人事系统",
   },
   {
-    id: "b4",
-    department: "科研项目专项基金",
-    annualBudget: 1800,
-    spent: 720,
-    executionRate: 40,
-    status: "normal",
-    statusLabel: "正常",
-    recentChange: "新增2个国家级项目配套",
-    aiInsight: "执行率正常，新增的国家级项目配套资金已到位，建议加快项目启动。",
-    detail:
-      "年度预算1800万，覆盖院级、省部级和国家级项目配套。本月新增2个国家级项目配套共350万。",
+    id: "e4",
+    type: "key-number",
+    typeLabel: "关键数字",
+    title: "国家级项目配套资金到账",
+    summary: "新增2个国家级项目配套资金共350万已到账，相关课题组正准备启动",
+    center: "科研项目管理办公室",
+    time: "本周",
+    source: "财务系统",
   },
   {
-    id: "b5",
-    department: "行政与人员经费",
-    annualBudget: 1200,
-    spent: 600,
-    executionRate: 50,
-    status: "normal",
-    statusLabel: "正常",
-    recentChange: "人才引进签约奖金支出",
-    aiInsight: "人员经费执行正常，但人才引进计划可能导致Q3-Q4压力增大。",
-    detail:
-      "年度预算1200万，包含人员工资、绩效奖金和人才引进费用。本月因引进1名海外人才支出签约奖金50万。",
+    id: "e5",
+    type: "risk",
+    typeLabel: "风险预警",
+    title: "3个大额采购审批停滞",
+    summary: "先进材料研究院精密仪器、高纯试剂、测试设备采购（合计450万）在采购处停滞超1个月",
+    center: "先进材料研究院",
+    time: "持续中",
+    source: "OA系统",
+  },
+  {
+    id: "e6",
+    type: "milestone",
+    typeLabel: "里程碑",
+    title: "院级种子基金评审完成",
+    summary: "第二批种子基金评审完成，拟资助6个青年教师项目（总额180万），待院长终审",
+    center: "科研项目管理办公室",
+    time: "本周",
+    source: "钉钉",
   },
 ];
+
+// ── 中心动态：中心概览 ──
+
+export const mockCenters: CenterBrief[] = [
+  {
+    id: "c1",
+    name: "AI & 机器人实验室",
+    leader: "张教授",
+    statusTag: "运营正常",
+    statusType: "normal",
+    keyUpdates: [
+      "实验室改造工程预计下月竣工",
+      "Q2 GPU集群采购需提前走校级审批",
+      "新引进海外人才已到岗",
+    ],
+    detail: "AI & 机器人实验室当前运营平稳。实验室改造工程进展顺利。Q2计划的A100 GPU集群采购预算约800万，需要走校级审批流程。近期引进1名海外人才（计算机视觉方向）。",
+  },
+  {
+    id: "c2",
+    name: "量子计算中心",
+    leader: "王教授",
+    statusTag: "预算紧张",
+    statusType: "risk",
+    keyUpdates: [
+      "低温设备频繁故障，维修费用追加150万",
+      "正与校财务处协商紧急拨款",
+      "量子芯片Alpha项目因供应链问题延期",
+    ],
+    detail: "量子计算中心运营压力较大。低温设备（稀释制冷机）频繁故障，已追加维修费用150万。目前正与校财务处协商紧急拨款。量子芯片Alpha项目因供应链中断延期。",
+  },
+  {
+    id: "c3",
+    name: "先进材料研究院",
+    leader: "赵教授",
+    statusTag: "采购受阻",
+    statusType: "warning",
+    keyUpdates: [
+      "3个大额采购审批停滞超1个月",
+      "新实验平台方案已通过学术委员会评审",
+      "Nature Materials论文已投稿",
+    ],
+    detail: "先进材料研究院主要瓶颈在采购审批——3个大额项目（合计450万）在采购处停滞。新实验平台方案已通过学术委员会评审。科研产出方面，1篇Nature Materials论文已进入同行评审。",
+  },
+  {
+    id: "c4",
+    name: "科研项目管理办公室",
+    leader: "李主任",
+    statusTag: "运营良好",
+    statusType: "normal",
+    keyUpdates: [
+      "国家级项目配套资金350万已到账",
+      "种子基金第二批评审完成，待院长终审",
+      "本季度3个结题项目均已通过验收",
+    ],
+    detail: "科研项目管理办公室运转顺畅。2个国家级项目配套资金350万已到账。院级种子基金第二批评审完成，拟资助6个青年教师项目（总额180万），待院长终审。",
+  },
+  {
+    id: "c5",
+    name: "行政与人事",
+    leader: "陈主任",
+    statusTag: "正常",
+    statusType: "normal",
+    keyUpdates: [
+      "本月引进1名海外人才，签约奖金已支出",
+      "下半年人才引进资金压力需提前规划",
+      "行政人员年度考核已完成",
+    ],
+    detail: "行政与人事运行平稳。本月引进1名海外人才（张博士，MIT），签约奖金50万已支付。下半年还有3-4个引才目标，预计签约成本200-300万，需关注资金安排。",
+  },
+];
+
+// ── 项目督办：甘特图 ──
+
+export const timelineProjects: TimelineProject[] = [
+  {
+    name: "量子芯片 Alpha",
+    status: "supply",
+    statusLabel: "供应链问题",
+    statusColor: "text-red-500",
+    dotColor: "bg-red-500",
+    owner: "张教授",
+    phase: "第二阶段",
+    bars: [
+      {
+        start: 2,
+        width: 3,
+        label: "第二阶段(延期)",
+        gradient: "bg-gradient-to-r from-red-200 to-red-300",
+        borderColor: "border-red-300",
+        textColor: "text-red-700",
+        hoverShadow: "hover:shadow-md hover:shadow-red-100",
+      },
+    ],
+  },
+  {
+    name: "生物合成实验室",
+    status: "budget",
+    statusLabel: "预算审查",
+    statusColor: "text-yellow-600",
+    dotColor: "bg-yellow-500",
+    owner: "李主任",
+    phase: "采购阶段",
+    bars: [
+      {
+        start: 1,
+        width: 2,
+        label: "采购阶段",
+        gradient: "bg-gradient-to-r from-yellow-200 to-amber-200",
+        borderColor: "border-yellow-300",
+        textColor: "text-yellow-700",
+        hoverShadow: "hover:shadow-md hover:shadow-yellow-100",
+      },
+    ],
+  },
+  {
+    name: "神经网络训练",
+    status: "normal",
+    statusLabel: "运行稳定",
+    statusColor: "text-green-600",
+    dotColor: "bg-green-500",
+    owner: "王博士",
+    phase: "数据处理",
+    bars: [
+      {
+        start: 3,
+        width: 2,
+        label: "数据处理",
+        gradient: "bg-gradient-to-r from-blue-200 to-indigo-200",
+        borderColor: "border-blue-300",
+        textColor: "text-blue-700",
+        hoverShadow: "hover:shadow-md hover:shadow-blue-100",
+      },
+    ],
+  },
+];
+
+// ── 项目督办：项目列表 ──
+
+export const mockProjects: ProjectBrief[] = [
+  {
+    id: "p1",
+    name: "量子计算中心二期",
+    owner: "王教授",
+    department: "量子研究所",
+    currentStatus: "供应链中断导致关键设备延迟到货，预算消耗已超预期",
+    latestUpdate: "正与供应商协商替代方案，预计延期2-3个月",
+    status: "risk",
+    statusLabel: "风险",
+    detail: "量子计算中心二期项目因核心设备供应商产能问题，关键低温设备交付延迟。同时现有设备维修费用大幅超出预算。项目团队正在评估替代供应商方案。",
+    aiInsight: "建议双管齐下：推动校级紧急资金支持，同时授权项目团队启动备用供应商评估。",
+  },
+  {
+    id: "p2",
+    name: "AI & 机器人实验室扩建",
+    owner: "李主任",
+    department: "科研中心",
+    currentStatus: "实验室改造工程顺利推进，Q2设备采购需提前安排审批",
+    latestUpdate: "改造工程预计下月竣工，GPU采购申请已提交",
+    status: "in-progress",
+    statusLabel: "进行中",
+    detail: "AI & 机器人实验室扩建项目整体进展顺利。Q2的核心任务是A100 GPU集群采购（预算约800万），采购申请已提交，需要走校级审批流程。",
+    aiInsight: "GPU采购的校级审批通常需要4-6周，建议院长关注审批进度，必要时直接协调。",
+  },
+  {
+    id: "p3",
+    name: "生物医学工程平台",
+    owner: "赵博士",
+    department: "生物医学中心",
+    currentStatus: "已完成验收，平台已投入运营",
+    latestUpdate: "验收报告已提交，平台已开放预约使用",
+    status: "completed",
+    statusLabel: "已完成",
+    detail: "生物医学工程平台项目已顺利完成全部建设任务并通过验收。平台已正式投入运营，目前已有3个课题组开始使用。",
+    aiInsight: "项目圆满完成，可作为院内项目管理的优秀案例。",
+  },
+];
+
+export const mockMilestones: Milestone[] = [
+  { date: "3月15日", description: "量子芯片替代供应商评估截止", projectName: "量子计算中心二期" },
+  { date: "3月底", description: "实验室改造工程竣工验收", projectName: "AI & 机器人实验室扩建" },
+  { date: "4月1日", description: "GPU集群采购校级审批节点", projectName: "AI & 机器人实验室扩建" },
+  { date: "5月中旬", description: "院级种子基金项目启动", projectName: "科研项目管理" },
+];
+
+// ── 学生管理：论文成果 ──
+
+export const mockStudentPapers: StudentPaper[] = [
+  {
+    id: "sp1",
+    title: "Efficient Multi-Modal Learning via Adaptive Token Routing",
+    student: "刘明哲",
+    grade: "2022级博士",
+    advisor: "张教授",
+    venue: "NeurIPS 2025",
+    date: "2025-01-15",
+    credited: true,
+    source: "arxiv",
+  },
+  {
+    id: "sp2",
+    title: "Quantum Error Correction with Topological Codes",
+    student: "陈宇航",
+    grade: "2023级博士",
+    advisor: "王教授",
+    venue: "Physical Review Letters",
+    date: "2025-01-10",
+    credited: true,
+    source: "arxiv",
+  },
+  {
+    id: "sp3",
+    title: "LLM-based Autonomous Agent for Scientific Discovery",
+    student: "周小凡",
+    grade: "2023级硕士",
+    advisor: "李教授",
+    venue: "ICML 2025",
+    date: "2025-01-08",
+    credited: false,
+    source: "arxiv",
+  },
+  {
+    id: "sp4",
+    title: "Graph Neural Networks for Molecular Property Prediction",
+    student: "吴思远",
+    grade: "2022级博士",
+    advisor: "赵教授",
+    venue: "Nature Machine Intelligence",
+    date: "2024-12-20",
+    credited: false,
+    source: "学院官网",
+  },
+  {
+    id: "sp5",
+    title: "Robust Visual SLAM in Dynamic Environments",
+    student: "杨若彤",
+    grade: "2024级硕士",
+    advisor: "张教授",
+    venue: "CVPR 2025",
+    date: "2024-12-15",
+    credited: true,
+    source: "arxiv",
+  },
+];
+
+// ── 学生管理：招生数据 ──
+
+export const mockEnrollment: EnrollmentData[] = [
+  { category: "博士在读", count: 62, change: "+5 vs 去年", changeType: "up" },
+  { category: "硕士在读", count: 124, change: "+12 vs 去年", changeType: "up" },
+  { category: "今年推免录取", count: 38, change: "+3 vs 去年", changeType: "up" },
+  { category: "今年统考录取", count: 26, change: "-2 vs 去年", changeType: "down" },
+];
+
+// ── 学生管理：预警 ──
 
 export const mockStudentAlerts: StudentAlert[] = [
   {
@@ -84,10 +338,8 @@ export const mockStudentAlerts: StudentAlert[] = [
     type: "心理预警",
     level: "紧急",
     summary: "连续两周未参加组会，导师反馈情绪异常低落",
-    detail:
-      "该生近期表现明显异常：连续两周未参加课题组组会，导师李教授反馈其近一个月情绪持续低落，与同学交流减少。宿舍同学反映该生作息紊乱，经常深夜独自外出。上学期成绩优异（GPA 3.8），但本学期已缺交两次课程作业。",
-    aiRecommendation:
-      "建议立即启动心理危机干预流程：1) 辅导员24小时内进行一对一面谈；2) 协调心理咨询中心安排专业评估；3) 通知导师暂时减轻其科研压力；4) 联系家长了解家庭近况。该生属于高危预警，需要多方协同跟进。",
+    detail: "该生近期表现明显异常：连续两周未参加课题组组会，导师李教授反馈其近一个月情绪持续低落，与同学交流减少。",
+    aiRecommendation: "建议立即启动心理危机干预流程：辅导员24小时内面谈，协调心理咨询中心评估，通知导师减轻科研压力。",
   },
   {
     id: "s2",
@@ -97,60 +349,50 @@ export const mockStudentAlerts: StudentAlert[] = [
     type: "学业预警",
     level: "关注",
     summary: "博士中期考核未通过，论文进展严重滞后",
-    detail:
-      "该生博士中期考核未通过，论文实验数据不足，研究方向与导师存在分歧。已延期1学期。导师王教授建议调整研究课题方向，但该生对此有较大抵触情绪。当前已发表论文0篇（同期博士生平均1.5篇）。",
-    aiRecommendation:
-      "建议安排学业帮扶方案：1) 协调研究生院延长中期考核补考时间；2) 安排副导师或高年级博士进行学术辅导；3) 组织导师与学生进行深度沟通，调解研究方向分歧；4) 关注该生情绪变化，防止学业压力引发心理问题。",
+    detail: "该生博士中期考核未通过，论文实验数据不足，研究方向与导师存在分歧。已延期1学期。",
+    aiRecommendation: "建议协调研究生院延长补考时间，安排副导师辅导，组织导师与学生深度沟通。",
   },
   {
     id: "s3",
-    name: "王浩然",
-    grade: "2024级硕士",
-    major: "网络安全",
-    type: "考勤异常",
-    level: "提醒",
-    summary: "本月旷课3次，实验室打卡记录不规律",
-    detail:
-      "该生本月旷课3次（《高级密码学》2次、《网络安全前沿》1次），实验室打卡记录显示经常下午才到。该生入学成绩排名第3，上学期表现良好。近期班主任了解到该生正在参与一个校外创业项目。",
-    aiRecommendation:
-      "建议进行常规谈话了解情况：1) 班主任约谈了解校外活动详情；2) 强调学业优先的原则，明确考勤纪律；3) 如校外项目与专业相关，可引导其纳入研究课题；4) 持续关注后续出勤情况，如无改善则进一步处理。",
-  },
-  {
-    id: "s4",
-    name: "陈雪",
-    grade: "2023级硕士",
-    major: "数据科学",
-    type: "心理预警",
-    level: "关注",
-    summary: "心理普测异常，SCL-90多项因子超标",
-    detail:
-      "该生在本学期心理健康普测中，SCL-90量表中强迫、抑郁、焦虑三项因子分均超过预警线。该生平时性格内向，社交圈子较小。成绩正常（GPA 3.5），科研进展顺利。但宿舍关系一般，曾申请调换宿舍。",
-    aiRecommendation:
-      "建议开展关怀性介入：1) 辅导员以学业关心为切入点进行自然接触；2) 推荐参加学院心理成长工作坊；3) 协调宿舍调换事宜，改善生活环境；4) 安排一次心理咨询中心的初步评估；5) 在导师知情的前提下给予适当关注。",
-  },
-  {
-    id: "s5",
     name: "赵鹏飞",
     grade: "2022级硕士",
     major: "智能制造",
     type: "经济困难",
     level: "提醒",
-    summary: "助学贷款到期，家庭突发变故申请困难补助",
-    detail:
-      "该生家庭所在地区遭遇自然灾害，父亲因伤住院，家庭经济状况急剧恶化。已提交困难补助申请。该生平时勤奋刻苦，成绩优秀（GPA 3.7），担任课题组技术骨干。目前依靠助学贷款和勤工俭学维持学业。",
-    aiRecommendation:
-      "建议启动紧急资助通道：1) 加急审批困难补助申请（建议特等助学金）；2) 协调勤工助学岗位，优先安排科研助理；3) 推荐校友基金会专项救助；4) 导师可考虑提高其课题劳务费；5) 持续关注其心理状态，防止经济压力影响学业。",
+    summary: "家庭突发变故，申请困难补助",
+    detail: "该生家庭遭遇自然灾害，父亲因伤住院，经济状况恶化。已提交困难补助申请。成绩优秀（GPA 3.7）。",
+    aiRecommendation: "建议加急审批困难补助，协调勤工助学岗位，推荐校友基金会专项救助。",
   },
 ];
 
-export const studentSummary: StudentSummary = {
-  totalStudents: 186,
-  employmentRate: 94,
-};
+// ── 社媒动态 ──
 
-export const sentimentData: SentimentData = {
-  score: 78,
-  positive: 65,
-  neutral: 20,
-  negative: 15,
-};
+export const mockSocialMedia: SocialMediaItem[] = [
+  {
+    id: "sm1",
+    platform: "微博",
+    platformIcon: "微",
+    iconColor: "bg-red-100",
+    time: "2小时前",
+    content: "学生们正在讨论新宿舍的WiFi限制问题，该话题在本地圈子中有一定热度。",
+    risk: false,
+  },
+  {
+    id: "sm2",
+    platform: "知乎",
+    platformIcon: "知",
+    iconColor: "bg-green-100",
+    time: "5小时前",
+    content: "我院AI实验室论文被Nature子刊收录，知乎学术圈正面评价居多，有助于提升学院知名度。",
+    risk: false,
+  },
+  {
+    id: "sm3",
+    platform: "小红书",
+    platformIcon: "小",
+    iconColor: "bg-red-200",
+    time: "昨天",
+    content: "有学生在小红书吐槽食堂涨价问题，帖子获得120+点赞，评论区有其他高校学生参与讨论，建议关注舆论走向。",
+    risk: true,
+  },
+];

@@ -1,5 +1,19 @@
 export type { Competitor as PeerInstitution } from "./intelligence";
 
+export type PeerNewsGroup = "university_news" | "ai_institutes";
+
+export interface PeerNewsItem {
+  id: string;
+  title: string;
+  sourceId: string;
+  sourceName: string;
+  group: PeerNewsGroup;
+  url: string;
+  date: string;
+  summary: string;
+  tags: string[];
+}
+
 export interface PersonnelChange {
   id: string;
   person: string;

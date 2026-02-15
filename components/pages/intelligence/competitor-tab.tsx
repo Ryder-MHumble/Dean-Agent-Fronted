@@ -1,16 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import {
   Building2,
   Activity,
@@ -24,14 +16,16 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/motion";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import { mockCompetitors } from "@/lib/mock-data/intelligence";
 import type { Competitor } from "@/lib/types/intelligence";
 import { ThreatBadge, ActivityBar } from "./helpers";
 
 export default function CompetitorTab() {
-  const [selectedCompetitor, setSelectedCompetitor] =
-    useState<Competitor | null>(null);
+  const { selectedItem: selectedCompetitor, open, close, isOpen } = useDetailView<Competitor>();
 
   const criticalCount = mockCompetitors.filter(
     (c) => c.threatLevel === "critical",
@@ -42,7 +36,72 @@ export default function CompetitorTab() {
   );
 
   return (
-    <>
+    <MasterDetailView
+      isOpen={isOpen}
+      onClose={close}
+      detailHeader={
+        selectedCompetitor
+          ? {
+              title: (
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  {selectedCompetitor.name}
+                  <ThreatBadge level={selectedCompetitor.threatLevel} />
+                </h2>
+              ),
+              subtitle: (
+                <p className="text-sm text-muted-foreground">
+                  活跃度: {selectedCompetitor.activityLevel}/100 · 近期动态:{" "}
+                  {selectedCompetitor.recentCount}条
+                </p>
+              ),
+            }
+          : undefined
+      }
+      detailContent={
+        selectedCompetitor ? (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-2">详细分析</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {selectedCompetitor.detail}
+              </p>
+            </div>
+            <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-indigo-500" />
+                <span className="text-sm font-semibold text-indigo-700">
+                  AI 建议
+                </span>
+              </div>
+              <p className="text-sm text-indigo-700/80">
+                {selectedCompetitor.aiInsight}
+              </p>
+            </div>
+          </div>
+        ) : null
+      }
+      detailFooter={
+        selectedCompetitor ? (
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={() => {
+                toast.success("已设置持续监控");
+                close();
+              }}
+            >
+              设置监控
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast.success("竞争分析报告已生成")}
+            >
+              生成报告
+            </Button>
+          </div>
+        ) : undefined
+      }
+    >
       {/* KPI Row */}
       <div className="grid grid-cols-3 gap-4 mb-4">
         <Card className="shadow-card">
@@ -106,8 +165,11 @@ export default function CompetitorTab() {
                   <StaggerItem key={competitor.id}>
                     <button
                       type="button"
-                      className="w-full rounded-lg border p-4 hover:border-blue-200 hover:shadow-sm transition-all group cursor-pointer text-left"
-                      onClick={() => setSelectedCompetitor(competitor)}
+                      className={cn(
+                        "w-full rounded-lg border p-4 hover:border-blue-200 hover:shadow-sm transition-all group cursor-pointer text-left",
+                        selectedCompetitor?.id === competitor.id && "border-blue-200 bg-muted/40",
+                      )}
+                      onClick={() => open(competitor)}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-3">
@@ -192,65 +254,6 @@ export default function CompetitorTab() {
           </Card>
         </div>
       </div>
-
-      {/* Competitor Detail Sheet */}
-      <Sheet
-        open={!!selectedCompetitor}
-        onOpenChange={() => setSelectedCompetitor(null)}
-      >
-        <SheetContent className="sm:max-w-lg">
-          {selectedCompetitor && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg flex items-center gap-2">
-                  {selectedCompetitor.name}
-                  <ThreatBadge level={selectedCompetitor.threatLevel} />
-                </SheetTitle>
-                <SheetDescription>
-                  活跃度: {selectedCompetitor.activityLevel}/100 · 近期动态:{" "}
-                  {selectedCompetitor.recentCount}条
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">详细分析</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedCompetitor.detail}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-indigo-50 border border-indigo-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-indigo-500" />
-                    <span className="text-sm font-semibold text-indigo-700">
-                      AI 建议
-                    </span>
-                  </div>
-                  <p className="text-sm text-indigo-700/80">
-                    {selectedCompetitor.aiInsight}
-                  </p>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      toast.success("已设置持续监控");
-                      setSelectedCompetitor(null);
-                    }}
-                  >
-                    设置监控
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("竞争分析报告已生成")}
-                  >
-                    生成报告
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-    </>
+    </MasterDetailView>
   );
 }

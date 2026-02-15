@@ -1,16 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import {
   Target,
   Zap,
@@ -27,12 +19,14 @@ import {
 } from "@/components/motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import { mockPolicies } from "@/lib/mock-data/intelligence";
 import type { PolicyItem } from "@/lib/types/intelligence";
 import { MatchBar } from "./helpers";
 
 export default function PolicyTab() {
-  const [selectedPolicy, setSelectedPolicy] = useState<PolicyItem | null>(null);
+  const { selectedItem: selectedPolicy, open, close, isOpen } = useDetailView<PolicyItem>();
 
   const urgentCount = mockPolicies.filter((p) => p.status === "urgent").length;
   const avgMatch = Math.round(
@@ -41,7 +35,90 @@ export default function PolicyTab() {
   );
 
   return (
-    <>
+    <MasterDetailView
+      isOpen={isOpen}
+      onClose={close}
+      detailHeader={
+        selectedPolicy
+          ? {
+              title: (
+                <h2 className="text-lg font-semibold">
+                  {selectedPolicy.name}
+                </h2>
+              ),
+              subtitle: (
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={cn("text-[10px]", {
+                      "border-red-200 bg-red-50 text-red-700":
+                        selectedPolicy.agencyType === "national",
+                      "border-blue-200 bg-blue-50 text-blue-700":
+                        selectedPolicy.agencyType === "beijing",
+                    })}
+                  >
+                    {selectedPolicy.agency}
+                  </Badge>
+                  <span>匹配度 {selectedPolicy.matchScore}%</span>
+                  <span>·</span>
+                  <span>资金规模 {selectedPolicy.funding}</span>
+                </p>
+              ),
+            }
+          : undefined
+      }
+      detailContent={
+        selectedPolicy ? (
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-semibold mb-2">详细分析</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {selectedPolicy.detail}
+              </p>
+            </div>
+            <div className="rounded-lg bg-blue-50 border border-blue-100 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-blue-500" />
+                <span className="text-sm font-semibold text-blue-700">
+                  AI 建议
+                </span>
+              </div>
+              <p className="text-sm text-blue-700/80">
+                {selectedPolicy.aiInsight}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                距截止: {selectedPolicy.daysLeft}天 (
+                {selectedPolicy.deadline})
+              </div>
+            </div>
+          </div>
+        ) : null
+      }
+      detailFooter={
+        selectedPolicy ? (
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={() => {
+                toast.success("已分配给李副主任跟进");
+                close();
+              }}
+            >
+              分配负责人
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast.success("申报材料模板已生成")}
+            >
+              生成申报材料
+            </Button>
+          </div>
+        ) : undefined
+      }
+    >
       {/* KPI Row */}
       <div className="grid grid-cols-3 gap-4 mb-4">
         <Card className="shadow-card">
@@ -118,8 +195,11 @@ export default function PolicyTab() {
                     <StaggerItem key={policy.id}>
                       <button
                         type="button"
-                        className="w-full grid grid-cols-[1fr_100px_90px_80px_70px_60px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
-                        onClick={() => setSelectedPolicy(policy)}
+                        className={cn(
+                          "w-full grid grid-cols-[1fr_100px_90px_80px_70px_60px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer",
+                          selectedPolicy?.id === policy.id && "bg-muted/40",
+                        )}
+                        onClick={() => open(policy)}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           {policy.status === "urgent" && (
@@ -216,83 +296,6 @@ export default function PolicyTab() {
           </Card>
         </div>
       </div>
-
-      {/* Policy Detail Sheet */}
-      <Sheet
-        open={!!selectedPolicy}
-        onOpenChange={() => setSelectedPolicy(null)}
-      >
-        <SheetContent className="sm:max-w-lg">
-          {selectedPolicy && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg">
-                  {selectedPolicy.name}
-                </SheetTitle>
-                <SheetDescription className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={cn("text-[10px]", {
-                      "border-red-200 bg-red-50 text-red-700":
-                        selectedPolicy.agencyType === "national",
-                      "border-blue-200 bg-blue-50 text-blue-700":
-                        selectedPolicy.agencyType === "beijing",
-                    })}
-                  >
-                    {selectedPolicy.agency}
-                  </Badge>
-                  <span>匹配度 {selectedPolicy.matchScore}%</span>
-                  <span>·</span>
-                  <span>资金规模 {selectedPolicy.funding}</span>
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">详细分析</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedPolicy.detail}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-blue-50 border border-blue-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm font-semibold text-blue-700">
-                      AI 建议
-                    </span>
-                  </div>
-                  <p className="text-sm text-blue-700/80">
-                    {selectedPolicy.aiInsight}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    距截止: {selectedPolicy.daysLeft}天 (
-                    {selectedPolicy.deadline})
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      toast.success("已分配给李副主任跟进");
-                      setSelectedPolicy(null);
-                    }}
-                  >
-                    分配负责人
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("申报材料模板已生成")}
-                  >
-                    生成申报材料
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-    </>
+    </MasterDetailView>
   );
 }

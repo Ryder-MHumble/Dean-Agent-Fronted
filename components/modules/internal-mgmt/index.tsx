@@ -2,21 +2,19 @@
 
 import ModuleLayout from "@/components/module-layout"
 import type { SubPageConfig } from "@/components/module-layout"
-import {
-  DollarSign,
-  ClipboardList,
-  GraduationCap,
-  ShieldAlert,
-  BarChart3,
-} from "lucide-react"
-import SentimentSafety from "./sentiment-safety"
+import { Building2, ClipboardList, GraduationCap, Globe } from "lucide-react"
+import CenterUpdates from "./center-updates"
 import ProjectSupervision from "./project-supervision"
-import CenterPerformance from "./center-performance"
-import Finance from "./finance"
-import StudentAffairs from "./student-affairs"
+import StudentMgmt from "./student-mgmt"
+import SentimentMonitor from "./sentiment-monitor"
 
 const subPages: SubPageConfig[] = [
-  { id: "finance", label: "财务管理", icon: DollarSign, component: Finance },
+  {
+    id: "center",
+    label: "中心动态",
+    icon: Building2,
+    component: CenterUpdates,
+  },
   {
     id: "project",
     label: "项目督办",
@@ -25,21 +23,15 @@ const subPages: SubPageConfig[] = [
   },
   {
     id: "student",
-    label: "学生事务",
+    label: "学生管理",
     icon: GraduationCap,
-    component: StudentAffairs,
+    component: StudentMgmt,
   },
   {
     id: "sentiment",
-    label: "舆情安全",
-    icon: ShieldAlert,
-    component: SentimentSafety,
-  },
-  {
-    id: "center",
-    label: "中心绩效",
-    icon: BarChart3,
-    component: CenterPerformance,
+    label: "舆情监测",
+    icon: Globe,
+    component: SentimentMonitor,
   },
 ]
 

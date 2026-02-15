@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, HelpCircle, Settings, ChevronLeft } from "lucide-react";
+import Image from "next/image";
+import {
+  Bell,
+  HelpCircle,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -42,14 +49,26 @@ export default function AppShell({
     <TooltipProvider delayDuration={0}>
       <motion.aside
         animate={{ width: collapsed ? 70 : 220 }}
-        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-        className="fixed left-0 top-0 z-40 flex h-screen flex-col bg-white/80 backdrop-blur-xl border-r border-border/40 overflow-hidden"
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        className="fixed left-0 top-0 z-40 flex h-screen flex-col bg-white/80 backdrop-blur-xl border-r border-border/40 overflow-x-hidden"
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 py-5 relative min-h-[68px]">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white flex-shrink-0 shadow-glow-blue">
-            {"智"}
-          </div>
+        {/* Logo + Toggle */}
+        <div
+          className={cn(
+            "flex min-h-[68px]",
+            collapsed
+              ? "flex-col items-center gap-1.5 px-2 py-4"
+              : "flex-row items-center gap-2.5 px-5 py-5",
+          )}
+        >
+          <Image
+            src="/Logo.png"
+            alt="智策云端"
+            width={48}
+            height={48}
+            className="flex-shrink-0 rounded-xl"
+            priority
+          />
           <AnimatePresence>
             {!collapsed && (
               <motion.div
@@ -57,7 +76,7 @@ export default function AppShell({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -8 }}
                 transition={{ duration: 0.18, ease: "easeOut" }}
-                className="flex-1 overflow-hidden"
+                className="flex-1 min-w-0 overflow-hidden"
               >
                 <div className="flex items-center gap-1.5">
                   <span className="text-[15px] font-semibold text-foreground whitespace-nowrap">
@@ -75,17 +94,25 @@ export default function AppShell({
           </AnimatePresence>
 
           {/* Collapse toggle */}
-          <button
-            onClick={handleToggle}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full border border-border/60 bg-white shadow-card hover:shadow-card-hover hover:bg-blue-50 transition-all duration-200 flex items-center justify-center z-50"
-          >
-            <motion.div
-              animate={{ rotate: collapsed ? 180 : 0 }}
-              transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <ChevronLeft className="h-3 w-3 text-muted-foreground" />
-            </motion.div>
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleToggle}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors shrink-0"
+              >
+                {collapsed ? (
+                  <PanelLeftOpen className="h-[18px] w-[18px]" />
+                ) : (
+                  <PanelLeftClose className="h-[18px] w-[18px]" />
+                )}
+              </button>
+            </TooltipTrigger>
+            {collapsed && (
+              <TooltipContent side="right" sideOffset={10}>
+                <p>展开侧栏</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
 
         {/* Navigation */}
@@ -325,6 +352,15 @@ export function TopBar({
         >
           <HelpCircle className="h-5 w-5" />
         </button>
+
+        <div className="ml-1 h-6 w-px bg-border/40" />
+        <Image
+          src="/Logo.png"
+          alt="智策云端"
+          width={42}
+          height={42}
+          className="rounded-lg"
+        />
       </div>
     </header>
   );

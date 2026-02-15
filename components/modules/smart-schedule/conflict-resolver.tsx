@@ -4,13 +4,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import {
   AlertOctagon,
   CheckCircle2,
@@ -61,8 +56,12 @@ function ConflictTypeTag({
 }
 
 export default function ConflictResolver() {
-  const [selectedConflict, setSelectedConflict] =
-    useState<ScheduleConflict | null>(null);
+  const {
+    selectedItem: selectedConflict,
+    open,
+    close,
+    isOpen,
+  } = useDetailView<ScheduleConflict>();
   const [resolvedIds, setResolvedIds] = useState<Set<string>>(new Set());
 
   const unresolvedConflicts = mockScheduleConflicts.filter(
@@ -76,7 +75,7 @@ export default function ConflictResolver() {
 
   const handleResolve = (conflictId: string, solutionLabel: string) => {
     setResolvedIds((prev) => new Set(prev).add(conflictId));
-    setSelectedConflict(null);
+    close();
     toast.success(`已采纳方案：${solutionLabel}`, {
       description: "日程已自动更新，相关人员已通知",
     });
@@ -126,257 +125,267 @@ export default function ConflictResolver() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
-          <Card className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">
-                  日程冲突列表
-                </CardTitle>
-                <Badge variant="secondary" className="text-[10px]">
-                  按严重程度排序
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="overflow-auto max-h-[calc(100vh-320px)]">
-                <div className="grid grid-cols-[1fr_100px_90px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b sticky top-0 bg-card z-10">
-                  <span>冲突事项</span>
-                  <span>时间</span>
-                  <span>冲突类型</span>
-                  <span>AI建议方案</span>
-                  <span></span>
-                </div>
-                <StaggerContainer>
-                  {mockScheduleConflicts.map((conflict) => {
-                    const isResolved = resolvedIds.has(conflict.id);
-                    return (
-                      <StaggerItem key={conflict.id}>
-                        <button
-                          type="button"
-                          className={cn(
-                            "w-full grid grid-cols-[1fr_100px_90px_1fr_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 transition-colors group cursor-pointer",
-                            isResolved
-                              ? "bg-green-50/50 opacity-60"
-                              : "hover:bg-muted/30",
-                          )}
-                          onClick={() =>
-                            !isResolved && setSelectedConflict(conflict)
-                          }
-                          disabled={isResolved}
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            {isResolved ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-                            ) : conflict.severity === "high" ? (
-                              <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
-                            ) : null}
-                            <div className="min-w-0">
-                              <span
-                                className={cn(
-                                  "text-sm font-medium transition-colors flex items-center gap-1",
-                                  isResolved
-                                    ? "line-through text-muted-foreground"
-                                    : "group-hover:text-rose-600",
-                                )}
-                              >
-                                <span className="truncate">
-                                  {conflict.eventA}
-                                </span>
-                                <ArrowRightLeft className="h-3 w-3 text-muted-foreground shrink-0" />
-                                <span className="truncate">
-                                  {conflict.eventB}
-                                </span>
-                              </span>
-                            </div>
-                          </div>
-                          <span className="text-xs text-foreground font-tabular">
-                            {conflict.time.length > 12
-                              ? conflict.time.slice(5)
-                              : conflict.time.slice(5)}
-                          </span>
-                          {isResolved ? (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] border-green-200 bg-green-50 text-green-700 w-fit"
-                            >
-                              已化解
-                            </Badge>
-                          ) : (
-                            <ConflictTypeTag
-                              type={conflict.conflictType}
-                              iconType={conflict.conflictTypeIcon}
-                            />
-                          )}
-                          <span className="text-xs text-muted-foreground truncate">
-                            {isResolved
-                              ? "已按AI推荐方案处理"
-                              : conflict.aiSuggestion}
-                          </span>
-                          <ChevronRight
-                            className={cn(
-                              "h-4 w-4 text-muted-foreground transition-all",
-                              !isResolved &&
-                                "group-hover:text-rose-500 group-hover:translate-x-0.5",
-                            )}
-                          />
-                        </button>
-                      </StaggerItem>
-                    );
-                  })}
-                </StaggerContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="col-span-4">
-          <AIInsightPanel
-            title="AI 冲突化解策略"
-            accentColor="rose"
-            description={`检测到${activeCount}个日程冲突，其中${pendingCount}个为高优先级需立即处理。AI已为每个冲突生成多套化解方案，综合考虑了活动价值、时间可调性和出行可行性。`}
-            insights={[
-              {
-                text: "教育部大会与IEEE会议冲突，建议优先教育部",
-                color: "red",
-              },
-              { text: "答辩与接待精力冲突，已协调缓冲时间", color: "amber" },
-              { text: "WAIC与深圳座谈可通过早班航班衔接", color: "blue" },
-              { text: "教职工大会可调至上午，冲突最易化解", color: "green" },
-            ]}
-            actions={[
-              {
-                label: "化解报告",
-                icon: FileText,
-                onClick: () => toast.success("正在生成冲突化解方案报告..."),
-              },
-              {
-                label: "一键化解",
-                icon: Zap,
-                variant: "outline",
-                onClick: () => toast.success("已应用AI推荐方案并更新日程..."),
-              },
-            ]}
-          />
-        </div>
-      </div>
-
-      <Sheet
-        open={!!selectedConflict}
-        onOpenChange={() => setSelectedConflict(null)}
-      >
-        <SheetContent className="sm:max-w-lg">
-          {selectedConflict && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg flex items-center gap-2">
-                  冲突详情
-                  <ConflictTypeTag
-                    type={selectedConflict.conflictType}
-                    iconType={selectedConflict.conflictTypeIcon}
-                  />
-                </SheetTitle>
-                <SheetDescription>
-                  {selectedConflict.eventA} vs {selectedConflict.eventB} ·{" "}
-                  {selectedConflict.time}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">冲突分析</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedConflict.detail}
+      <MasterDetailView
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedConflict
+            ? {
+                title: (
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    冲突详情
+                    <ConflictTypeTag
+                      type={selectedConflict.conflictType}
+                      iconType={selectedConflict.conflictTypeIcon}
+                    />
+                  </h2>
+                ),
+                subtitle: (
+                  <p className="text-sm text-muted-foreground">
+                    {selectedConflict.eventA} vs {selectedConflict.eventB} ·{" "}
+                    {selectedConflict.time}
                   </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">化解方案</h4>
-                  <div className="space-y-3">
-                    {selectedConflict.resolutionOptions.map((option, idx) => (
-                      <div
-                        key={idx}
+                ),
+              }
+            : undefined
+        }
+        detailContent={
+          selectedConflict ? (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold mb-2">冲突分析</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedConflict.detail}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-3">化解方案</h4>
+                <div className="space-y-3">
+                  {selectedConflict.resolutionOptions.map((option, idx) => (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "rounded-lg border p-3 transition-colors",
+                        option.recommended
+                          ? "border-rose-200 bg-rose-50"
+                          : "border-border hover:bg-muted/30",
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span
+                          className={cn(
+                            "text-sm font-semibold",
+                            option.recommended
+                              ? "text-rose-700"
+                              : "text-foreground",
+                          )}
+                        >
+                          {option.label}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {option.recommended && (
+                            <Badge className="bg-rose-500 text-white text-[10px]">
+                              AI推荐
+                            </Badge>
+                          )}
+                          <Badge
+                            variant="outline"
+                            className={cn("text-[10px] font-tabular", {
+                              "border-green-200 bg-green-50 text-green-700":
+                                option.confidence >= 80,
+                              "border-amber-200 bg-amber-50 text-amber-700":
+                                option.confidence >= 50 &&
+                                option.confidence < 80,
+                              "border-gray-200 bg-gray-50 text-gray-600":
+                                option.confidence < 50,
+                            })}
+                          >
+                            可行度 {option.confidence}%
+                          </Badge>
+                        </div>
+                      </div>
+                      <p
                         className={cn(
-                          "rounded-lg border p-3 transition-colors",
+                          "text-xs leading-relaxed",
                           option.recommended
-                            ? "border-rose-200 bg-rose-50"
-                            : "border-border hover:bg-muted/30",
+                            ? "text-rose-700/70"
+                            : "text-muted-foreground",
                         )}
                       >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span
-                            className={cn(
-                              "text-sm font-semibold",
-                              option.recommended
-                                ? "text-rose-700"
-                                : "text-foreground",
-                            )}
-                          >
-                            {option.label}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {option.recommended && (
-                              <Badge className="bg-rose-500 text-white text-[10px]">
-                                AI推荐
-                              </Badge>
-                            )}
-                            <Badge
-                              variant="outline"
-                              className={cn("text-[10px] font-tabular", {
-                                "border-green-200 bg-green-50 text-green-700":
-                                  option.confidence >= 80,
-                                "border-amber-200 bg-amber-50 text-amber-700":
-                                  option.confidence >= 50 &&
-                                  option.confidence < 80,
-                                "border-gray-200 bg-gray-50 text-gray-600":
-                                  option.confidence < 50,
-                              })}
-                            >
-                              可行度 {option.confidence}%
-                            </Badge>
-                          </div>
-                        </div>
-                        <p
-                          className={cn(
-                            "text-xs leading-relaxed",
-                            option.recommended
-                              ? "text-rose-700/70"
-                              : "text-muted-foreground",
-                          )}
-                        >
-                          {option.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      const recommended =
-                        selectedConflict.resolutionOptions.find(
-                          (o) => o.recommended,
-                        );
-                      handleResolve(
-                        selectedConflict.id,
-                        recommended?.label || "AI推荐方案",
-                      );
-                    }}
-                  >
-                    采纳AI推荐
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("已标记为手动处理，稍后提醒")}
-                  >
-                    手动处理
-                  </Button>
+                        {option.description}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+            </div>
+          ) : (
+            <div />
+          )
+        }
+        detailFooter={
+          selectedConflict ? (
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  const recommended = selectedConflict.resolutionOptions.find(
+                    (o) => o.recommended,
+                  );
+                  handleResolve(
+                    selectedConflict.id,
+                    recommended?.label || "AI推荐方案",
+                  );
+                }}
+              >
+                采纳AI推荐
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => toast.success("已标记为手动处理，稍后提醒")}
+              >
+                手动处理
+              </Button>
+            </div>
+          ) : undefined
+        }
+      >
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-8">
+            <Card className="shadow-card">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold">
+                    日程冲突列表
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-[10px]">
+                    按严重程度排序
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="overflow-auto max-h-[calc(100vh-320px)]">
+                  <div className="grid grid-cols-[1fr_100px_90px_1fr_40px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b sticky top-0 bg-card z-10">
+                    <span>冲突事项</span>
+                    <span>时间</span>
+                    <span>冲突类型</span>
+                    <span>AI建议方案</span>
+                    <span></span>
+                  </div>
+                  <StaggerContainer>
+                    {mockScheduleConflicts.map((conflict) => {
+                      const isResolved = resolvedIds.has(conflict.id);
+                      return (
+                        <StaggerItem key={conflict.id}>
+                          <button
+                            type="button"
+                            className={cn(
+                              "w-full grid grid-cols-[1fr_100px_90px_1fr_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 transition-colors group cursor-pointer",
+                              isResolved
+                                ? "bg-green-50/50 opacity-60"
+                                : selectedConflict?.id === conflict.id
+                                  ? "bg-blue-50/80 border-l-2 border-blue-500"
+                                  : "hover:bg-muted/30",
+                            )}
+                            onClick={() => !isResolved && open(conflict)}
+                            disabled={isResolved}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              {isResolved ? (
+                                <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                              ) : conflict.severity === "high" ? (
+                                <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
+                              ) : null}
+                              <div className="min-w-0">
+                                <span
+                                  className={cn(
+                                    "text-sm font-medium transition-colors flex items-center gap-1",
+                                    isResolved
+                                      ? "line-through text-muted-foreground"
+                                      : "group-hover:text-rose-600",
+                                  )}
+                                >
+                                  <span className="truncate">
+                                    {conflict.eventA}
+                                  </span>
+                                  <ArrowRightLeft className="h-3 w-3 text-muted-foreground shrink-0" />
+                                  <span className="truncate">
+                                    {conflict.eventB}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-xs text-foreground font-tabular">
+                              {conflict.time.length > 12
+                                ? conflict.time.slice(5)
+                                : conflict.time.slice(5)}
+                            </span>
+                            {isResolved ? (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] border-green-200 bg-green-50 text-green-700 w-fit"
+                              >
+                                已化解
+                              </Badge>
+                            ) : (
+                              <ConflictTypeTag
+                                type={conflict.conflictType}
+                                iconType={conflict.conflictTypeIcon}
+                              />
+                            )}
+                            <span className="text-xs text-muted-foreground truncate">
+                              {isResolved
+                                ? "已按AI推荐方案处理"
+                                : conflict.aiSuggestion}
+                            </span>
+                            <ChevronRight
+                              className={cn(
+                                "h-4 w-4 text-muted-foreground transition-all",
+                                !isResolved &&
+                                  "group-hover:text-rose-500 group-hover:translate-x-0.5",
+                              )}
+                            />
+                          </button>
+                        </StaggerItem>
+                      );
+                    })}
+                  </StaggerContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="col-span-4">
+            <AIInsightPanel
+              title="AI 冲突化解策略"
+              accentColor="rose"
+              description={`检测到${activeCount}个日程冲突，其中${pendingCount}个为高优先级需立即处理。AI已为每个冲突生成多套化解方案，综合考虑了活动价值、时间可调性和出行可行性。`}
+              insights={[
+                {
+                  text: "教育部大会与IEEE会议冲突，建议优先教育部",
+                  color: "red",
+                },
+                { text: "答辩与接待精力冲突，已协调缓冲时间", color: "amber" },
+                { text: "WAIC与深圳座谈可通过早班航班衔接", color: "blue" },
+                { text: "教职工大会可调至上午，冲突最易化解", color: "green" },
+              ]}
+              actions={[
+                {
+                  label: "化解报告",
+                  icon: FileText,
+                  onClick: () => toast.success("正在生成冲突化解方案报告..."),
+                },
+                {
+                  label: "一键化解",
+                  icon: Zap,
+                  variant: "outline",
+                  onClick: () => toast.success("已应用AI推荐方案并更新日程..."),
+                },
+              ]}
+            />
+          </div>
+        </div>
+      </MasterDetailView>
     </>
   );
 }

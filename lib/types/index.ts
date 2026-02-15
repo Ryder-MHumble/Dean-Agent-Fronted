@@ -17,10 +17,15 @@ export type { ChatMessage } from "./ai-assistant";
 
 // Internal Management
 export type {
-  BudgetItem,
+  CenterEvent,
+  CenterBrief,
+  TimelineProject,
+  ProjectBrief,
+  Milestone,
+  StudentPaper,
+  EnrollmentData,
   StudentAlert,
-  StudentSummary,
-  SentimentData,
+  SocialMediaItem,
 } from "./internal-mgmt";
 
 // Network
@@ -28,10 +33,10 @@ export type { Contact, RelationshipSummary } from "./network";
 
 // Tech Frontier
 export type {
-  IndustryNews,
   TrendingPost,
-  TrendingKeyword,
-  KOL,
+  TopicNews,
+  KOLVoice,
+  TechTopic,
   Opportunity,
 } from "./tech-frontier";
 
@@ -59,6 +64,8 @@ export type {
   PeerInstitution,
   PersonnelChange,
   ResearchOutput,
+  PeerNewsItem,
+  PeerNewsGroup,
 } from "./university-eco";
 
 // AI Secretary

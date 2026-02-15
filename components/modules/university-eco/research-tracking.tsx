@@ -1,16 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import {
   BookOpen,
   Lightbulb,
@@ -23,6 +15,8 @@ import {
   StaggerContainer,
   StaggerItem,
 } from "@/components/motion";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ResearchOutput } from "@/lib/types/university-eco";
@@ -63,9 +57,7 @@ function InfluenceBadge({ level }: { level: ResearchOutput["influence"] }) {
 }
 
 export default function ResearchTracking() {
-  const [selectedOutput, setSelectedOutput] = useState<ResearchOutput | null>(
-    null,
-  );
+  const { selectedItem: selectedOutput, open, close, isOpen } = useDetailView<ResearchOutput>();
 
   return (
     <>
@@ -111,140 +103,154 @@ export default function ResearchTracking() {
         </Card>
       </div>
 
-      <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">
-              同行机构科研成果追踪
-            </CardTitle>
-            <Badge variant="secondary" className="text-[10px]">
-              按影响力排序
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
-            <StaggerContainer className="space-y-3">
-              {mockResearchOutputs.map((output) => (
-                <StaggerItem key={output.id}>
-                  <button
-                    type="button"
-                    className="w-full rounded-lg border p-4 hover:border-purple-200 hover:shadow-sm transition-all group cursor-pointer text-left"
-                    onClick={() => setSelectedOutput(output)}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                          {output.institution.charAt(0)}
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-semibold group-hover:text-purple-600 transition-colors">
-                            {output.title}
-                          </h4>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[11px] text-muted-foreground">
-                              {output.institution}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">
-                              ·
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">
-                              {output.field}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">
-                              ·
-                            </span>
-                            <span className="text-[11px] text-muted-foreground">
-                              {output.date}
-                            </span>
+      <MasterDetailView
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedOutput
+            ? {
+                title: (
+                  <h2 className="text-lg font-semibold">
+                    {selectedOutput.title}
+                  </h2>
+                ),
+                subtitle: (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedOutput.institution} · {selectedOutput.field} ·{" "}
+                    {selectedOutput.date}
+                  </p>
+                ),
+              }
+            : undefined
+        }
+        detailContent={
+          selectedOutput && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <TypeBadge type={selectedOutput.type} />
+                <InfluenceBadge level={selectedOutput.influence} />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-1">作者/团队</h4>
+                <p className="text-sm text-muted-foreground">
+                  {selectedOutput.authors}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold mb-2">详细信息</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {selectedOutput.detail}
+                </p>
+              </div>
+              <div className="rounded-lg bg-purple-50 border border-purple-100 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="h-4 w-4 text-purple-500" />
+                  <span className="text-sm font-semibold text-purple-700">
+                    AI 竞争分析
+                  </span>
+                </div>
+                <p className="text-sm text-purple-700/80">
+                  {selectedOutput.aiAnalysis}
+                </p>
+              </div>
+            </div>
+          )
+        }
+        detailFooter={
+          selectedOutput && (
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  toast.success("已加入重点跟踪列表");
+                  close();
+                }}
+              >
+                重点跟踪
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => toast.success("详细分析报告已生成")}
+              >
+                生成报告
+              </Button>
+            </div>
+          )
+        }
+      >
+        <Card className="shadow-card">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold">
+                同行机构科研成果追踪
+              </CardTitle>
+              <Badge variant="secondary" className="text-[10px]">
+                按影响力排序
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
+              <StaggerContainer className="space-y-3">
+                {mockResearchOutputs.map((output) => (
+                  <StaggerItem key={output.id}>
+                    <button
+                      type="button"
+                      className={cn(
+                        "w-full rounded-lg border p-4 transition-all group cursor-pointer text-left",
+                        selectedOutput?.id === output.id
+                          ? "border-purple-300 bg-purple-50/50 shadow-sm"
+                          : "hover:border-purple-200 hover:shadow-sm",
+                      )}
+                      onClick={() => open(output)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
+                            {output.institution.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold group-hover:text-purple-600 transition-colors">
+                              {output.title}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[11px] text-muted-foreground">
+                                {output.institution}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">
+                                ·
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">
+                                {output.field}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">
+                                ·
+                              </span>
+                              <span className="text-[11px] text-muted-foreground">
+                                {output.date}
+                              </span>
+                            </div>
                           </div>
                         </div>
+                        <div className="flex items-center gap-2">
+                          <InfluenceBadge level={output.influence} />
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all" />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <InfluenceBadge level={output.influence} />
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all" />
+                      <div className="flex items-center gap-2 ml-[52px]">
+                        <TypeBadge type={output.type} />
+                        <span className="text-xs text-muted-foreground truncate max-w-[500px]">
+                          {output.authors}
+                        </span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 ml-[52px]">
-                      <TypeBadge type={output.type} />
-                      <span className="text-xs text-muted-foreground truncate max-w-[500px]">
-                        {output.authors}
-                      </span>
-                    </div>
-                  </button>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Sheet
-        open={!!selectedOutput}
-        onOpenChange={() => setSelectedOutput(null)}
-      >
-        <SheetContent className="sm:max-w-lg">
-          {selectedOutput && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg flex items-center gap-2">
-                  {selectedOutput.title}
-                </SheetTitle>
-                <SheetDescription>
-                  {selectedOutput.institution} · {selectedOutput.field} ·{" "}
-                  {selectedOutput.date}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <TypeBadge type={selectedOutput.type} />
-                  <InfluenceBadge level={selectedOutput.influence} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-1">作者/团队</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedOutput.authors}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">详细信息</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedOutput.detail}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-purple-50 border border-purple-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm font-semibold text-purple-700">
-                      AI 竞争分析
-                    </span>
-                  </div>
-                  <p className="text-sm text-purple-700/80">
-                    {selectedOutput.aiAnalysis}
-                  </p>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      toast.success("已加入重点跟踪列表");
-                      setSelectedOutput(null);
-                    }}
-                  >
-                    重点跟踪
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("详细分析报告已生成")}
-                  >
-                    生成报告
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+                    </button>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </MasterDetailView>
     </>
   );
 }

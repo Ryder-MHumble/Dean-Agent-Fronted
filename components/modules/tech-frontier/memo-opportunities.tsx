@@ -1,23 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
 import {
   Handshake,
   CalendarCheck,
   FileStack,
   Sparkles,
   ChevronRight,
-  FileText,
   Clock,
   Star,
 } from "lucide-react";
@@ -28,6 +19,8 @@ import {
 } from "@/components/motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import type { Opportunity } from "@/lib/types/tech-frontier";
 import { mockOpportunities } from "@/lib/mock-data/tech-frontier";
 
@@ -48,7 +41,7 @@ const priorityConfig: Record<
 };
 
 export default function MemoOpportunities() {
-  const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
+  const { selectedItem: selectedOpp, open, close, isOpen } = useDetailView<Opportunity>();
 
   const cooperationCount = mockOpportunities.filter(
     (o) => o.type === "合作",
@@ -58,7 +51,105 @@ export default function MemoOpportunities() {
   ).length;
 
   return (
-    <>
+    <MasterDetailView
+      isOpen={isOpen}
+      onClose={close}
+      detailHeader={
+        selectedOpp
+          ? {
+              title: (
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  {selectedOpp.name}
+                </h2>
+              ),
+              subtitle: (
+                <p className="text-sm text-muted-foreground">
+                  来源: {selectedOpp.source} · 截止日期: {selectedOpp.deadline}
+                </p>
+              ),
+            }
+          : undefined
+      }
+      detailContent={
+        selectedOpp ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs",
+                  typeConfig[selectedOpp.type].bg,
+                  typeConfig[selectedOpp.type].color,
+                )}
+              >
+                {selectedOpp.type}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs",
+                  priorityConfig[selectedOpp.priority].bg,
+                  priorityConfig[selectedOpp.priority].color,
+                )}
+              >
+                优先级: {selectedOpp.priority}
+              </Badge>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
+                <Clock className="h-3.5 w-3.5" />
+                <span>截止: {selectedOpp.deadline}</span>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold mb-2">机会详情</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {selectedOpp.summary}
+              </p>
+            </div>
+            <div className="rounded-lg bg-teal-50 border border-teal-100 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-teal-500" />
+                <span className="text-sm font-semibold text-teal-700">
+                  AI 优先级评估
+                </span>
+              </div>
+              <p className="text-sm text-teal-700/80">
+                {selectedOpp.aiAssessment}
+              </p>
+            </div>
+            <div className="rounded-lg bg-slate-50 border p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="h-4 w-4 text-amber-500" />
+                <span className="text-sm font-semibold">建议行动</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {selectedOpp.actionSuggestion}
+              </p>
+            </div>
+          </div>
+        ) : null
+      }
+      detailFooter={
+        selectedOpp ? (
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={() => {
+                toast.success("已列入院长待办事项");
+                close();
+              }}
+            >
+              立即跟进
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => toast.success("机会分析报告已生成")}
+            >
+              生成分析报告
+            </Button>
+          </div>
+        ) : undefined
+      }
+    >
       <div className="grid grid-cols-3 gap-4 mb-4">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
@@ -128,8 +219,11 @@ export default function MemoOpportunities() {
                 <StaggerItem key={opp.id}>
                   <button
                     type="button"
-                    className="w-full grid grid-cols-[1fr_60px_90px_60px_85px_1fr_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer"
-                    onClick={() => setSelectedOpp(opp)}
+                    className={cn(
+                      "w-full grid grid-cols-[1fr_60px_90px_60px_85px_1fr_40px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer",
+                      selectedOpp?.id === opp.id && "bg-muted/40",
+                    )}
+                    onClick={() => open(opp)}
                   >
                     <div className="flex items-center gap-2">
                       {opp.priority === "紧急" && (
@@ -177,94 +271,6 @@ export default function MemoOpportunities() {
           </div>
         </CardContent>
       </Card>
-
-      <Sheet open={!!selectedOpp} onOpenChange={() => setSelectedOpp(null)}>
-        <SheetContent className="sm:max-w-lg">
-          {selectedOpp && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="text-lg flex items-center gap-2">
-                  {selectedOpp.name}
-                </SheetTitle>
-                <SheetDescription>
-                  来源: {selectedOpp.source} · 截止日期: {selectedOpp.deadline}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-xs",
-                      typeConfig[selectedOpp.type].bg,
-                      typeConfig[selectedOpp.type].color,
-                    )}
-                  >
-                    {selectedOpp.type}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-xs",
-                      priorityConfig[selectedOpp.priority].bg,
-                      priorityConfig[selectedOpp.priority].color,
-                    )}
-                  >
-                    优先级: {selectedOpp.priority}
-                  </Badge>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>截止: {selectedOpp.deadline}</span>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">机会详情</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {selectedOpp.summary}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-teal-50 border border-teal-100 p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="h-4 w-4 text-teal-500" />
-                    <span className="text-sm font-semibold text-teal-700">
-                      AI 优先级评估
-                    </span>
-                  </div>
-                  <p className="text-sm text-teal-700/80">
-                    {selectedOpp.aiAssessment}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-slate-50 border p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Star className="h-4 w-4 text-amber-500" />
-                    <span className="text-sm font-semibold">建议行动</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedOpp.actionSuggestion}
-                  </p>
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      toast.success("已列入院长待办事项");
-                      setSelectedOpp(null);
-                    }}
-                  >
-                    立即跟进
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => toast.success("机会分析报告已生成")}
-                  >
-                    生成分析报告
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
-    </>
+    </MasterDetailView>
   );
 }
