@@ -1,25 +1,21 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Users,
-  UserPlus,
-  UserMinus,
-  ChevronRight,
-  Calendar,
-} from "lucide-react";
-import {
-  MotionNumber,
-  StaggerContainer,
-  StaggerItem,
-} from "@/components/motion";
+import { Users, UserPlus, UserMinus } from "lucide-react";
+import { MotionNumber } from "@/components/motion";
 import MasterDetailView from "@/components/shared/master-detail-view";
 import DetailArticleBody from "@/components/shared/detail-article-body";
+import DateGroupedList from "@/components/shared/date-grouped-list";
+import DataItemCard, {
+  ItemAvatar,
+  ItemChevron,
+  accentConfig,
+} from "@/components/shared/data-item-card";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { cn } from "@/lib/utils";
-import { groupByDate } from "@/lib/group-by-date";
 import { toast } from "sonner";
 import type { PersonnelChange } from "@/lib/types/university-eco";
 import { mockPersonnelChanges } from "@/lib/mock-data/university-eco";
@@ -60,10 +56,13 @@ export default function PersonnelTalent() {
     isOpen,
   } = useDetailView<PersonnelChange>();
 
-  const sortedChanges = [...mockPersonnelChanges].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  const sortedChanges = useMemo(
+    () =>
+      [...mockPersonnelChanges].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
+    [],
   );
-  const groups = groupByDate(sortedChanges);
 
   return (
     <>
@@ -184,84 +183,57 @@ export default function PersonnelTalent() {
           )
         }
       >
-        <div className="space-y-4 max-h-[calc(100vh-320px)] overflow-y-auto">
-          {groups.map((group) => (
-            <Card key={group.label} className="shadow-card">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {group.label}
-                  </CardTitle>
-                  <Badge variant="secondary" className="text-[10px]">
-                    {group.items.length}条
-                  </Badge>
+        <DateGroupedList
+          items={sortedChanges}
+          emptyMessage="暂无人事动态"
+          renderItem={(change) => (
+            <DataItemCard
+              isSelected={selectedChange?.id === change.id}
+              onClick={() => open(change)}
+              accentColor="violet"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <ItemAvatar text={change.person.charAt(0)} />
+                  <div>
+                    <h4
+                      className={cn(
+                        "text-sm font-semibold transition-colors",
+                        accentConfig.violet.title,
+                      )}
+                    >
+                      {change.person}
+                    </h4>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-[11px] text-muted-foreground">
+                        {change.fromPosition}
+                      </span>
+                      <span className="text-[11px] text-violet-500 font-medium mx-1">
+                        →
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {change.toPosition}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {group.items.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-3">
-                    暂无动态
-                  </p>
-                ) : (
-                  <StaggerContainer className="space-y-3">
-                    {group.items.map((change) => (
-                      <StaggerItem key={change.id}>
-                        <button
-                          type="button"
-                          className={cn(
-                            "w-full rounded-lg border p-4 transition-all group cursor-pointer text-left",
-                            selectedChange?.id === change.id
-                              ? "border-violet-300 bg-violet-50/50 shadow-sm"
-                              : "hover:border-violet-200 hover:shadow-sm",
-                          )}
-                          onClick={() => open(change)}
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                                {change.person.charAt(0)}
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-semibold group-hover:text-violet-600 transition-colors">
-                                  {change.person}
-                                </h4>
-                                <div className="flex items-center gap-1 mt-0.5">
-                                  <span className="text-[11px] text-muted-foreground">
-                                    {change.fromPosition}
-                                  </span>
-                                  <span className="text-[11px] text-violet-500 font-medium mx-1">
-                                    →
-                                  </span>
-                                  <span className="text-[11px] text-muted-foreground">
-                                    {change.toPosition}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <ImpactBadge level={change.impact} />
-                              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-violet-500 group-hover:translate-x-0.5 transition-all" />
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 ml-[52px]">
-                            <TypeBadge type={change.type} />
-                            <span className="text-[11px] text-muted-foreground">
-                              {change.institution}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground truncate ml-[52px] mt-1">
-                            {change.background}
-                          </p>
-                        </button>
-                      </StaggerItem>
-                    ))}
-                  </StaggerContainer>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <div className="flex items-center gap-2">
+                  <ImpactBadge level={change.impact} />
+                  <ItemChevron accentColor="violet" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 ml-[52px]">
+                <TypeBadge type={change.type} />
+                <span className="text-[11px] text-muted-foreground">
+                  {change.institution}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground truncate ml-[52px] mt-1">
+                {change.background}
+              </p>
+            </DataItemCard>
+          )}
+        />
       </MasterDetailView>
     </>
   );

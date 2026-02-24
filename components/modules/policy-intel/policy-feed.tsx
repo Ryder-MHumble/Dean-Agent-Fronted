@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, ChevronRight, Calendar, Clock } from "lucide-react";
+import { ChevronRight, Calendar, Clock } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import MasterDetailView from "@/components/shared/master-detail-view";
 import DetailArticleBody from "@/components/shared/detail-article-body";
@@ -285,21 +285,7 @@ export default function PolicyFeed({ items }: PolicyFeedProps) {
                           )}
                         </div>
                       </button>
-                      <div className="flex flex-col items-center gap-1 shrink-0 mt-0.5">
-                        {item.sourceUrl ? (
-                          <a
-                            href={item.sourceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                            title="查看原文"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        ) : (
-                          <div className="h-6 w-6" />
-                        )}
+                      <div className="flex items-center shrink-0 mt-0.5">
                         <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </div>

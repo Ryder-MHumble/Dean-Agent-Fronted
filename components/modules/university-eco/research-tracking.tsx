@@ -1,25 +1,21 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  BookOpen,
-  Lightbulb,
-  Trophy,
-  ChevronRight,
-  Calendar,
-} from "lucide-react";
-import {
-  MotionNumber,
-  StaggerContainer,
-  StaggerItem,
-} from "@/components/motion";
+import { BookOpen, Lightbulb, Trophy } from "lucide-react";
+import { MotionNumber } from "@/components/motion";
 import MasterDetailView from "@/components/shared/master-detail-view";
 import DetailArticleBody from "@/components/shared/detail-article-body";
+import DateGroupedList from "@/components/shared/date-grouped-list";
+import DataItemCard, {
+  ItemAvatar,
+  ItemChevron,
+  accentConfig,
+} from "@/components/shared/data-item-card";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { cn } from "@/lib/utils";
-import { groupByDate } from "@/lib/group-by-date";
 import { toast } from "sonner";
 import type { ResearchOutput } from "@/lib/types/university-eco";
 import { mockResearchOutputs } from "@/lib/mock-data/university-eco";
@@ -66,10 +62,13 @@ export default function ResearchTracking() {
     isOpen,
   } = useDetailView<ResearchOutput>();
 
-  const sortedOutputs = [...mockResearchOutputs].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  const sortedOutputs = useMemo(
+    () =>
+      [...mockResearchOutputs].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
+    [],
   );
-  const groups = groupByDate(sortedOutputs);
 
   return (
     <>
@@ -184,75 +183,48 @@ export default function ResearchTracking() {
           )
         }
       >
-        <div className="space-y-4 max-h-[calc(100vh-320px)] overflow-y-auto">
-          {groups.map((group) => (
-            <Card key={group.label} className="shadow-card">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    {group.label}
-                  </CardTitle>
-                  <Badge variant="secondary" className="text-[10px]">
-                    {group.items.length}条
-                  </Badge>
+        <DateGroupedList
+          items={sortedOutputs}
+          emptyMessage="暂无科研成果"
+          renderItem={(output) => (
+            <DataItemCard
+              isSelected={selectedOutput?.id === output.id}
+              onClick={() => open(output)}
+              accentColor="purple"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <ItemAvatar text={output.institution.charAt(0)} />
+                  <div>
+                    <h4
+                      className={cn(
+                        "text-sm font-semibold transition-colors",
+                        accentConfig.purple.title,
+                      )}
+                    >
+                      {output.title}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
+                      <span>{output.institution}</span>
+                      <span>&middot;</span>
+                      <span>{output.field}</span>
+                    </div>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <StaggerContainer className="space-y-3">
-                  {group.items.map((output) => (
-                    <StaggerItem key={output.id}>
-                      <button
-                        type="button"
-                        className={cn(
-                          "w-full rounded-lg border p-4 transition-all group cursor-pointer text-left",
-                          selectedOutput?.id === output.id
-                            ? "border-purple-300 bg-purple-50/50 shadow-sm"
-                            : "hover:border-purple-200 hover:shadow-sm",
-                        )}
-                        onClick={() => open(output)}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-600">
-                              {output.institution.charAt(0)}
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-semibold group-hover:text-purple-600 transition-colors">
-                                {output.title}
-                              </h4>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[11px] text-muted-foreground">
-                                  {output.institution}
-                                </span>
-                                <span className="text-[11px] text-muted-foreground">
-                                  ·
-                                </span>
-                                <span className="text-[11px] text-muted-foreground">
-                                  {output.field}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <InfluenceBadge level={output.influence} />
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-purple-500 group-hover:translate-x-0.5 transition-all" />
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 ml-[52px]">
-                          <TypeBadge type={output.type} />
-                          <span className="text-xs text-muted-foreground truncate max-w-[500px]">
-                            {output.authors}
-                          </span>
-                        </div>
-                      </button>
-                    </StaggerItem>
-                  ))}
-                </StaggerContainer>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <div className="flex items-center gap-2">
+                  <InfluenceBadge level={output.influence} />
+                  <ItemChevron accentColor="purple" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 ml-[52px]">
+                <TypeBadge type={output.type} />
+                <span className="text-xs text-muted-foreground truncate max-w-[500px]">
+                  {output.authors}
+                </span>
+              </div>
+            </DataItemCard>
+          )}
+        />
       </MasterDetailView>
     </>
   );

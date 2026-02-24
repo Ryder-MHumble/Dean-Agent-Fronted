@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 import { fetchPolicyFeed } from "@/lib/api";
-import { mockPolicyFeed } from "@/lib/mock-data/policy-intel";
 
 interface UsePolicyFeedResult {
   items: PolicyFeedItem[];
@@ -32,7 +31,7 @@ export function usePolicyFeed(): UsePolicyFeedResult {
         setGeneratedAt(data.generated_at);
         setIsUsingMock(false);
       } else {
-        setItems(mockPolicyFeed);
+        setItems([]);
         setGeneratedAt(null);
         setIsUsingMock(true);
       }
