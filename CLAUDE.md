@@ -19,6 +19,13 @@
 
 后端项目（Information Crawler）位于本地 `/Users/sunminghao/Desktop/Information_Crawler`，服务器 `/home/ecs-user/Dean-Agent-Project/DeanAgent-Backend`，提供 27 个 REST API 端点（含 13 个业务智能端点）。
 
+### 服务器环境
+
+- **OS**: Debian GNU/Linux 13 (trixie)
+- **可用命令**: `ss`, `netstat`, `kill`, `pkill`
+- **不可用命令**: `lsof`, `fuser`
+- 编写部署脚本或服务器命令时，必须使用服务器上已有的工具，不要假设有 `lsof`/`fuser` 等。
+
 ## 技术栈
 
 - **框架**: Next.js 16.1.6 (Turbopack)
