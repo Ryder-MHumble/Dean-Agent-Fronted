@@ -4,9 +4,10 @@ import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, X, Loader2, WifiOff } from "lucide-react";
+import { Search, X, WifiOff } from "lucide-react";
 import { MotionCard } from "@/components/motion";
 import DataFreshness from "@/components/shared/data-freshness";
+import { SkeletonTalentRadar } from "@/components/shared/skeleton-states";
 import { cn } from "@/lib/utils";
 import NewsFeed from "./news-feed";
 import PersonCard from "./person-card";
@@ -26,8 +27,13 @@ export default function TalentRadarModule() {
     PersonnelNewsCategory | "全部"
   >("全部");
 
-  const { items: allNews, profiles: allProfiles, isLoading, isUsingMock, generatedAt } =
-    usePersonnelNews();
+  const {
+    items: allNews,
+    profiles: allProfiles,
+    isLoading,
+    isUsingMock,
+    generatedAt,
+  } = usePersonnelNews();
 
   const isSearching = searchQuery.trim().length > 0;
 
@@ -61,17 +67,12 @@ export default function TalentRadarModule() {
     );
   }, [allProfiles, searchQuery, isSearching]);
 
-  const freshnessDate = generatedAt ? new Date(generatedAt) : new Date(Date.now() - 1800000);
+  const freshnessDate = generatedAt
+    ? new Date(generatedAt)
+    : new Date(Date.now() - 1800000);
 
   if (isLoading) {
-    return (
-      <div className="p-5 flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">加载人事动态...</p>
-        </div>
-      </div>
-    );
+    return <SkeletonTalentRadar />;
   }
 
   return (
@@ -121,7 +122,10 @@ export default function TalentRadarModule() {
               ))}
               <div className="ml-auto flex items-center gap-2">
                 {isUsingMock && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1 text-amber-600 border-amber-200">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0 gap-1 text-amber-600 border-amber-200"
+                  >
                     <WifiOff className="h-3 w-3" />
                     静态数据
                   </Badge>

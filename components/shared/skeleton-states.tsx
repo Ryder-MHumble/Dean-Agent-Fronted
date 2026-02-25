@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /*  Atomic skeleton building blocks                                     */
@@ -23,10 +23,16 @@ export function SkeletonStatCards({ count = 3 }: { count?: number }) {
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
-export function SkeletonTableRows({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
+export function SkeletonTableRows({
+  rows = 5,
+  cols = 4,
+}: {
+  rows?: number;
+  cols?: number;
+}) {
   return (
     <Card className="shadow-card">
       <CardHeader className="pb-3">
@@ -42,13 +48,16 @@ export function SkeletonTableRows({ rows = 5, cols = 4 }: { rows?: number; cols?
           ))}
         </div>
         {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="flex gap-4 items-center px-3 py-3 border-b last:border-0">
+          <div
+            key={i}
+            className="flex gap-4 items-center px-3 py-3 border-b last:border-0"
+          >
             {Array.from({ length: cols }).map((_, j) => (
               <Skeleton
                 key={j}
                 className={cn(
                   "h-4",
-                  j === 0 ? "w-32" : j === cols - 1 ? "w-4" : "w-16"
+                  j === 0 ? "w-32" : j === cols - 1 ? "w-4" : "w-16",
                 )}
               />
             ))}
@@ -56,7 +65,7 @@ export function SkeletonTableRows({ rows = 5, cols = 4 }: { rows?: number; cols?
         ))}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export function SkeletonAIPanel() {
@@ -86,7 +95,7 @@ export function SkeletonAIPanel() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 /** Legacy composite skeleton — kept for backward compatibility */
@@ -103,7 +112,7 @@ export function SkeletonSubPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -133,7 +142,7 @@ export function SkeletonFilterBar({ pillCount = 5 }: { pillCount?: number }) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -163,7 +172,7 @@ function SkeletonCardItem() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function SkeletonCardList({
@@ -194,7 +203,7 @@ export function SkeletonCardList({
         </Card>
       ))}
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -214,7 +223,7 @@ export function SkeletonFilterTabs({ count = 6 }: { count?: number }) {
       </div>
       <Skeleton className="h-4 w-24" />
     </div>
-  )
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -228,7 +237,7 @@ export function SkeletonPolicyIntel() {
       <SkeletonFilterBar />
       <SkeletonCardList groups={2} itemsPerGroup={3} />
     </div>
-  )
+  );
 }
 
 /** University peer dynamics: filter tabs + card list */
@@ -238,7 +247,7 @@ export function SkeletonPeerDynamics() {
       <SkeletonFilterTabs count={6} />
       <SkeletonCardList groups={2} itemsPerGroup={3} />
     </div>
-  )
+  );
 }
 
 /** University research tracking: stat row + card list */
@@ -248,7 +257,7 @@ export function SkeletonResearchTracking() {
       <SkeletonStatCards count={3} />
       <SkeletonCardList groups={2} itemsPerGroup={2} />
     </div>
-  )
+  );
 }
 
 /** Personnel intel: 7/5 grid with card list + sidebar cards */
@@ -272,7 +281,10 @@ export function SkeletonPersonnelIntel() {
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-lg border">
+              <div
+                key={i}
+                className="flex items-start gap-3 p-3 rounded-lg border"
+              >
                 <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-4 w-3/4" />
@@ -305,13 +317,23 @@ export function SkeletonPersonnelIntel() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 /** Home briefing: summary block + agenda + metric cards */
 export function SkeletonHomeBriefing() {
   return (
-    <div className="space-y-2">
+    <div className="p-5 space-y-3">
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-6 w-28" />
+          <Skeleton className="h-5 w-px" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </div>
+
       {/* AI Summary skeleton */}
       <div className="rounded-lg border bg-gradient-to-br from-blue-50 to-indigo-50 p-4 space-y-3">
         <div className="flex items-center gap-2">
@@ -329,6 +351,124 @@ export function SkeletonHomeBriefing() {
           <Skeleton className="h-7 w-20 rounded-full" />
         </div>
       </div>
+
+      {/* Today Agenda skeleton */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-4 rounded" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0 space-y-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+              <Skeleton className="h-3 w-12 shrink-0" />
+              <Skeleton className="h-7 w-7 rounded-md shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+              <Skeleton className="h-5 w-12 rounded-full" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Metric cards skeleton */}
+      <div className="grid grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="shadow-card overflow-hidden">
+            <div className="h-0.5 rounded-t-lg bg-muted" />
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <Skeleton className="h-9 w-9 rounded-lg" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-6" />
+                <Skeleton className="h-3 w-12" />
+                <Skeleton className="h-4 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
-  )
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Skeleton: Talent Radar (search bar + pills + news feed)            */
+/* ------------------------------------------------------------------ */
+
+function SkeletonNewsItem() {
+  return (
+    <div className="rounded-lg border p-4 space-y-2.5">
+      {/* Title row */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2 flex-1">
+          <Skeleton className="h-2 w-2 rounded-full shrink-0" />
+          <Skeleton className="h-4 flex-1 max-w-[75%]" />
+        </div>
+        <Skeleton className="h-4 w-4 rounded" />
+      </div>
+      {/* Summary */}
+      <div className="space-y-1.5">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-4/5" />
+      </div>
+      {/* Footer badges */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-5 w-14 rounded-full" />
+          <Skeleton className="h-3 w-14" />
+          <Skeleton className="h-4 w-10 rounded-sm" />
+          <Skeleton className="h-4 w-10 rounded-sm" />
+        </div>
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+  );
+}
+
+export function SkeletonTalentRadar() {
+  return (
+    <div className="p-5 space-y-4">
+      {/* Search bar + category pills */}
+      <Card className="shadow-card">
+        <CardContent className="p-4">
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <div className="flex items-center gap-2 mt-3">
+            {["全部", "政府人事", "高校人事", "人才要闻"].map((_, i) => (
+              <Skeleton
+                key={i}
+                className={cn("h-7 rounded-full", i === 0 ? "w-12" : "w-16")}
+              />
+            ))}
+            <div className="ml-auto">
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Date group header */}
+      <div className="flex items-center gap-2 px-1">
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-px flex-1" />
+      </div>
+
+      {/* News cards */}
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <SkeletonNewsItem key={i} />
+        ))}
+      </div>
+    </div>
+  );
 }

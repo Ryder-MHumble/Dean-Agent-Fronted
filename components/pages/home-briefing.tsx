@@ -17,6 +17,10 @@ export default function HomeBriefingPage({
 }) {
   const { dailySummary, metricCards, isLoading } = useDailyBriefing();
 
+  if (isLoading) {
+    return <SkeletonHomeBriefing />;
+  }
+
   return (
     <div className="p-5 space-y-3">
       {/* Header + AI Briefing merged for compactness */}
@@ -40,11 +44,7 @@ export default function HomeBriefingPage({
             {mockAgendaItems.length} 项待处理
           </Badge>
         </div>
-        {isLoading ? (
-          <SkeletonHomeBriefing />
-        ) : (
-          <AIDailySummary data={dailySummary} onNavigate={onNavigate} />
-        )}
+        <AIDailySummary data={dailySummary} onNavigate={onNavigate} />
       </MotionCard>
 
       {/* Today Agenda — merged schedule + pending actions */}
