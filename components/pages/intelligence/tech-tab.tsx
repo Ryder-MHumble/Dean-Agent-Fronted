@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Cpu,
   TrendingUp,
@@ -25,7 +26,12 @@ import type { TechTrend } from "@/lib/types/intelligence";
 import { HeatIndicator } from "./helpers";
 
 export default function TechTab() {
-  const { selectedItem: selectedTech, open, close, isOpen } = useDetailView<TechTrend>();
+  const {
+    selectedItem: selectedTech,
+    open,
+    close,
+    isOpen,
+  } = useDetailView<TechTrend>();
 
   const highRiskCount = mockTechTrends.filter(
     (t) => t.gapLevel === "high",
@@ -106,7 +112,7 @@ export default function TechTab() {
       }
     >
       {/* KPI Row */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-500">
@@ -150,7 +156,7 @@ export default function TechTab() {
 
       {/* Main Content: 8/4 grid */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
+        <div className="col-span-12 lg:col-span-8">
           <Card className="shadow-card">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -163,87 +169,89 @@ export default function TechTab() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="overflow-hidden">
-                <div className="grid grid-cols-[1fr_80px_90px_80px_1fr_50px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
-                  <span>技术方向</span>
-                  <span>热度趋势</span>
-                  <span>我院状态</span>
-                  <span>缺口</span>
-                  <span>关键信号</span>
-                  <span></span>
-                </div>
+              <ScrollArea className="w-full">
+                <div className="min-w-[650px]">
+                  <div className="grid grid-cols-[1fr_80px_90px_80px_1fr_50px] gap-2 px-3 py-2 text-[11px] font-medium text-muted-foreground border-b">
+                    <span>技术方向</span>
+                    <span>热度趋势</span>
+                    <span>我院状态</span>
+                    <span>缺口</span>
+                    <span>关键信号</span>
+                    <span></span>
+                  </div>
 
-                <StaggerContainer>
-                  {mockTechTrends.map((tech) => (
-                    <StaggerItem key={tech.id}>
-                      <button
-                        type="button"
-                        className={cn(
-                          "w-full grid grid-cols-[1fr_80px_90px_80px_1fr_50px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer",
-                          selectedTech?.id === tech.id && "bg-muted/40",
-                        )}
-                        onClick={() => open(tech)}
-                      >
-                        <div className="flex items-center gap-2">
-                          {tech.gapLevel === "high" && (
-                            <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
+                  <StaggerContainer>
+                    {mockTechTrends.map((tech) => (
+                      <StaggerItem key={tech.id}>
+                        <button
+                          type="button"
+                          className={cn(
+                            "w-full grid grid-cols-[1fr_80px_90px_80px_1fr_50px] gap-2 px-3 py-3 items-center text-left border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer",
+                            selectedTech?.id === tech.id && "bg-muted/40",
                           )}
-                          <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
-                            {tech.topic}
+                          onClick={() => open(tech)}
+                        >
+                          <div className="flex items-center gap-2">
+                            {tech.gapLevel === "high" && (
+                              <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse-subtle shrink-0" />
+                            )}
+                            <span className="text-sm font-medium group-hover:text-blue-600 transition-colors">
+                              {tech.topic}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <HeatIndicator trend={tech.heatTrend} />
+                          </div>
+
+                          <Badge
+                            variant="outline"
+                            className={cn("text-[10px] w-fit", {
+                              "border-green-200 bg-green-50 text-green-700":
+                                tech.ourStatus === "deployed",
+                              "border-amber-200 bg-amber-50 text-amber-700":
+                                tech.ourStatus === "weak",
+                              "border-red-200 bg-red-50 text-red-700":
+                                tech.ourStatus === "none",
+                            })}
+                          >
+                            {tech.ourStatusLabel}
+                          </Badge>
+
+                          <Badge
+                            variant="outline"
+                            className={cn("text-[10px] w-fit", {
+                              "border-red-200 bg-red-50 text-red-700":
+                                tech.gapLevel === "high",
+                              "border-amber-200 bg-amber-50 text-amber-700":
+                                tech.gapLevel === "medium",
+                              "border-green-200 bg-green-50 text-green-700":
+                                tech.gapLevel === "low",
+                            })}
+                          >
+                            {tech.gapLevel === "high"
+                              ? "高"
+                              : tech.gapLevel === "medium"
+                                ? "中"
+                                : "低"}
+                          </Badge>
+
+                          <span className="text-xs text-muted-foreground truncate">
+                            {tech.keyMetric}
                           </span>
-                        </div>
 
-                        <div className="flex items-center gap-1.5">
-                          <HeatIndicator trend={tech.heatTrend} />
-                        </div>
-
-                        <Badge
-                          variant="outline"
-                          className={cn("text-[10px] w-fit", {
-                            "border-green-200 bg-green-50 text-green-700":
-                              tech.ourStatus === "deployed",
-                            "border-amber-200 bg-amber-50 text-amber-700":
-                              tech.ourStatus === "weak",
-                            "border-red-200 bg-red-50 text-red-700":
-                              tech.ourStatus === "none",
-                          })}
-                        >
-                          {tech.ourStatusLabel}
-                        </Badge>
-
-                        <Badge
-                          variant="outline"
-                          className={cn("text-[10px] w-fit", {
-                            "border-red-200 bg-red-50 text-red-700":
-                              tech.gapLevel === "high",
-                            "border-amber-200 bg-amber-50 text-amber-700":
-                              tech.gapLevel === "medium",
-                            "border-green-200 bg-green-50 text-green-700":
-                              tech.gapLevel === "low",
-                          })}
-                        >
-                          {tech.gapLevel === "high"
-                            ? "高"
-                            : tech.gapLevel === "medium"
-                              ? "中"
-                              : "低"}
-                        </Badge>
-
-                        <span className="text-xs text-muted-foreground truncate">
-                          {tech.keyMetric}
-                        </span>
-
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
-                      </button>
-                    </StaggerItem>
-                  ))}
-                </StaggerContainer>
-              </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                        </button>
+                      </StaggerItem>
+                    ))}
+                  </StaggerContainer>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
 
-        <div className="col-span-4">
+        <div className="col-span-12 lg:col-span-4">
           <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">

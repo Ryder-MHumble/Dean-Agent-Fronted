@@ -25,7 +25,12 @@ import type { Competitor } from "@/lib/types/intelligence";
 import { ThreatBadge, ActivityBar } from "./helpers";
 
 export default function CompetitorTab() {
-  const { selectedItem: selectedCompetitor, open, close, isOpen } = useDetailView<Competitor>();
+  const {
+    selectedItem: selectedCompetitor,
+    open,
+    close,
+    isOpen,
+  } = useDetailView<Competitor>();
 
   const criticalCount = mockCompetitors.filter(
     (c) => c.threatLevel === "critical",
@@ -103,7 +108,7 @@ export default function CompetitorTab() {
       }
     >
       {/* KPI Row */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500">
@@ -147,7 +152,7 @@ export default function CompetitorTab() {
 
       {/* Main Content */}
       <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
+        <div className="col-span-12 lg:col-span-8">
           <Card className="shadow-card">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -167,7 +172,8 @@ export default function CompetitorTab() {
                       type="button"
                       className={cn(
                         "w-full rounded-lg border p-4 hover:border-blue-200 hover:shadow-sm transition-all group cursor-pointer text-left",
-                        selectedCompetitor?.id === competitor.id && "border-blue-200 bg-muted/40",
+                        selectedCompetitor?.id === competitor.id &&
+                          "border-blue-200 bg-muted/40",
                       )}
                       onClick={() => open(competitor)}
                     >
@@ -215,7 +221,7 @@ export default function CompetitorTab() {
           </Card>
         </div>
 
-        <div className="col-span-4">
+        <div className="col-span-12 lg:col-span-4">
           <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">

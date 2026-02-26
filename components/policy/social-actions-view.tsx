@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { StaggerContainer, StaggerItem } from "@/components/motion"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { StaggerContainer, StaggerItem } from "@/components/motion";
 import {
   Heart,
   Gift,
@@ -13,27 +13,27 @@ import {
   MessageSquare,
   Sparkles,
   Clock,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // ---------------------
 // Types
 // ---------------------
-type CategoryType = "congratulate" | "visit" | "thank" | "care"
+type CategoryType = "congratulate" | "visit" | "thank" | "care";
 
 interface SocialTask {
-  id: string
-  group: "urgent" | "routine"
-  initials: string
-  avatarColor: string
-  name: string
-  title: string
-  reason: string
-  category: CategoryType
-  categoryLabel: string
-  dueDate: string
-  aiDraft: boolean
+  id: string;
+  group: "urgent" | "routine";
+  initials: string;
+  avatarColor: string;
+  name: string;
+  title: string;
+  reason: string;
+  category: CategoryType;
+  categoryLabel: string;
+  dueDate: string;
+  aiDraft: boolean;
 }
 
 // ---------------------
@@ -105,15 +105,40 @@ const socialTasks: SocialTask[] = [
     dueDate: "本周内",
     aiDraft: true,
   },
-]
+];
 
 const recentActivities = [
-  { date: "11/10", action: "发送祝贺信", person: "陈静", category: "congratulate" as CategoryType },
-  { date: "11/08", action: "拜访", person: "王教授", category: "visit" as CategoryType },
-  { date: "11/05", action: "发送感谢信", person: "李明", category: "thank" as CategoryType },
-  { date: "11/03", action: "慰问电话", person: "赵老师", category: "care" as CategoryType },
-  { date: "10/30", action: "祝贺论文发表", person: "周敏", category: "congratulate" as CategoryType },
-]
+  {
+    date: "11/10",
+    action: "发送祝贺信",
+    person: "陈静",
+    category: "congratulate" as CategoryType,
+  },
+  {
+    date: "11/08",
+    action: "拜访",
+    person: "王教授",
+    category: "visit" as CategoryType,
+  },
+  {
+    date: "11/05",
+    action: "发送感谢信",
+    person: "李明",
+    category: "thank" as CategoryType,
+  },
+  {
+    date: "11/03",
+    action: "慰问电话",
+    person: "赵老师",
+    category: "care" as CategoryType,
+  },
+  {
+    date: "10/30",
+    action: "祝贺论文发表",
+    person: "周敏",
+    category: "congratulate" as CategoryType,
+  },
+];
 
 // ---------------------
 // Category styling map
@@ -123,25 +148,25 @@ const categoryStyles: Record<CategoryType, { bg: string; text: string }> = {
   visit: { bg: "bg-blue-100", text: "text-blue-700" },
   thank: { bg: "bg-amber-100", text: "text-amber-700" },
   care: { bg: "bg-violet-100", text: "text-violet-700" },
-}
+};
 
 const categoryIcons: Record<CategoryType, React.ReactNode> = {
   congratulate: <Gift className="h-3.5 w-3.5" />,
   visit: <UserCheck className="h-3.5 w-3.5" />,
   thank: <MessageSquare className="h-3.5 w-3.5" />,
   care: <Heart className="h-3.5 w-3.5" />,
-}
+};
 
 // ---------------------
 // Calendar helper
 // ---------------------
 function getCalendarData() {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const firstDay = new Date(year, month, 1).getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const today = now.getDate()
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = now.getDate();
 
   // Dates with scheduled social actions (mock)
   const markedDates: Record<number, CategoryType> = {
@@ -151,51 +176,78 @@ function getCalendarData() {
     15: "care",
     20: "congratulate",
     25: "visit",
-  }
+  };
 
   const monthNames = [
-    "一月", "二月", "三月", "四月", "五月", "六月",
-    "七月", "八月", "九月", "十月", "十一月", "十二月",
-  ]
+    "一月",
+    "二月",
+    "三月",
+    "四月",
+    "五月",
+    "六月",
+    "七月",
+    "八月",
+    "九月",
+    "十月",
+    "十一月",
+    "十二月",
+  ];
 
-  return { year, month, firstDay, daysInMonth, today, markedDates, monthName: monthNames[month] }
+  return {
+    year,
+    month,
+    firstDay,
+    daysInMonth,
+    today,
+    markedDates,
+    monthName: monthNames[month],
+  };
 }
 
 // ---------------------
 // Task Card Component
 // ---------------------
 function TaskCard({ task }: { task: SocialTask }) {
-  const style = categoryStyles[task.category]
+  const style = categoryStyles[task.category];
 
   return (
     <Card
       className={cn(
-        "shadow-card hover:shadow-card-hover rounded-xl border-0 transition-all duration-300 hover:-translate-y-0.5"
+        "shadow-card hover:shadow-card-hover rounded-xl border-0 transition-all duration-300 hover:-translate-y-0.5",
       )}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 shrink-0">
-            <AvatarFallback className={cn(task.avatarColor, "text-white text-xs font-semibold")}>
+            <AvatarFallback
+              className={cn(
+                task.avatarColor,
+                "text-white text-xs font-semibold",
+              )}
+            >
               {task.initials}
             </AvatarFallback>
           </Avatar>
 
           <div className="flex-1 min-w-0 space-y-2">
             <div className="flex items-start justify-between gap-2">
-              <h4 className="text-sm font-semibold leading-tight truncate">{task.title}</h4>
+              <h4 className="text-sm font-semibold leading-tight truncate">
+                {task.title}
+              </h4>
               <Badge
                 className={cn(
                   "shrink-0 text-[10px] px-1.5 py-0 border-0",
                   style.bg,
-                  style.text
+                  style.text,
                 )}
               >
                 {task.categoryLabel}
               </Badge>
             </div>
 
-            <p className="text-xs text-muted-foreground leading-relaxed">{task.reason}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {task.reason}
+            </p>
 
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -211,7 +263,15 @@ function TaskCard({ task }: { task: SocialTask }) {
                 )}
               </div>
 
-              <Button size="sm" className="h-7 text-xs px-3" onClick={() => toast.success(`已执行: ${task.title}`, { description: `针对${task.name}的${task.categoryLabel}行动已启动` })}>
+              <Button
+                size="sm"
+                className="h-7 text-xs px-3"
+                onClick={() =>
+                  toast.success(`已执行: ${task.title}`, {
+                    description: `针对${task.name}的${task.categoryLabel}行动已启动`,
+                  })
+                }
+              >
                 执行
               </Button>
             </div>
@@ -219,34 +279,35 @@ function TaskCard({ task }: { task: SocialTask }) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ---------------------
 // Calendar Component
 // ---------------------
 function SocialCalendar() {
-  const { year, monthName, firstDay, daysInMonth, today, markedDates } = getCalendarData()
-  const weekDays = ["日", "一", "二", "三", "四", "五", "六"]
+  const { year, monthName, firstDay, daysInMonth, today, markedDates } =
+    getCalendarData();
+  const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
 
-  const cells: React.ReactNode[] = []
+  const cells: React.ReactNode[] = [];
 
   // Empty cells for days before the 1st
   for (let i = 0; i < firstDay; i++) {
-    cells.push(<div key={`empty-${i}`} className="h-7" />)
+    cells.push(<div key={`empty-${i}`} className="h-7" />);
   }
 
   // Day cells
   for (let day = 1; day <= daysInMonth; day++) {
-    const isToday = day === today
-    const markedCategory = markedDates[day]
+    const isToday = day === today;
+    const markedCategory = markedDates[day];
 
     cells.push(
       <div
         key={day}
         className={cn(
           "h-7 flex flex-col items-center justify-center rounded-md text-xs relative",
-          isToday && "bg-primary text-primary-foreground font-bold"
+          isToday && "bg-primary text-primary-foreground font-bold",
         )}
       >
         {day}
@@ -254,12 +315,12 @@ function SocialCalendar() {
           <span
             className={cn(
               "absolute bottom-0.5 h-1 w-1 rounded-full",
-              categoryStyles[markedCategory].bg.replace("100", "500")
+              categoryStyles[markedCategory].bg.replace("100", "500"),
             )}
           />
         )}
-      </div>
-    )
+      </div>,
+    );
   }
 
   return (
@@ -276,38 +337,44 @@ function SocialCalendar() {
       <CardContent className="px-4 pb-4">
         <div className="grid grid-cols-7 gap-0.5 mb-1">
           {weekDays.map((wd) => (
-            <div key={wd} className="h-6 flex items-center justify-center text-[10px] font-medium text-muted-foreground">
+            <div
+              key={wd}
+              className="h-6 flex items-center justify-center text-[10px] font-medium text-muted-foreground"
+            >
               {wd}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-0.5">
-          {cells}
-        </div>
+        <div className="grid grid-cols-7 gap-0.5">{cells}</div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {(["congratulate", "visit", "thank", "care"] as CategoryType[]).map((cat) => {
-            const labels: Record<CategoryType, string> = {
-              congratulate: "恭喜",
-              visit: "拜访",
-              thank: "感谢",
-              care: "关怀",
-            }
-            return (
-              <div key={cat} className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <span
-                  className={cn(
-                    "h-2 w-2 rounded-full",
-                    categoryStyles[cat].bg.replace("100", "500")
-                  )}
-                />
-                {labels[cat]}
-              </div>
-            )
-          })}
+          {(["congratulate", "visit", "thank", "care"] as CategoryType[]).map(
+            (cat) => {
+              const labels: Record<CategoryType, string> = {
+                congratulate: "恭喜",
+                visit: "拜访",
+                thank: "感谢",
+                care: "关怀",
+              };
+              return (
+                <div
+                  key={cat}
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground"
+                >
+                  <span
+                    className={cn(
+                      "h-2 w-2 rounded-full",
+                      categoryStyles[cat].bg.replace("100", "500"),
+                    )}
+                  />
+                  {labels[cat]}
+                </div>
+              );
+            },
+          )}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ---------------------
@@ -325,14 +392,14 @@ function RecentActivityLog() {
       <CardContent className="px-4 pb-4">
         <div className="space-y-2.5">
           {recentActivities.map((activity, idx) => {
-            const style = categoryStyles[activity.category]
+            const style = categoryStyles[activity.category];
             return (
               <div key={idx} className="flex items-center gap-2.5 text-xs">
                 <span
                   className={cn(
                     "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
                     style.bg,
-                    style.text
+                    style.text,
                   )}
                 >
                   {categoryIcons[activity.category]}
@@ -344,25 +411,25 @@ function RecentActivityLog() {
                   <span className="ml-1 font-medium">{activity.person}</span>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ---------------------
 // Main Component
 // ---------------------
 export default function SocialActionsView() {
-  const urgentTasks = socialTasks.filter((t) => t.group === "urgent")
-  const routineTasks = socialTasks.filter((t) => t.group === "routine")
+  const urgentTasks = socialTasks.filter((t) => t.group === "urgent");
+  const routineTasks = socialTasks.filter((t) => t.group === "routine");
 
   return (
-    <div className="grid grid-cols-12 gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
       {/* Left column: Social task cards */}
-      <div className="col-span-8 space-y-5">
+      <div className="col-span-1 lg:col-span-8 space-y-5">
         {/* Urgent Actions */}
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -402,7 +469,7 @@ export default function SocialActionsView() {
       </div>
 
       {/* Right column: Calendar + Recent Activity */}
-      <div className="col-span-4 space-y-4">
+      <div className="col-span-1 lg:col-span-4 space-y-4">
         <StaggerContainer staggerDelay={0.12}>
           <StaggerItem>
             <SocialCalendar />
@@ -413,5 +480,5 @@ export default function SocialActionsView() {
         </StaggerContainer>
       </div>
     </div>
-  )
+  );
 }

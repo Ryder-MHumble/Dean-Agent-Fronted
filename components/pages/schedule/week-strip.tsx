@@ -68,7 +68,7 @@ export default function WeekStrip({
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-7">
           {days.map((d, i) => {
             const isToday =
               d.toDateString() === today.toDateString() && weekOffset === 0;
@@ -76,8 +76,7 @@ export default function WeekStrip({
               (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
             );
             const isSelected = dayOffsetFromToday === selectedDayOffset;
-            const hasEvents =
-              weekOffset === 0 && WEEK_EVENT_DAYS.includes(i);
+            const hasEvents = weekOffset === 0 && WEEK_EVENT_DAYS.includes(i);
 
             return (
               <button
@@ -85,7 +84,7 @@ export default function WeekStrip({
                 type="button"
                 onClick={() => onSelectDay(dayOffsetFromToday)}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all",
+                  "flex-none w-[calc((100vw-80px)/5.5)] sm:w-auto flex flex-col items-center gap-1 py-2 px-1 rounded-xl transition-all",
                   isSelected
                     ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20"
                     : isToday
@@ -96,9 +95,7 @@ export default function WeekStrip({
                 <span
                   className={cn(
                     "text-[10px] font-medium",
-                    isSelected
-                      ? "text-blue-100"
-                      : "text-muted-foreground",
+                    isSelected ? "text-blue-100" : "text-muted-foreground",
                   )}
                 >
                   {dayLabels[i]}

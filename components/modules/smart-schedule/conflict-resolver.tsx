@@ -250,8 +250,8 @@ export default function ConflictResolver() {
           ) : undefined
         }
       >
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="col-span-1 lg:col-span-8">
             <Card className="shadow-card">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -355,7 +355,7 @@ export default function ConflictResolver() {
             </Card>
           </div>
 
-          <div className="col-span-4">
+          <div className="col-span-1 lg:col-span-4">
             <AIInsightPanel
               title="AI 冲突化解策略"
               accentColor="rose"

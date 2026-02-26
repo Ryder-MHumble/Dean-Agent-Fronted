@@ -15,7 +15,11 @@ import { cn } from "@/lib/utils";
 // Apple-inspired cubic-bezier for smooth, natural motion
 export const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
 export const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const;
-export const EASE_SPRING = { type: "spring" as const, stiffness: 300, damping: 30 };
+export const EASE_SPRING = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 30,
+};
 
 export const DURATION = {
   micro: 0.15,
@@ -366,7 +370,7 @@ export function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
               ease: EASE_OUT_EXPO as unknown as number[],
               delay: 0.05,
             }}
-            className="text-xs text-muted-foreground"
+            className="text-xs text-muted-foreground hidden sm:block"
           >
             {subtitle}
           </motion.p>

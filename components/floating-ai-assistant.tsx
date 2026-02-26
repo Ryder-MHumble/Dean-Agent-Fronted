@@ -18,6 +18,7 @@ import {
   ArrowUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { motion, AnimatePresence } from "framer-motion";
 
 import type { ChatMessage } from "@/lib/types/ai-assistant";
@@ -222,6 +223,8 @@ function generateId(): string {
 }
 
 export default function FloatingAIAssistant() {
+  const breakpoint = useBreakpoint();
+  const isMobile = breakpoint === "mobile";
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
@@ -323,7 +326,10 @@ export default function FloatingAIAssistant() {
               setIsOpen(true);
               setNotifications(0);
             }}
-            className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-shadow duration-300 flex items-center justify-center group"
+            className={cn(
+              "fixed z-50 h-14 w-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-shadow duration-300 flex items-center justify-center group",
+              isMobile ? "bottom-[76px] right-4" : "bottom-6 right-6",
+            )}
           >
             <span className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping pointer-events-none" />
             <span className="absolute inset-[-3px] rounded-full border-2 border-blue-400/30 animate-pulse-subtle pointer-events-none" />
@@ -350,7 +356,12 @@ export default function FloatingAIAssistant() {
             exit={{ opacity: 0, scale: 0.9, y: 24 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
             style={{ transformOrigin: "bottom right" }}
-            className="fixed bottom-6 right-6 z-50 rounded-2xl overflow-hidden flex flex-col border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl shadow-black/10"
+            className={cn(
+              "fixed z-50 overflow-hidden flex flex-col border border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl shadow-black/10",
+              isMobile
+                ? "inset-0 rounded-none"
+                : "bottom-6 right-6 rounded-2xl",
+            )}
           >
             {/* Header */}
             <div className="relative flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 text-white overflow-hidden">
@@ -404,10 +415,11 @@ export default function FloatingAIAssistant() {
                     duration: 0.3,
                     ease: [0.25, 0.46, 0.45, 0.94],
                   }}
+                  className={cn(isMobile && "flex-1 flex flex-col")}
                 >
                   <div
-                    className="flex flex-col"
-                    style={{ width: 420, height: 560 }}
+                    className={cn("flex flex-col", isMobile && "flex-1")}
+                    style={isMobile ? undefined : { width: 420, height: 560 }}
                   >
                     {/* Chat messages area */}
                     <div className="relative flex-1 min-h-0">

@@ -30,6 +30,8 @@ import { rawAlerts } from "@/lib/mock-data/home-briefing";
 
 interface CommandPaletteProps {
   onNavigate: (page: string) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const moduleItems = [
@@ -116,23 +118,29 @@ const quickActions = [
   },
 ];
 
-export default function CommandPalette({ onNavigate }: CommandPaletteProps) {
-  const [open, setOpen] = useState(false);
+export default function CommandPalette({
+  onNavigate,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: CommandPaletteProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen ?? internalOpen;
+  const setIsOpen = controlledOnOpenChange ?? setInternalOpen;
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((o) => !o);
+        setIsOpen(!isOpen);
       }
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [isOpen, setIsOpen]);
 
   const handleSelect = useCallback(
     (id: string) => {
-      setOpen(false);
+      setIsOpen(false);
       if (id.startsWith("action-")) {
         // Quick actions map to modules
         const actionMap: Record<string, string> = {
@@ -149,14 +157,14 @@ export default function CommandPalette({ onNavigate }: CommandPaletteProps) {
         onNavigate(id);
       }
     },
-    [onNavigate],
+    [onNavigate, setIsOpen],
   );
 
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
-        className="flex h-9 w-72 items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground transition-all duration-200 hover:bg-white hover:shadow-sm hover:border-blue-200"
+        onClick={() => setIsOpen(true)}
+        className="hidden sm:flex h-9 w-72 items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground transition-all duration-200 hover:bg-white hover:shadow-sm hover:border-blue-200"
       >
         <Search className="h-4 w-4" />
         <span className="flex-1 text-left">全局搜索</span>
@@ -165,7 +173,7 @@ export default function CommandPalette({ onNavigate }: CommandPaletteProps) {
         </kbd>
       </button>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
         <CommandInput placeholder="搜索模块、告警、快捷操作..." />
         <CommandList>
           <CommandEmpty>未找到相关结果</CommandEmpty>

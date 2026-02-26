@@ -503,9 +503,9 @@ export default function NetworkIntelligenceView() {
     items.filter((p) => p.relevance >= 60).length;
 
   return (
-    <StaggerContainer className="grid grid-cols-12 gap-6">
+    <StaggerContainer className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Left column - Personnel Changes Tracking */}
-      <StaggerItem className="col-span-7">
+      <StaggerItem className="col-span-1 lg:col-span-7">
         <Card className="shadow-card hover:shadow-card-hover rounded-xl transition-all duration-300">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
@@ -550,7 +550,7 @@ export default function NetworkIntelligenceView() {
       </StaggerItem>
 
       {/* Right column - Overview + Talent + No-Contact */}
-      <StaggerItem className="col-span-5 space-y-6">
+      <StaggerItem className="col-span-1 lg:col-span-5 space-y-6">
         <PersonnelOverview
           actionCount={actionCount}
           watchCount={watchCount}

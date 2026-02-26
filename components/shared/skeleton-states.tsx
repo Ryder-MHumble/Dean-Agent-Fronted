@@ -103,11 +103,11 @@ export function SkeletonSubPage() {
   return (
     <div className="space-y-4">
       <SkeletonStatCards />
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="col-span-1 lg:col-span-8">
           <SkeletonTableRows />
         </div>
-        <div className="col-span-4">
+        <div className="col-span-1 lg:col-span-4">
           <SkeletonAIPanel />
         </div>
       </div>
@@ -263,8 +263,8 @@ export function SkeletonResearchTracking() {
 /** Personnel intel: 7/5 grid with card list + sidebar cards */
 export function SkeletonPersonnelIntel() {
   return (
-    <div className="grid grid-cols-12 gap-6">
-      <div className="col-span-7 space-y-4">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="col-span-1 lg:col-span-7 space-y-4">
         {/* Header */}
         <Card className="shadow-card rounded-xl">
           <CardHeader className="pb-3">
@@ -299,7 +299,7 @@ export function SkeletonPersonnelIntel() {
           </CardContent>
         </Card>
       </div>
-      <div className="col-span-5 space-y-4">
+      <div className="col-span-1 lg:col-span-5 space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i} className="shadow-card rounded-xl">
             <CardContent className="p-4 space-y-3">

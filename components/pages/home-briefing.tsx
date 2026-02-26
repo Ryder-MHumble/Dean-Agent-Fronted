@@ -22,7 +22,7 @@ export default function HomeBriefingPage({
   }
 
   return (
-    <div className="p-5 space-y-3">
+    <div className="p-4 sm:p-5 space-y-3">
       {/* Header + AI Briefing merged for compactness */}
       <MotionCard delay={0}>
         <div className="flex items-center justify-between mb-3">

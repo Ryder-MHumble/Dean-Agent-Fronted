@@ -194,8 +194,8 @@ export default function ActivityRecommend() {
           ) : undefined
         }
       >
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="col-span-1 lg:col-span-8">
             <div className="overflow-y-auto max-h-[calc(100vh-320px)]">
               <StaggerContainer className="space-y-3">
                 {mockActivities.map((activity) => (
@@ -265,7 +265,7 @@ export default function ActivityRecommend() {
             </div>
           </div>
 
-          <div className="col-span-4">
+          <div className="col-span-1 lg:col-span-4">
             <Card className="shadow-card bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">

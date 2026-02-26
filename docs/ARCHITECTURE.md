@@ -1,6 +1,6 @@
 # DeanAgent 项目架构文档
 
-> 完整的项目架构说明文档 | 版本 v1.0.0 | 更新日期: 2026-02-22
+> 完整的项目架构说明文档 | 版本 v2.0.0 | 更新日期: 2026-02-26
 
 ## 目录
 
@@ -10,9 +10,14 @@
 - [8大功能模块](#8大功能模块)
 - [关键设计模式](#关键设计模式)
 - [组件系统](#组件系统)
+- [动画系统](#动画系统)
+- [数据层](#数据层)
+- [响应式策略](#响应式策略)
+- [设计系统](#设计系统)
 - [开发工作流](#开发工作流)
 - [性能优化](#性能优化)
 - [安全考虑](#安全考虑)
+- [部署](#部署)
 
 ---
 
@@ -22,18 +27,18 @@
 
 ### 核心定位
 
-- **决策中心**: 聚合多源数据,提供决策洞察
+- **决策中心**: 聚合多源数据，提供决策洞察
 - **情报引擎**: 追踪政策、技术、人才、高校动态
-- **智能助手**: AI 分析、邀约评估、时间管理
+- **智能助手**: AI 秘书对话、邀约评估、时间管理
 - **指挥平台**: 院内管理、人脉网络、日程协调
 
 ### 技术特点
 
 - **现代化框架**: Next.js 16 + React 19 + TypeScript 5.7
-- **高性能开发**: Turbopack 构建工具
-- **企业级 UI**: shadcn/ui 组件库(49个组件)
-- **流畅动画**: Framer Motion 12
-- **类型安全**: 全栈 TypeScript 严格模式
+- **高性能构建**: Turbopack（比 Webpack 快 700 倍）
+- **企业级 UI**: shadcn/ui 组件库（50+ 组件）+ Radix UI 原语
+- **流畅动画**: Framer Motion 12 统一封装（Apple 曲线 + Spring 物理）
+- **类型安全**: 全栈 TypeScript 严格模式（17 个类型模块）
 
 ---
 
@@ -41,50 +46,73 @@
 
 ### 系统架构
 
-项目采用经典的前端 MVC 分层架构:
+项目采用分层架构，从顶部导航层到基础数据层：
 
 ```
-┌─────────────────────────────────────────┐
-│         App Shell (导航层)              │
-│   侧边栏 + 顶栏 + 全局搜索 + 通知中心    │
-└─────────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────────┐
-│         8 大功能模块 (业务层)            │
-│  院长早报 | 政策情报 | 科技前沿 | ...   │
-└─────────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────────┐
-│       共享组件库 (组件层)                │
-│  Master-Detail | DataCard | AI面板 ...  │
-└─────────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────────┐
-│       shadcn/ui (基础组件层)            │
-│  Button | Input | Dialog | Table ...   │
-└─────────────────────────────────────────┘
-                  ↓
-┌─────────────────────────────────────────┐
-│         数据层 (Mock + Hooks)           │
-│  TypeScript Types + Custom Hooks       │
-└─────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│              导航层 (App Shell)                           │
+│  侧边栏(桌面) / 底部导航(移动) / 顶栏 / 通知 / AI助手     │
+└──────────────────────────────────────────────────────────┘
+                          ↓
+┌──────────────────────────────────────────────────────────┐
+│              8 大功能模块 (业务层)                        │
+│  院长早报 | 政策情报 | 科技前沿 | 人事动态              │
+│  高校生态 | 院内管理 | 人脉网络 | 智能日程              │
+└──────────────────────────────────────────────────────────┘
+                          ↓
+┌──────────────────────────────────────────────────────────┐
+│              共享组件库 (组件层)                          │
+│  Master-Detail | AIInsightPanel | MobileBottomNav       │
+│  SkeletonStates | DateGroupedList | DataItemCard        │
+└──────────────────────────────────────────────────────────┘
+                          ↓
+┌──────────────────────────────────────────────────────────┐
+│              动画系统 (motion/)                           │
+│  MotionCard | StaggerContainer | AnimatedNumber         │
+│  MotionPage | ExpandableSection | PageLoadingSkeleton   │
+└──────────────────────────────────────────────────────────┘
+                          ↓
+┌──────────────────────────────────────────────────────────┐
+│              shadcn/ui 基础组件层                         │
+│  Button | Input | Dialog | Table | Sheet | ...         │
+└──────────────────────────────────────────────────────────┘
+                          ↓
+┌──────────────────────────────────────────────────────────┐
+│              数据层 (lib/)                                │
+│  TypeScript Types (17模块) | Mock Data | Custom Hooks   │
+│  API封装 | 日期分组 | 优先级评分算法                     │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ### 路由架构
 
-采用 **客户端 SPA 路由** 模式:
-
-- 由 `app/page.tsx` 中的 `activePage` 状态驱动
-- 配合 Framer Motion 实现流畅页面转场
-- 模块切换无刷新,提升用户体验
+采用 **客户端 SPA 路由** 模式，所有模块通过 `dynamic()` 懒加载：
 
 ```typescript
+// app/page.tsx
+const HomeModule = dynamic(() => import("@/components/modules/home"), {
+  loading: () => <PageLoadingSkeleton />,
+});
+
 // 路由流程
-AppShell (侧边栏) 
-  → onNavigate(pageId) 
-  → setActivePage(pageId) 
-  → 渲染对应模块组件
+AppShell/MobileBottomNav
+  → onNavigate(pageId)
+  → setActivePage(pageId)
+  → dynamic(对应模块组件)
 ```
+
+**激活的 8 个路由**:
+
+| 路由 ID | 模块组件 | 动态导入路径 |
+|---------|---------|------------|
+| `home` | HomeModule | `modules/home` |
+| `policy-intel` | PolicyIntelModule | `modules/policy-intel` |
+| `tech-frontier` | TechFrontierModule | `modules/tech-frontier` |
+| `talent-radar` | TalentRadarModule | `modules/talent-radar` |
+| `university-eco` | UniversityEcoModule | `modules/university-eco` |
+| `internal-mgmt` | InternalMgmtModule | `modules/internal-mgmt` |
+| `network` | NetworkModule | `modules/network` |
+| `smart-schedule` | SmartScheduleModule | `modules/smart-schedule` |
 
 ---
 
@@ -94,26 +122,26 @@ AppShell (侧边栏)
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| **Next.js** | 16.1.6 | React 全栈框架,App Router 模式 |
-| **React** | 19.2.3 | UI 库,支持并发特性 |
-| **TypeScript** | 5.7.3 | 类型系统,严格模式 |
-| **Turbopack** | - | 构建工具,比 Webpack 快 700 倍 |
+| **Next.js** | 16.1.6 | React 全栈框架，App Router 模式 |
+| **React** | 19.2.3 | UI 库，支持并发特性 |
+| **TypeScript** | 5.7.3 | 类型系统，严格模式 |
+| **Turbopack** | — | 构建工具，比 Webpack 快 700 倍 |
 
 ### UI 组件库
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| **shadcn/ui** | - | 组件库(49个组件) |
+| **shadcn/ui** | — | 组件库（50+ 组件） |
 | **Radix UI** | 多版本 | 无障碍组件原语 |
 | **Tailwind CSS** | 3.4.17 | 样式框架 |
-| **Framer Motion** | 12.34.0 | 动画库 |
+| **Framer Motion** | 12.34.0 | 动画库（统一封装） |
 | **Lucide React** | 0.544.0 | 图标库 |
 
 ### 数据可视化
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| **Recharts** | 2.15.0 | 图表库 |
+| **Recharts** | 2.15.0 | 图表库（KPI/趋势/舆情） |
 
 ### 表单 & 验证
 
@@ -127,7 +155,7 @@ AppShell (侧边栏)
 | 技术 | 版本 | 用途 |
 |------|------|------|
 | **date-fns** | 4.1.0 | 日期处理 |
-| **cmdk** | 1.1.1 | 命令面板 |
+| **cmdk** | 1.1.1 | 命令面板（Cmd+K） |
 | **sonner** | 1.7.1 | Toast 通知 |
 | **next-themes** | 0.4.6 | 主题管理 |
 
@@ -139,34 +167,40 @@ AppShell (侧边栏)
 
 | 模块ID | 模块名称 | 子页面数 | 核心功能 |
 |--------|---------|---------|---------|
-| **home** | 院长早报 | 1 | AI综述、告警、指标卡、时间线 |
-| **policy-intel** | 政策情报 | 4 | 政策订阅、机会匹配、追踪、讲话解读 |
-| **tech-frontier** | 科技前沿 | 4 | 技术趋势、行业动态、KOL、机会备忘 |
-| **talent-radar** | 人才雷达 | 3 | 海归追踪、人才指数、学术流动 |
-| **university-eco** | 高校生态 | 3 | 同行对标、科研成果、人事变动 |
-| **internal-mgmt** | 院内管理 | 5 | 财务、项目、学生、舆情、绩效 |
-| **network** | 人脉网络 | 3 | 人事变动、关系维护、社交建议 |
-| **smart-schedule** | 智能日程 | 4 | 日程总览、ROI评估、冲突化解、活动推荐 |
+| `home` | 院长早报 | 1 | AI综述、模块快捷卡片、今日待办 |
+| `policy-intel` | 政策情报 | 1+筛选 | 政策订阅流、关键词搜索、5分类筛选 |
+| `tech-frontier` | 科技前沿 | 1(M-D) | 信号流、Master-Detail详情、AI摘要、多维排序 |
+| `talent-radar` | 人事动态 | 1+筛选 | 人物卡片、新闻流、分类筛选 |
+| `university-eco` | 高校生态 | 2 | 同行对标、科研成果追踪 |
+| `internal-mgmt` | 院内管理 | 4 | 中心动态、项目督办、学生管理、舆情监测 |
+| `network` | 人脉网络 | 3 | 人事变动、关系维护、社交行动 |
+| `smart-schedule` | 智能日程 | 4 | 日程总览、邀约评估、冲突化解、活动推荐 |
+
+---
 
 ### 1. 院长早报 (home)
 
-**定位**: 指挥中心首页,全局态势感知
+**定位**: 指挥中心首页，全局态势感知
 
 **组件结构**:
+
 ```
 components/modules/home/
-└── index.tsx (单页面模块,整合 4 个子组件)
-    ├── AI 每日综述
-    ├── 必须关注告警
-    ├── 聚合指标卡片
-    └── 今日时间线
+└── index.tsx                    → 包装 HomeBriefingPage
+
+components/pages/home-briefing.tsx   → 主容器
+
+components/home/
+├── ai-daily-summary.tsx         → AI 每日综述面板
+├── aggregated-metric-cards.tsx  → 8 个模块快捷卡片（点击导航）
+└── today-agenda.tsx             → 今日待办清单
 ```
 
 **核心功能**:
-- AI 每日综述(政策/人才/风险/机会分段)
-- 必须关注告警(紧急事项、截止日、人事变动)
-- 聚合指标卡(项目进度、财务概览、人才流动、舆情监测)
-- 今日时间线(重要会议、政策发布、人事动态)
+
+- AI 每日综述（可折叠的分段摘要）
+- 聚合指标卡片（8 个模块的关键指标，点击快速导航）
+- 今日待办议程（按时间排序的事项列表）
 
 **数据源**: `lib/mock-data/home-briefing.ts`
 
@@ -174,43 +208,22 @@ components/modules/home/
 
 ### 2. 政策情报 (policy-intel)
 
-**定位**: 国家/北京政策追踪,政策机会智能匹配
+**定位**: 国家/北京政策订阅，政策机会追踪
 
-**子页面结构**:
+**组件结构**:
 
-| 子页面 | 文件 | 说明 |
-|--------|------|------|
-| 政策订阅流 | policy-feed.tsx | RSS 风格政策聚合流,支持分类筛选、信源过滤 |
-| 政策机会匹配 | matching.tsx | AI 匹配院内需求的政策机会,优先级评分 |
-| 政策追踪看板 | tracking.tsx | 关注政策的生命周期追踪 |
-| 领导讲话解读 | speeches.tsx | 领导讲话要点提取与趋势分析 |
+```
+components/modules/policy-intel/
+├── index.tsx                    → 搜索框 + 分类 Tab + PolicyFeed
+└── policy-feed.tsx              → 政策条目列表（卡片式）
+```
 
 **核心特性**:
-- **Master-Detail 模式**: 左侧列表 + 右侧详情面板
-- **多维筛选**: 分类(国家/北京/领导讲话) + 信源筛选(hover 下拉)
-- **优先级评分**: 基于匹配度、时效性、重要性的综合打分
-- **AI 分析**: 每条政策提供 AI 机会洞察
 
-**实现示例**:
-```typescript
-// components/modules/policy-intel/index.tsx
-export default function PolicyIntelModule() {
-  const { items, isLoading } = usePolicyFeed();
-  const [activeCategory, setActiveCategory] = useState("全部");
-  const [selectedSources, setSelectedSources] = useState(new Set());
-
-  const filtered = useMemo(() => {
-    let result = items;
-    if (category !== "全部") 
-      result = result.filter(n => n.category === category);
-    if (sources.size > 0) 
-      result = result.filter(n => sources.has(n.source));
-    return result;
-  }, [items, category, sources]);
-
-  return <PolicyFeed items={filtered} />;
-}
-```
+- 关键词实时搜索（标题/内容）
+- 5 个分类 Tab 筛选（全部/国家政策/北京政策/科技政策/经费政策）
+- 数据新鲜度提示（`DataFreshness` 组件）
+- 每条政策显示来源、日期、匹配度
 
 **数据源**: `lib/mock-data/policy-intel.ts`
 
@@ -218,165 +231,224 @@ export default function PolicyIntelModule() {
 
 ### 3. 科技前沿 (tech-frontier)
 
-**定位**: 技术趋势分析、行业动态、热点话题与 KOL
+**定位**: 技术信号追踪，Master-Detail 详情浏览
 
-**子页面**:
-- 技术趋势分析 (trends.tsx)
-- 行业动态追踪 (industry.tsx)
-- KOL & 热点话题 (kol.tsx)
-- 机会与备忘 (opportunities.tsx)
+**组件结构**:
+
+```
+components/modules/tech-frontier/
+├── index.tsx               → 路由入口
+├── tech-frontier-page.tsx  → 主容器（MasterDetailView 集成）
+├── signal-feed.tsx         → 技术信号流列表
+├── ai-briefing-bar.tsx     → 顶部 AI 摘要条
+├── kpi-strip.tsx           → KPI 数据条带
+├── memo-strip.tsx          → 备忘录条
+├── topic-card.tsx          → 话题卡片
+└── detail-panels.tsx       → 详情面板（4 种类型）
+```
 
 **核心特性**:
-- 趋势图表: 使用 Recharts 展示技术热度趋势
-- KOL 追踪: 关键人物观点聚合
-- 热点标签云: 动态展示高频关键词
+
+- Master-Detail 布局（信号流 + 详情面板）
+- 多维排序：热度 / 缺口度 / 信号强度
+- AI 摘要条（顶部滚动式摘要）
+- 4 种详情面板类型：论文/专利/新闻/分析
+- `ExpandableSection` 折叠展开动画
+
+**数据源**: `lib/mock-data/tech-frontier.ts`
 
 ---
 
-### 4. 人才雷达 (talent-radar)
+### 4. 人事动态 (talent-radar)
 
-**定位**: 海外人才回流追踪、人才指数、学术流动分析
+**定位**: 学界人才动态追踪
 
-**子页面**:
-- 海外人才回流追踪 (returnees.tsx)
-- 人才指数与趋势 (index-trends.tsx)
-- 学术流动分析 (mobility.tsx)
+**组件结构**:
+
+```
+components/modules/talent-radar/
+├── index.tsx           → 搜索 + 分类过滤 + 内容渲染
+├── person-card.tsx     → 人物卡片（头像/机构/研究方向）
+└── news-feed.tsx       → 人才动态新闻流
+```
 
 **核心特性**:
-- 人才画像: 学术背景、研究方向、影响力指标
-- 流动可视化: Sankey 图展示人才流动路径
-- 预测模型: 基于历史数据的人才流动预测
+
+- 双视图：人物卡片（卡片网格）/ 新闻流（列表）
+- 分类筛选：海归人才 / 职位变动 / 科研合作 / 奖项荣誉
+- 人物卡片含影响力指标
+
+**数据源**: `lib/mock-data/talent-radar.ts`
 
 ---
 
 ### 5. 高校生态 (university-eco)
 
-**定位**: 同行动态对标、科研成果追踪、人事人才变动
+**定位**: 同行机构动态对标，科研成果追踪
 
-**子页面**:
-- 同行动态对标 (peer-dynamics.tsx)
-- 科研成果追踪 (research-tracking.tsx)
-- 人事与人才变动 (personnel-talent.tsx)
+**组件结构**:
 
-**核心特性**:
-- 对标分析: 多维度对比竞品高校
-- 成果监测: 自动抓取高影响力论文
-- 人事预警: 关键人才流动提醒
+```
+components/modules/university-eco/
+├── index.tsx                → ModuleLayout，2 个子页面
+├── peer-dynamics.tsx        → 同行动态对标
+└── research-tracking.tsx    → 科研成果追踪
+```
+
+**数据源**: `lib/mock-data/university-eco.ts`
 
 ---
 
 ### 6. 院内管理 (internal-mgmt)
 
-**定位**: 院内运营的全景监控与管理中枢
+**定位**: 院内运营全景监控
 
-**子页面**:
-- 财务概览 (finance.tsx)
-- 项目督办 (projects.tsx)
-- 学生事务 (students.tsx)
-- 舆情安全 (sentiment.tsx)
-- 中心绩效 (performance.tsx)
+**组件结构**:
 
-**核心特性**:
-- 实时仪表盘: 关键指标实时监控
-- 进度甘特图: 项目时间线可视化
-- 舆情热力图: 舆情分布与趋势
+```
+components/modules/internal-mgmt/
+├── index.tsx                → ModuleLayout，4 个子页面
+├── center-updates.tsx       → 中心动态公告
+├── project-supervision.tsx  → 项目督办进度
+├── student-mgmt.tsx         → 学生事务管理
+└── sentiment-monitor.tsx    → 舆情监测
+```
+
+**`pages/operations/` 仪表盘综合视图**:
+
+```
+components/pages/operations/
+├── index.tsx               → 网格布局主容器
+├── kpi-summary-cards.tsx   → KPI 摘要卡片行
+├── center-performance.tsx  → 中心绩效分析图表
+├── project-info-table.tsx  → 项目信息表格
+├── sentiment-center.tsx    → 舆情监测图表
+├── project-timeline.tsx    → 项目时间线
+└── approval-tasks.tsx      → 待审批任务列表
+```
+
+**数据源**: `lib/mock-data/internal-mgmt.ts`, `lib/mock-data/operations.ts`
 
 ---
 
 ### 7. 人脉网络 (network)
 
-**定位**: 人事变动感知、关系维护管理、社交行动建议
+**定位**: 人事变动感知，关系维护管理
 
-**子页面**:
-- 人事变动感知 (changes.tsx)
-- 关系维护管理 (maintain.tsx)
-- 社交行动建议 (actions.tsx)
+**组件结构**:
 
-**核心特性**:
-- 关系图谱: D3.js 可视化人脉网络
-- 互动日历: 自动记录会面、通话、邮件
-- 智能提醒: 生日、节日、任职周年提醒
+```
+components/modules/network/
+├── index.tsx               → ModuleLayout，3 个子页面
+├── personnel-changes.tsx   → 人事变动感知
+├── relationship-mgmt.tsx   → 关系维护管理
+└── social-actions.tsx      → 社交行动建议
+```
+
+**数据源**: `lib/mock-data/network.ts`
 
 ---
 
 ### 8. 智能日程 (smart-schedule)
 
-**定位**: 日程 ROI 评估、邀约智能分析、时间冲突化解
+**定位**: 日程 ROI 评估，时间冲突化解
 
-**子页面**:
-- 日程总览 (overview.tsx)
-- 邀约 ROI 评估 (roi.tsx)
-- 时间冲突化解 (conflicts.tsx)
-- 活动推荐 (recommendations.tsx)
+**组件结构**:
+
+```
+components/modules/smart-schedule/
+├── index.tsx               → ModuleLayout，4 个子页面
+├── schedule-overview.tsx   → 日程总览（周视图 + 时间线）
+├── invitation-eval.tsx     → 邀约 ROI 评估
+├── conflict-resolver.tsx   → 时间冲突化解
+└── activity-recommend.tsx  → 活动推荐（含冲突检测）
+```
+
+**`pages/schedule/` 轻量级日历视图**:
+
+```
+components/pages/schedule/
+├── index.tsx           → 主页面（周条 + 时间线 + 详情）
+├── week-strip.tsx      → 周选择条（7天快速切换）
+├── timeline-row.tsx    → 每日时间线行
+└── detail-panel.tsx    → 事件详情面板（移动端 Sheet）
+```
 
 **核心特性**:
-- ROI 算法: 基于人脉价值、议题相关性、时间成本的综合评分
-- 冲突检测: 自动识别时间、地点、资源冲突
-- 智能推荐: 基于历史偏好的活动推荐引擎
+
+- ROI 算法：基于人脉价值 × 议题相关性 ÷ 时间成本
+- 冲突检测：自动识别时间、地点冲突
+- 周条快速切换：7 天横向滑动选择
+
+**数据源**: `lib/mock-data/smart-schedule.ts`, `lib/mock-data/schedule.ts`
 
 ---
 
 ## 关键设计模式
 
-### 1. Master-Detail 模式
+### 1. ModuleLayout 模式
 
-**定义**: 左侧列表 + 右侧详情面板的经典布局模式
+**定义**: 统一的子页面 Tab 管理容器
 
-**应用场景**:
-- 政策情报 → 政策订阅流
-- 高校生态 → 同行动态对标
-- 高校生态 → 科研成果追踪
-- 高校生态 → 人事与人才变动
+**应用**: 高校生态（2页）、院内管理（4页）、人脉网络（3页）、智能日程（4页）
+
+```typescript
+// components/modules/internal-mgmt/index.tsx
+export default function InternalMgmtModule() {
+  const subPages = [
+    { id: "center-updates", label: "中心动态", component: <CenterUpdates /> },
+    { id: "projects", label: "项目督办", component: <ProjectSupervision /> },
+    { id: "students", label: "学生管理", component: <StudentMgmt /> },
+    { id: "sentiment", label: "舆情监测", component: <SentimentMonitor /> },
+  ];
+  return <ModuleLayout subPages={subPages} />;
+}
+```
+
+---
+
+### 2. Master-Detail 模式
+
+**定义**: 左侧列表 + 右侧详情面板的经典布局
+
+**应用场景**: 科技前沿模块
 
 **实现组件**: `components/shared/master-detail-view.tsx`
 
-**使用示例**:
 ```typescript
 <MasterDetailView
   masterContent={
     <DateGroupedList
-      items={items}
+      items={signals}
       renderItem={(item) => (
         <DataItemCard
           isSelected={selectedId === item.id}
           onClick={() => setSelectedId(item.id)}
-        >
-          {/* 列表项内容 */}
-        </DataItemCard>
+        />
       )}
     />
   }
-  detailContent={
-    selectedItem && (
-      <DetailArticleBody
-        title={selectedItem.title}
-        source={selectedItem.source}
-        url={selectedItem.url}
-        date={selectedItem.date}
-      >
-        {selectedItem.content}
-      </DetailArticleBody>
-    )
-  }
+  detailContent={selectedItem && <DetailPanels item={selectedItem} />}
   isDetailOpen={!!selectedItem}
   onDetailClose={() => setSelectedId(null)}
 />
 ```
 
-**核心特性**:
-- **响应式**: 桌面端并排,移动端 Sheet 抽屉
-- **自动降级**: 窄屏自动切换为全屏详情
-- **可调整**: 使用 `react-resizable-panels` 支持拖拽调整宽度
+**响应式行为**:
+
+- 桌面（≥768px）：左右并排，支持拖拽调整比例
+- 移动（<768px）：选中后全屏 Sheet 抽屉
 
 ---
 
-### 2. 日期分组列表
+### 3. 日期分组列表
 
 **定义**: 按日期自动分组的列表容器
 
-**实现组件**: `components/shared/date-grouped-list.tsx`
+**实现**: `components/shared/date-grouped-list.tsx` + `lib/group-by-date.ts`
 
-**核心算法**:
+**应用场景**: 政策情报订阅流、人才动态新闻流、科技信号流
+
 ```typescript
 // lib/group-by-date.ts
 export function groupByDate<T>(
@@ -384,153 +456,146 @@ export function groupByDate<T>(
   getDate: (item: T) => Date
 ): Map<string, T[]> {
   const groups = new Map<string, T[]>();
-
   for (const item of items) {
     const date = format(getDate(item), 'yyyy-MM-dd');
     if (!groups.has(date)) groups.set(date, []);
     groups.get(date)!.push(item);
   }
-
   return groups;
 }
 ```
-
-**使用场景**:
-- 政策订阅流(按发布日期分组)
-- 人才动态(按更新日期分组)
-- 高校生态(按事件日期分组)
-
----
-
-### 3. 数据项卡片
-
-**定义**: 统一的列表项卡片组件,支持选中态、主题色
-
-**实现组件**: `components/shared/data-item-card.tsx`
-
-**主题色配置**:
-```typescript
-export const accentConfig = {
-  violet: { 
-    selected: "border-violet-300 bg-violet-50/50 shadow-sm",
-    hover: "hover:border-violet-200 hover:shadow-sm",
-    title: "group-hover:text-violet-600",
-  },
-  blue: { ... },
-  indigo: { ... },
-  purple: { ... },
-  green: { ... },
-} as const;
-```
-
-**配套子组件**:
-- `ItemAvatar`: 圆角头像框
-- `ItemChevron`: 右箭头图标(hover 动画)
 
 ---
 
 ### 4. AI 洞察面板
 
-**定义**: 统一的 AI 分析侧边栏,支持 10 种模块主题色
+**定义**: 统一的 AI 分析侧边栏，支持 10 种模块主题色
 
-**实现组件**: `components/shared/ai-insight-panel.tsx`
+**实现**: `components/shared/ai-insight-panel.tsx`
 
 **主题色系统**:
-```typescript
-const themeConfig = {
-  policy: { gradient: "from-violet-600 to-purple-600" },
-  tech: { gradient: "from-blue-600 to-cyan-600" },
-  talent: { gradient: "from-green-600 to-emerald-600" },
-  university: { gradient: "from-indigo-600 to-blue-600" },
-  internal: { gradient: "from-amber-600 to-orange-600" },
-  network: { gradient: "from-pink-600 to-rose-600" },
-  schedule: { gradient: "from-purple-600 to-fuchsia-600" },
-  // ...
-};
-```
 
-**使用场景**: 每个模块详情页提供 AI 分析
+| 模块 | 渐变色 |
+|------|--------|
+| 政策情报 | violet → purple |
+| 科技前沿 | blue → cyan |
+| 人才雷达 | green → emerald |
+| 高校生态 | indigo → blue |
+| 院内管理 | amber → orange |
+| 人脉网络 | pink → rose |
+| 智能日程 | purple → fuchsia |
 
 ---
 
-### 5. 骨架屏加载态
+### 5. 悬浮 AI 秘书
 
-**定义**: 优雅的内容加载占位符
+**定义**: 全局悬浮的 AI 对话助手（Gemini 风格）
 
-**实现组件**: `components/shared/skeleton-states.tsx`
+**实现**: `components/floating-ai-assistant.tsx`
 
-**预设骨架**:
-- `SkeletonMetricCard`: 指标卡骨架
-- `SkeletonTableRow`: 表格行骨架
-- `SkeletonAIPanel`: AI 面板骨架
-- `SkeletonSubPage`: 完整子页面骨架
+**核心特性**:
 
-**使用示例**:
-```typescript
-export default function PolicyIntelModule() {
-  const { items, isLoading } = usePolicyFeed();
+- 悬浮按钮：脉冲动画 + 未读通知徽章
+- 聊天面板：最小化 / 全屏（移动端）切换
+- 快速操作：横向滚动菜单（日程查看/报告生成/数据分析等）
+- 消息类型：User（蓝色右对齐）/ AI（灰色左对齐 + Bot 头像）
+- 打字动画：三点 Bounce 指示器
+- 输入框：自动调整高度（Shift+Enter 换行，Enter 发送）
 
-  if (isLoading) return <SkeletonSubPage />;
-
-  return <PolicyFeed items={items} />;
-}
-```
+**数据源**: `lib/mock-data/ai-assistant.ts`（快速操作 + `getAIResponse()`）
 
 ---
 
-### 6. 数据新鲜度指示器
+### 6. 骨架屏加载态
 
-**定义**: 直观展示数据更新时间的小组件
+**实现**: `components/shared/skeleton-states.tsx`
 
-**实现组件**: `components/shared/data-freshness.tsx`
+**预设骨架（8+ 种）**:
+
+| 骨架名称 | 用途 |
+|---------|------|
+| `SkeletonMetricCard` | 指标卡骨架 |
+| `SkeletonTableRow` | 表格行骨架 |
+| `SkeletonAIPanel` | AI 面板骨架 |
+| `SkeletonSubPage` | 完整子页面骨架 |
+| `SkeletonListItem` | 列表项骨架 |
+| `SkeletonCard` | 通用卡片骨架 |
+| `PageLoadingSkeleton` | 路由切换全页骨架 |
+
+---
+
+### 7. 数据新鲜度指示器
+
+**实现**: `components/shared/data-freshness.tsx`
 
 **时效分级**:
-```typescript
-const status =
-  diff < 10 * 60 * 1000 ? 'fresh' :      // 10分钟内: 绿色
-  diff < 60 * 60 * 1000 ? 'recent' :     // 1小时内: 蓝色
-  diff < 24 * 60 * 60 * 1000 ? 'stale' : // 24小时内: 黄色
-  'very-stale';                          // 超过24小时: 红色
+
+```
+< 10 分钟  → 绿色（fresh）
+< 1 小时   → 蓝色（recent）
+< 24 小时  → 黄色（stale）
+≥ 24 小时  → 红色（very-stale）
 ```
 
 ---
 
 ## 组件系统
 
-### 组件层级结构
+### 4 层组件架构
 
 ```
-组件库(4 层架构)
-│
-├── 原子层 - shadcn/ui 基础组件
-│   ├── Button
-│   ├── Input
-│   ├── Badge
-│   ├── Card
-│   └── ...
-│
-├── 分子层 - 共享业务组件
-│   ├── DataItemCard
-│   ├── DataFreshness
-│   ├── EmptyState
-│   └── SkeletonStates
-│
-├── 组织层 - 共享布局组件
-│   ├── MasterDetailView
-│   ├── DateGroupedList
-│   ├── CommandPalette
-│   └── AIInsightPanel
-│
-└── 页面层 - 模块组件
-    ├── PolicyIntelModule
-    ├── TechFrontierModule
-    ├── TalentRadarModule
-    └── ...
+原子层 — shadcn/ui 基础组件 (50+)
+  Button | Input | Badge | Card | Dialog | Sheet | Table | Tabs ...
+
+分子层 — 共享业务组件
+  DataItemCard | DataFreshness | EmptyState | SkeletonStates
+  DateGroupedList | DetailArticleBody
+
+组织层 — 共享布局组件
+  MasterDetailView | CommandPalette | AIInsightPanel | MobileBottomNav
+
+页面层 — 模块组件
+  HomeModule | PolicyIntelModule | TechFrontierModule ...
 ```
+
+### 共享组件清单
+
+| 组件 | 文件 | 用途 |
+|------|------|------|
+| `AIInsightPanel` | `shared/ai-insight-panel.tsx` | 统一 AI 分析面板，10 种主题色 |
+| `CommandPalette` | `shared/command-palette.tsx` | Cmd+K 全局搜索 |
+| `MobileBottomNav` | `shared/mobile-bottom-nav.tsx` | 移动端底部导航 |
+| `MasterDetailView` | `shared/master-detail-view.tsx` | 左列表+右详情布局 |
+| `SkeletonStates` | `shared/skeleton-states.tsx` | 8+ 种骨架屏 |
+| `EmptyState` | `shared/empty-state.tsx` | 空状态占位 |
+| `DataFreshness` | `shared/data-freshness.tsx` | 数据新鲜度指示器 |
+| `DataItemCard` | `shared/data-item-card.tsx` | 统一列表项卡片 |
+| `DateGroupedList` | `shared/date-grouped-list.tsx` | 按日期分组列表 |
+| `DetailArticleBody` | `shared/detail-article-body.tsx` | 文章详情 Body |
+
+### 移动端底部导航
+
+**实现**: `components/shared/mobile-bottom-nav.tsx`
+
+**导航分组映射**:
+
+| 底部标签 | 对应页面 |
+|---------|---------|
+| 首页 | `home` |
+| 情报 | `policy-intel` / `tech-frontier` / `talent-radar` / `university-eco` |
+| 管理 | `internal-mgmt` |
+| 日程 | `smart-schedule` |
+| 更多 | `network` + 其他（展开 Modal） |
+
+**特性**:
+
+- 仅移动端显示（`md:hidden`）
+- 固定底部，`env(safe-area-inset-bottom)` 刘海屏适配
+- "更多"点击展开 Modal + Overlay
 
 ### shadcn/ui 组件清单
 
-已安装 **49 个组件**:
+已安装 **50+ 个组件**:
 
 | 类别 | 组件 |
 |------|------|
@@ -544,35 +609,221 @@ const status =
 
 ---
 
+## 动画系统
+
+### 统一封装库
+
+**位置**: `components/motion/index.tsx`
+
+所有动画通过此封装库统一管理，禁止在业务组件中直接使用裸 `motion.div`。
+
+### 导出的 8 个动画组件
+
+| 组件 | 说明 |
+|------|------|
+| `MotionCard` | 滚动进入淡入滑上，支持 up/left/right 方向 |
+| `StaggerContainer` | 容器级交错动画协调器 |
+| `StaggerItem` | 单项动画定义 |
+| `MotionPage` | 页面级进出动画（wait 模式） |
+| `AnimatedNumber` | 数字计数动画（0 → target） |
+| `MotionNumber` | 带前缀/后缀的数字动画 |
+| `ExpandableSection` | 高度折叠/展开动画 |
+| `PageLoadingSkeleton` | 路由切换全页骨架 |
+
+### 动画 Token
+
+```typescript
+// 缓动曲线
+EASE_OUT_EXPO = [0.16, 1, 0.3, 1]   // Apple 风格曲线
+EASE_SPRING   = { stiffness: 300, damping: 30 }
+
+// 持续时间
+DURATION = {
+  micro:  0.15,   // 微交互
+  fast:   0.20,   // 快速反馈
+  normal: 0.30,   // 标准动画
+  slow:   0.45,   // 复杂动画
+  page:   0.35,   // 页面转场
+}
+```
+
+### 使用规范
+
+```typescript
+// ✅ 正确：使用封装组件
+import { MotionCard, StaggerContainer, StaggerItem } from "@/components/motion";
+
+<StaggerContainer>
+  {items.map(item => (
+    <StaggerItem key={item.id}>
+      <MotionCard direction="up">
+        <DataItemCard {...item} />
+      </MotionCard>
+    </StaggerItem>
+  ))}
+</StaggerContainer>
+
+// ❌ 避免：直接使用裸 motion.div
+<motion.div animate={{ opacity: 1 }} />
+```
+
+---
+
+## 数据层
+
+### TypeScript 类型系统（17 个模块）
+
+```
+lib/types/
+├── navigation.ts        # NavGroup, NavItem, PageMeta
+├── ai-assistant.ts      # ChatMessage, QuickAction
+├── app-shell.ts         # AppShellData, Notification
+├── intelligence.ts      # PolicyFeed, TechSignal
+├── policy-intel.ts      # PolicyFeedItem, PolicyFeedCategory
+├── tech-frontier.ts     # TechTopic, Signal, DetailTarget
+├── talent-radar.ts      # PersonnelNews, PersonnelNewsCategory
+├── university-eco.ts    # PeerDynamic, ResearchItem
+├── schedule.ts          # Event, ScheduleEvent
+├── smart-schedule.ts    # ScheduleEvent（扩展）
+├── internal-mgmt.ts     # CenterUpdate, ProjectItem
+├── network.ts           # NetworkNews, Personnel
+├── operations.ts        # KPIData, ProjectInfo
+├── personnel-intel.ts   # PersonnelIntel
+├── policy-tracking.ts   # PolicyTracking
+└── index.ts             # 统一导出
+```
+
+### Mock 数据层（15 个文件）
+
+```
+lib/mock-data/
+├── navigation.ts        # navGroups（4分组/8模块）, pageMeta
+├── ai-assistant.ts      # quickActions, initialMessage, getAIResponse()
+├── home-briefing.ts     # mockAgendaItems, metricCards
+├── policy-intel.ts      # policyItems, categories
+├── tech-frontier.ts     # mockTechTopics, signals, opportunities
+├── talent-radar.ts      # personnelNews, categories
+├── university-eco.ts    # researchItems, peerDynamics
+├── internal-mgmt.ts     # projectData, sentimentData
+├── network.ts           # networkNews, personnel
+├── schedule.ts          # EVENTS, UPCOMING_EVENTS
+├── smart-schedule.ts    # scheduleEvents, conflicts
+├── operations.ts        # kpiData, projectInfo
+├── app-shell.ts         # mockNotifications（5条）
+├── intelligence.ts      # （旧，保留兼容）
+└── index.ts             # 统一导出
+```
+
+### 业务工具库
+
+| 文件 | 说明 |
+|------|------|
+| `lib/api.ts` | API 调用封装（后端接入准备） |
+| `lib/group-by-date.ts` | 按日期分组工具函数 |
+| `lib/priority-scoring.ts` | 优先级评分算法（匹配度×时效性×重要性） |
+| `lib/utils.ts` | `cn()` 样式合并等通用工具 |
+
+### 自定义 Hooks
+
+| Hook | 说明 |
+|------|------|
+| `use-breakpoint.ts` | 响应式断点检测（mobile/tablet/desktop） |
+| `use-daily-briefing.ts` | 早报数据获取 |
+| `use-policy-opportunities.ts` | 政策数据获取 |
+| `use-personnel-news.ts` | 人员动态数据获取 |
+| `use-detail-view.ts` | Master-Detail 状态管理 |
+
+---
+
+## 响应式策略
+
+### 断点划分
+
+| 断点 | 值 | 布局变化 |
+|------|-----|---------|
+| 默认（移动） | < 768px | 底部导航 + 全屏内容区 |
+| `md` | ≥ 768px | 侧边栏（220px） + 内容区 |
+| `lg` | ≥ 1024px | 三列布局生效 |
+| `xl` | ≥ 1280px | 最大内容宽度 |
+
+### 导航切换逻辑
+
+```
+< 768px (md)
+  → 隐藏侧边栏（app-shell.tsx）
+  → 显示底部导航（mobile-bottom-nav.tsx）
+  → 内容区 pb-20（为底部导航留空间）
+  → AI 助手定位 bottom-20（避免被底部栏遮挡）
+
+≥ 768px (md)
+  → 显示侧边栏（折叠 70px / 展开 220px）
+  → 隐藏底部导航
+  → 内容区 margin-left 随侧边栏宽度调整
+```
+
+### Master-Detail 响应式
+
+```
+≥ 768px → 左列表 + 右详情并排显示
+< 768px → 点击列表项后，详情以 Sheet 全屏抽屉弹出
+```
+
+---
+
+## 设计系统
+
+### 色彩 Token（HSL 变量）
+
+```css
+/* app/globals.css */
+
+/* 主色 */
+--primary: 263 70% 58%;    /* Violet */
+--secondary: 240 12% 95%;  /* Slate */
+--accent: 188 72% 42%;     /* Cyan */
+
+/* 图表色 */
+--chart-1: 263 70% 58%;    /* Violet */
+--chart-2: 188 72% 42%;    /* Cyan */
+--chart-3: 310 60% 55%;    /* Magenta */
+--chart-4: 43 87% 62%;     /* Amber */
+--chart-5: 142 65% 46%;    /* Green */
+```
+
+### 特效类
+
+| 类名 | 效果 |
+|------|------|
+| `.glass-card` | 白色玻璃态（72% 透明度 + blur 12px） |
+| `.glass-violet` | Violet 玻璃态（6% 透明度 + blur） |
+| `.bg-gradient-aurora` | Violet→Cyan 柔和背景渐变 |
+| `.bg-gradient-primary` | Violet→Cyan 强渐变 |
+| `.text-gradient` | 文本渐变效果 |
+| `.glow-violet` | Violet 辉光阴影 |
+| `.glow-cyan` | Cyan 辉光阴影 |
+| `.glow-amber` | Amber 辉光阴影 |
+| `.sidebar-active-bg` | 侧边栏激活项渐变背景 |
+| `.font-tabular` | 等宽数字字体 |
+
+### 模块主题色映射
+
+| 模块 | 主题色 | Tailwind Class |
+|------|--------|----------------|
+| 政策情报 | Violet → Purple | `from-violet-600 to-purple-600` |
+| 科技前沿 | Blue → Cyan | `from-blue-600 to-cyan-600` |
+| 人事动态 | Green → Emerald | `from-green-600 to-emerald-600` |
+| 高校生态 | Indigo → Blue | `from-indigo-600 to-blue-600` |
+| 院内管理 | Amber → Orange | `from-amber-600 to-orange-600` |
+| 人脉网络 | Pink → Rose | `from-pink-600 to-rose-600` |
+| 智能日程 | Purple → Fuchsia | `from-purple-600 to-fuchsia-600` |
+
+---
+
 ## 开发工作流
 
-### 本地开发流程
+### 新增模块（完整步骤）
 
-```bash
-# 1. 安装依赖
-npm install --legacy-peer-deps
-
-# 2. 启动开发服务器(Turbopack 模式,端口 8000)
-npm start dev
-
-# 3. 访问应用
-# http://localhost:8000
-
-# 4. 实时编辑
-# 修改代码后,Turbopack 自动热更新
-```
-
-### 新增模块流程
-
-#### 流程图
-
-```
-创建目录 → 定义类型 → Mock 数据 → 模块组件 → 注册导航 → 添加路由 → 测试
-```
-
-#### 详细步骤
-
-**步骤 1: 创建模块目录**
+**步骤 1：创建模块目录**
 
 ```bash
 mkdir components/modules/new-module
@@ -580,7 +831,7 @@ touch components/modules/new-module/index.tsx
 touch components/modules/new-module/sub-page-a.tsx
 ```
 
-**步骤 2: 定义 TypeScript 类型**
+**步骤 2：定义 TypeScript 类型**
 
 ```typescript
 // lib/types/new-module.ts
@@ -590,37 +841,25 @@ export interface NewModuleItem {
   date: string;
   category: string;
 }
-
-export interface NewModuleState {
-  items: NewModuleItem[];
-  activeTab: string;
-}
 ```
 
-**步骤 3: 编写 Mock 数据**
+**步骤 3：编写 Mock 数据**
 
 ```typescript
 // lib/mock-data/new-module.ts
 import type { NewModuleItem } from '@/lib/types/new-module';
 
 export const mockNewModuleData: NewModuleItem[] = [
-  { 
-    id: '1', 
-    title: 'Sample Item', 
-    date: '2026-02-22', 
-    category: 'A' 
-  },
-  // ...更多数据
+  { id: '1', title: 'Sample Item', date: '2026-02-26', category: 'A' },
 ];
 ```
 
-**步骤 4: 创建模块组件**
+**步骤 4：创建模块组件**
 
 ```typescript
 // components/modules/new-module/index.tsx
 "use client";
 
-import { useState } from "react";
 import ModuleLayout from "@/components/module-layout";
 import SubPageA from "./sub-page-a";
 
@@ -628,69 +867,57 @@ export default function NewModule() {
   const subPages = [
     { id: "sub-a", label: "子页面A", component: <SubPageA /> },
   ];
-
   return <ModuleLayout subPages={subPages} />;
 }
 ```
 
-**步骤 5: 注册导航**
+**步骤 5：注册导航**
 
 ```typescript
 // lib/mock-data/navigation.ts
-import { FileCode } from "lucide-react";
-
 export const navGroups: NavGroup[] = [
   {
     label: "新分组",
-    items: [
-      { 
-        id: "new-module", 
-        label: "新模块", 
-        icon: FileCode 
-      },
-    ],
+    items: [{ id: "new-module", label: "新模块", icon: FileCode }],
   },
 ];
 
 export const pageMeta: Record<string, PageMeta> = {
-  "new-module": {
-    title: "新模块",
-    subtitle: "模块说明"
-  },
+  "new-module": { title: "新模块", subtitle: "模块说明" },
 };
 ```
 
-**步骤 6: 添加路由**
+**步骤 6：动态导入路由**
 
 ```typescript
 // app/page.tsx
-import NewModule from "@/components/modules/new-module";
+const NewModule = dynamic(
+  () => import("@/components/modules/new-module"),
+  { loading: () => <PageLoadingSkeleton /> }
+);
 
-export default function Page() {
-  // ...
-  return (
-    <main>
-      {activePage === "new-module" && <NewModule />}
-    </main>
-  );
-}
+// 在渲染逻辑中添加
+{activePage === "new-module" && <NewModule />}
 ```
 
-**步骤 7: 测试验证**
+**步骤 7：更新移动端底部导航**
 
-- ✅ 检查侧边栏是否显示新模块
-- ✅ 点击导航项,确认路由切换
-- ✅ 验证子页面 Tab 切换
-- ✅ 检查数据加载与渲染
+在 `components/shared/mobile-bottom-nav.tsx` 中，将新模块添加到对应的底部导航分组。
 
----
+**步骤 8：验证**
+
+- ✅ 侧边栏显示新模块导航项
+- ✅ 移动端底部导航正确分组
+- ✅ 路由切换正常
+- ✅ 骨架屏 loading 正常
+- ✅ 子页面 Tab 切换正常
 
 ### 代码规范
 
-#### TypeScript 规范
+#### TypeScript
 
 ```typescript
-// ✅ 正确: 严格类型定义
+// ✅ 严格类型定义
 interface PolicyFeedItem {
   id: string;
   title: string;
@@ -698,368 +925,180 @@ interface PolicyFeedItem {
   tags: string[];
 }
 
-function filterByTags(
-  items: PolicyFeedItem[], 
-  tags: string[]
-): PolicyFeedItem[] {
-  return items.filter(item =>
-    item.tags.some(tag => tags.includes(tag))
-  );
-}
-
-// ❌ 错误: 使用 any
-function filterItems(items: any[], filter: any) {
-  return items.filter(filter);
-}
+// ❌ 禁止 any
+function filterItems(items: any[], filter: any) { ... }
 ```
 
-#### 组件规范
+#### 组件
 
 ```typescript
-// ✅ 正确: 函数组件 + Props 接口
+// ✅ 函数组件 + Props 接口
 interface CardProps {
   title: string;
   description?: string;
   onClick?: () => void;
 }
 
-export default function Card({ 
-  title, 
-  description, 
-  onClick 
-}: CardProps) {
-  return (
-    <div onClick={onClick}>
-      <h3>{title}</h3>
-      {description && <p>{description}</p>}
-    </div>
-  );
-}
-
-// ❌ 错误: 类组件
-class Card extends React.Component {
-  render() { /* ... */ }
+export default function Card({ title, description, onClick }: CardProps) {
+  return <div onClick={onClick}><h3>{title}</h3></div>;
 }
 ```
 
-#### 样式规范
+#### 样式
 
 ```typescript
-// ✅ 正确: Tailwind 工具类 + cn() 合并
+// ✅ Tailwind + cn() 合并
 import { cn } from "@/lib/utils";
 
-<button
-  className={cn(
-    "px-4 py-2 rounded-lg transition-colors",
-    isActive 
-      ? "bg-blue-500 text-white" 
-      : "bg-gray-100 text-gray-700"
-  )}
->
-  Click Me
-</button>
-
-// ❌ 错误: 内联样式
-<button style={{ 
-  padding: "8px 16px", 
-  backgroundColor: isActive ? "blue" : "gray" 
-}}>
+<button className={cn(
+  "px-4 py-2 rounded-lg transition-colors",
+  isActive ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700"
+)}>
   Click Me
 </button>
 ```
-
----
 
 ### Git 工作流
 
 ```bash
-# 1. 创建功能分支
 git checkout -b feature/new-module
-
-# 2. 开发 & 提交
 git add components/modules/new-module/
-git commit -m "feat: add new module with sub-pages"
-
-# 3. 推送分支
+git commit -m "feat: add new-module with sub-pages"
 git push origin feature/new-module
-
-# 4. 创建 Pull Request
-gh pr create --title "feat: add new module" --body "描述..."
-
-# 5. 代码审查通过后合并
-git checkout main
-git merge feature/new-module
+gh pr create --title "feat: add new module" --body "..."
 ```
 
 ---
 
 ## 性能优化
 
-### 1. 构建优化
+### 1. 路由级别代码分割
 
-**Turbopack 加速**
-
-Turbopack 比 Webpack 快 **700 倍**,首次启动时间从 10s 降至 1s。
-
-配置方式:
-```json
-{
-  "scripts": {
-    "dev": "next dev --turbo --port 8000"
-  }
-}
-```
-
----
-
-### 2. 组件优化
-
-**React.memo 避免重渲染**
+所有模块通过 `dynamic()` 懒加载，首屏仅加载 AppShell 和首页模块：
 
 ```typescript
-import { memo } from "react";
-
-const DataItemCard = memo(({ 
-  item, 
-  isSelected, 
-  onClick 
-}: Props) => {
-  return (
-    <button onClick={onClick}>
-      {/* 复杂渲染逻辑 */}
-    </button>
-  );
-});
-
-export default DataItemCard;
-```
-
-**useMemo 缓存计算结果**
-
-```typescript
-const filteredItems = useMemo(() => {
-  return items.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-}, [items, searchQuery]);
-```
-
-**useCallback 稳定函数引用**
-
-```typescript
-const handleItemClick = useCallback((id: string) => {
-  setSelectedId(id);
-}, []);
-
-return items.map(item => (
-  <DataItemCard 
-    key={item.id} 
-    onClick={() => handleItemClick(item.id)} 
-  />
-));
-```
-
----
-
-### 3. 图片优化
-
-**Next.js Image 组件**
-
-```typescript
-import Image from "next/image";
-
-<Image
-  src="/Logo.png"
-  alt="智策云端"
-  width={48}
-  height={48}
-  priority  // 首屏图片优先加载
-/>
-```
-
-优势:
-- ✅ 自动 WebP 转换
-- ✅ 响应式图片
-- ✅ 懒加载(默认)
-- ✅ 图片优化压缩
-
----
-
-### 4. 代码分割
-
-**动态导入**
-
-```typescript
-import dynamic from "next/dynamic";
-
-const FloatingAIAssistant = dynamic(
-  () => import("@/components/floating-ai-assistant"),
-  { ssr: false }  // 客户端渲染
+const TechFrontierModule = dynamic(
+  () => import("@/components/modules/tech-frontier"),
+  { loading: () => <PageLoadingSkeleton /> }
 );
 ```
 
----
+### 2. 组件优化
 
-### 5. 数据加载优化
+```typescript
+// React.memo 避免重渲染
+const DataItemCard = memo(({ item, isSelected, onClick }: Props) => { ... });
 
-**骨架屏提升感知性能**
+// useMemo 缓存过滤结果
+const filteredItems = useMemo(() =>
+  items.filter(item => item.title.includes(query)),
+  [items, query]
+);
+
+// useCallback 稳定函数引用
+const handleClick = useCallback((id: string) => setSelectedId(id), []);
+```
+
+### 3. 骨架屏提升感知性能
 
 ```typescript
 export default function PolicyIntelModule() {
   const { items, isLoading } = usePolicyFeed();
-
   if (isLoading) return <SkeletonSubPage />;
-
   return <PolicyFeed items={items} />;
 }
 ```
 
----
+### 4. Turbopack 开发加速
 
-### 6. 动画性能
+```json
+{
+  "scripts": {
+    "dev": "next dev --turbo --port 8080"
+  }
+}
+```
 
-**Framer Motion 性能优化**
+### 5. Framer Motion GPU 加速
 
 ```typescript
-// ✅ 正确: 使用 transform(GPU 加速)
-<motion.div
-  animate={{ x: 100, scale: 1.2 }}
-  transition={{ type: "spring", damping: 20 }}
-/>
+// ✅ 使用 transform（GPU 加速）
+<motion.div animate={{ x: 100, scale: 1.2 }} />
 
-// ❌ 错误: 使用 top/left(引发 reflow)
-<motion.div
-  animate={{ top: 100, left: 100 }}
-/>
+// ❌ 避免 top/left（引发 reflow）
+<motion.div animate={{ top: 100, left: 100 }} />
 ```
 
 ---
 
 ## 安全考虑
 
-### 1. XSS 防护
-
-**React 自动转义**
+### XSS 防护
 
 ```typescript
-// ✅ 安全: 自动转义 HTML
+// ✅ React 自动转义（安全）
 <div>{userInput}</div>
 
-// ❌ 危险: 绕过转义
+// ❌ 绕过转义（危险）
 <div dangerouslySetInnerHTML={{ __html: userInput }} />
-```
 
-**富文本渲染**
-
-```typescript
+// 富文本必须使用 DOMPurify
 import DOMPurify from "dompurify";
-
-const sanitizedHtml = DOMPurify.sanitize(userInput);
-<div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />
 ```
 
----
-
-### 2. CSRF 保护
-
-**SameSite Cookie**
-
-```typescript
-// next.config.mjs
-export default {
-  async headers() {
-    return [
-      {
-        source: "/api/:path*",
-        headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-        ],
-      },
-    ];
-  },
-};
-```
-
----
-
-### 3. 环境变量
+### 环境变量
 
 ```bash
-# .env.local(不提交到 Git)
-NEXT_PUBLIC_API_URL=https://api.example.com
+# .env.local（不提交到 Git）
+NEXT_PUBLIC_API_URL=http://43.98.254.243:8001
 API_SECRET_KEY=your-secret-key
 ```
 
-```typescript
-// 访问环境变量
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;  // 客户端可访问
-const secretKey = process.env.API_SECRET_KEY;    // 仅服务端可访问
-```
-
----
-
-### 4. 依赖安全审计
+### 依赖审计
 
 ```bash
-# 定期运行安全审计
 npm audit
-
-# 自动修复漏洞
 npm audit fix
 ```
 
 ---
 
-### 5. 敏感数据处理
+## 部署
 
-```typescript
-// ✅ 正确: 不在客户端存储敏感数据
-// 使用 HttpOnly Cookie 或服务端 Session
+### 部署环境
 
-// ❌ 错误: 在 localStorage 存储 Token
-localStorage.setItem("authToken", token);
+| 服务 | 地址 |
+|------|------|
+| 前端 | `http://43.98.254.243:8080/` |
+| 后端 API | `http://43.98.254.243:8001/` |
+| API 文档 | `http://43.98.254.243:8001/docs` |
+
+### 服务器路径
+
+| 项目 | 路径 |
+|------|------|
+| 前端 | `/home/ecs-user/Dean-Agent-Project/Dean-Agent-Fronted` |
+| 后端 | `/home/ecs-user/Dean-Agent-Project/DeanAgent-Backend` |
+
+### 部署命令
+
+```bash
+bash deploy.sh
 ```
-
----
-
-## 附录
 
 ### 常用命令速查
 
 | 命令 | 说明 |
 |------|------|
 | `npm install --legacy-peer-deps` | 安装依赖 |
-| `npm start dev` | 启动开发服务器(端口 8000) |
+| `npm run dev` | 启动开发服务器（Turbopack，端口 8080） |
 | `npm run build` | 构建生产版本 |
-| `npm run start` | 启动生产服务器 |
+| `npm start` | 启动生产服务器 |
 | `npm run lint` | ESLint 代码检查 |
 | `npm run stop` | 清理端口 3000/8000/8080 |
 
-### 响应式断点
-
-```css
-/* globals.css */
-@media (max-width: 1024px) {
-  /* 平板 */
-}
-
-@media (max-width: 768px) {
-  /* 移动端 */
-}
-```
-
-### 主题色系统
-
-| 模块 | 主题色 | Tailwind Class |
-|------|--------|----------------|
-| 政策情报 | Violet → Purple | from-violet-600 to-purple-600 |
-| 科技前沿 | Blue → Cyan | from-blue-600 to-cyan-600 |
-| 人才雷达 | Green → Emerald | from-green-600 to-emerald-600 |
-| 高校生态 | Indigo → Blue | from-indigo-600 to-blue-600 |
-| 院内管理 | Amber → Orange | from-amber-600 to-orange-600 |
-| 人脉网络 | Pink → Rose | from-pink-600 to-rose-600 |
-| 智能日程 | Purple → Fuchsia | from-purple-600 to-fuchsia-600 |
+---
 
 ### 相关资源
 
@@ -1068,11 +1107,9 @@ localStorage.setItem("authToken", token);
 - [Tailwind CSS 文档](https://tailwindcss.com/docs)
 - [Framer Motion 文档](https://www.framer.com/motion/)
 - [Recharts 文档](https://recharts.org)
-- [React Hook Form 文档](https://react-hook-form.com)
-- [Zod 文档](https://zod.dev)
 
 ---
 
-**文档版本**: v1.0.0  
-**最后更新**: 2026-02-22  
+**文档版本**: v2.0.0
+**最后更新**: 2026-02-26
 **维护者**: DeanAgent 开发团队

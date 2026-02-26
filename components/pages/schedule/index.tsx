@@ -6,25 +6,30 @@ import {
   AlertTriangle,
   Timer,
   ChevronDown,
+  X,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { EVENTS, UPCOMING_EVENTS } from "@/lib/mock-data/schedule";
 import WeekStrip from "./week-strip";
 import TimelineRow from "./timeline-row";
 import DetailPanel from "./detail-panel";
 
 export default function SchedulePage() {
+  const breakpoint = useBreakpoint();
   const [selectedDayOffset, setSelectedDayOffset] = useState(0);
-  const [selectedEvent, setSelectedEvent] = useState(0);
+  const [selectedEvent, setSelectedEvent] = useState<number | null>(0);
   const [showUpcoming, setShowUpcoming] = useState(false);
 
-  const currentEvent = EVENTS[selectedEvent];
+  const currentEvent = selectedEvent !== null ? EVENTS[selectedEvent] : null;
   const isToday = selectedDayOffset === 0;
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="p-4 sm:p-5 space-y-4">
       {/* Compact week strip */}
       <WeekStrip
         selectedDayOffset={selectedDayOffset}
@@ -34,7 +39,7 @@ export default function SchedulePage() {
       {/* 2-column layout: Timeline + Detail */}
       <div className="grid grid-cols-12 gap-5">
         {/* Left: Timeline */}
-        <div className="col-span-8">
+        <div className="col-span-12 lg:col-span-8">
           <Card className="shadow-sm">
             <CardContent className="p-2">
               {/* Day heading */}
@@ -134,11 +139,48 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        {/* Right: Detail Panel */}
-        <div className="col-span-4">
-          <DetailPanel event={currentEvent} />
-        </div>
+        {/* Right: Detail Panel (tablet/desktop only) */}
+        {breakpoint !== "mobile" && currentEvent && (
+          <div className="col-span-12 lg:col-span-4">
+            <DetailPanel event={currentEvent} />
+          </div>
+        )}
       </div>
+
+      {/* Mobile bottom sheet for detail panel */}
+      <AnimatePresence>
+        {breakpoint === "mobile" && selectedEvent !== null && currentEvent && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-30 bg-black/30"
+              onClick={() => setSelectedEvent(null)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed inset-x-0 bottom-[56px] z-40 max-h-[70vh] rounded-t-2xl bg-background border-t border-border shadow-2xl overflow-hidden"
+            >
+              <div className="flex justify-center pt-2 pb-1">
+                <div className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+              </div>
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="absolute right-4 top-3 rounded-lg p-1 text-muted-foreground hover:bg-muted/60"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <ScrollArea className="max-h-[calc(70vh-40px)]">
+                <DetailPanel event={currentEvent} />
+              </ScrollArea>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

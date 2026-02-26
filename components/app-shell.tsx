@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   Bell,
@@ -8,6 +8,8 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
+  Menu,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -27,15 +29,32 @@ export default function AppShell({
   onNavigate,
   collapsed: controlledCollapsed,
   onCollapsedChange,
+  mobileOpen: controlledMobileOpen,
+  onMobileOpenChange,
 }: {
   activePage: string;
   onNavigate: (page: string) => void;
   collapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
 }) {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const collapsed =
     controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+  const mobileOpen =
+    controlledMobileOpen !== undefined
+      ? controlledMobileOpen
+      : internalMobileOpen;
 
   const handleToggle = () => {
     const newValue = !collapsed;
@@ -46,18 +65,42 @@ export default function AppShell({
     }
   };
 
+  const closeMobileSidebar = () => {
+    if (onMobileOpenChange) {
+      onMobileOpenChange(false);
+    } else {
+      setInternalMobileOpen(false);
+    }
+  };
+
+  // 展开模式：桌面端未折叠，或移动端抽屉打开时
+  const showExpanded = !collapsed || (isMobile && mobileOpen);
+
   return (
     <TooltipProvider delayDuration={0}>
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={closeMobileSidebar}
+        />
+      )}
+
       <motion.aside
-        animate={{ width: collapsed ? 70 : 220 }}
+        animate={{
+          width: isMobile ? 220 : collapsed ? 70 : 220,
+          x: isMobile && !mobileOpen ? "-100%" : "0%",
+        }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed left-0 top-0 z-40 flex h-screen flex-col bg-white/80 backdrop-blur-xl border-r border-border/40 overflow-x-hidden"
+        className={cn(
+          "fixed left-0 top-0 z-40 flex h-screen flex-col bg-white/80 backdrop-blur-xl border-r border-border/40 overflow-x-hidden",
+        )}
       >
         {/* Logo + Toggle */}
         <div
           className={cn(
             "flex min-h-[68px]",
-            collapsed
+            !showExpanded
               ? "flex-col items-center gap-1.5 px-2 py-4"
               : "flex-row items-center gap-2.5 px-5 py-5",
           )}
@@ -71,7 +114,7 @@ export default function AppShell({
             priority
           />
           <AnimatePresence>
-            {!collapsed && (
+            {showExpanded && (
               <motion.div
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -82,7 +125,7 @@ export default function AppShell({
                 <div className="flex items-center gap-1.5">
                   <span className="text-[15px] font-semibold text-foreground whitespace-nowrap">
                     {"智策"}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-cyan-500">
                       {"云端"}
                     </span>
                   </span>
@@ -101,14 +144,14 @@ export default function AppShell({
                 onClick={handleToggle}
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors shrink-0"
               >
-                {collapsed ? (
+                {!showExpanded ? (
                   <PanelLeftOpen className="h-[18px] w-[18px]" />
                 ) : (
                   <PanelLeftClose className="h-[18px] w-[18px]" />
                 )}
               </button>
             </TooltipTrigger>
-            {collapsed && (
+            {!showExpanded && (
               <TooltipContent side="right" sideOffset={10}>
                 <p>展开侧栏</p>
               </TooltipContent>
@@ -123,7 +166,7 @@ export default function AppShell({
               {groupIdx > 0 && (
                 <div className="my-2 mx-0 border-t border-border/30" />
               )}
-              {group.label && !collapsed && (
+              {group.label && showExpanded && (
                 <AnimatePresence>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -143,19 +186,22 @@ export default function AppShell({
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          onClick={() => onNavigate(item.id)}
+                          onClick={() => {
+                            onNavigate(item.id);
+                            closeMobileSidebar();
+                          }}
                           className={cn(
                             "relative flex w-full items-center gap-3 rounded-xl py-2 text-sm font-medium transition-colors duration-200",
-                            collapsed ? "justify-center px-0" : "px-3",
+                            !showExpanded ? "justify-center px-0" : "px-3",
                             isActive
-                              ? "text-blue-600"
+                              ? "text-violet-600"
                               : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                           )}
                         >
                           {isActive && (
                             <motion.div
                               layoutId="sidebar-active"
-                              className="absolute inset-0 rounded-xl bg-blue-50/80 shadow-sm"
+                              className="absolute inset-0 rounded-xl sidebar-active-bg shadow-sm"
                               transition={{
                                 type: "spring",
                                 stiffness: 350,
@@ -166,11 +212,11 @@ export default function AppShell({
                           <item.icon
                             className={cn(
                               "relative z-10 h-[18px] w-[18px] shrink-0 transition-colors",
-                              isActive && "text-blue-600",
+                              isActive && "text-violet-600",
                             )}
                           />
                           <AnimatePresence>
-                            {!collapsed && (
+                            {showExpanded && (
                               <motion.span
                                 initial={{ opacity: 0, x: -8 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -183,7 +229,7 @@ export default function AppShell({
                             )}
                           </AnimatePresence>
                           <AnimatePresence>
-                            {!collapsed && item.badge && (
+                            {showExpanded && item.badge && (
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -196,7 +242,7 @@ export default function AppShell({
                                   className={cn(
                                     "h-5 min-w-5 px-1.5 text-[10px]",
                                     isActive
-                                      ? "bg-blue-100 text-blue-600"
+                                      ? "bg-violet-100 text-violet-600"
                                       : "bg-muted text-muted-foreground",
                                   )}
                                 >
@@ -205,12 +251,12 @@ export default function AppShell({
                               </motion.div>
                             )}
                           </AnimatePresence>
-                          {collapsed && item.badge && (
-                            <span className="absolute top-1.5 right-2 h-2 w-2 rounded-full bg-blue-500 animate-pulse-soft" />
+                          {!showExpanded && item.badge && (
+                            <span className="absolute top-1.5 right-2 h-2 w-2 rounded-full bg-violet-500 animate-pulse-soft" />
                           )}
                         </button>
                       </TooltipTrigger>
-                      {collapsed && (
+                      {!showExpanded && (
                         <TooltipContent side="right" sideOffset={10}>
                           <p>{item.label}</p>
                         </TooltipContent>
@@ -231,12 +277,12 @@ export default function AppShell({
                 type="button"
                 className={cn(
                   "flex w-full items-center gap-2 rounded-xl py-2 text-sm text-muted-foreground transition-all duration-200 hover:bg-muted/60 hover:text-foreground",
-                  collapsed ? "justify-center px-0" : "px-3",
+                  !showExpanded ? "justify-center px-0" : "px-3",
                 )}
               >
                 <Settings className="h-4 w-4 shrink-0" />
                 <AnimatePresence>
-                  {!collapsed && (
+                  {showExpanded && (
                     <motion.span
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -250,7 +296,7 @@ export default function AppShell({
                 </AnimatePresence>
               </button>
             </TooltipTrigger>
-            {collapsed && (
+            {!showExpanded && (
               <TooltipContent side="right" sideOffset={10}>
                 <p>系统设置</p>
               </TooltipContent>
@@ -267,20 +313,43 @@ export function TopBar({
   subtitle,
   onNavigate,
   searchSlot,
+  onMenuClick,
+  onSearchClick,
 }: {
   title: string;
   subtitle?: string;
   onNavigate?: (page: string) => void;
   searchSlot?: React.ReactNode;
+  onMenuClick?: () => void;
+  onSearchClick?: () => void;
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/40 bg-white/70 px-6 backdrop-blur-md shadow-sm">
-      <AnimatedTitle title={title} subtitle={subtitle} />
-
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/40 bg-white/70 px-4 sm:px-6 backdrop-blur-md shadow-sm">
       <div className="flex items-center gap-3">
+        {/* Mobile Menu Button */}
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="md:hidden rounded-lg p-2 text-muted-foreground hover:bg-muted/60 transition-colors"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <AnimatedTitle title={title} subtitle={subtitle} />
+      </div>
+
+      <div className="flex items-center gap-2 sm:gap-3">
         {searchSlot}
+
+        {/* Mobile search button */}
+        <button
+          type="button"
+          onClick={onSearchClick}
+          className="sm:hidden rounded-xl p-2 text-muted-foreground hover:bg-muted/60 transition-colors"
+        >
+          <Search className="h-5 w-5" />
+        </button>
 
         <div className="relative">
           <button
@@ -309,7 +378,7 @@ export function TopBar({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.96 }}
                   transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute right-0 top-full mt-2 z-50 w-80 rounded-xl border border-border/60 bg-white shadow-elevated overflow-hidden"
+                  className="absolute right-0 top-full mt-2 z-50 w-[90vw] sm:w-80 max-w-md rounded-xl border border-border/60 bg-white shadow-elevated overflow-hidden"
                 >
                   <div className="px-4 py-3 border-b border-border/40 bg-muted/20">
                     <div className="flex items-center justify-between">

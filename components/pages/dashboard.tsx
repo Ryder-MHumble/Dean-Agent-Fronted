@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React from "react"
+import React from "react";
 
 import {
   AlertTriangle,
@@ -17,11 +17,11 @@ import {
   Share2,
   ExternalLink,
   MessageSquare,
-} from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // ==================
 // KPI Cards
@@ -36,20 +36,20 @@ function KpiCard({
   variant = "default",
   extra,
 }: {
-  label: string
-  value: string
-  unit?: string
-  icon: React.ElementType
-  change?: string
-  changeLabel?: string
-  variant?: "default" | "warning" | "danger"
-  extra?: React.ReactNode
+  label: string;
+  value: string;
+  unit?: string;
+  icon: React.ElementType;
+  change?: string;
+  changeLabel?: string;
+  variant?: "default" | "warning" | "danger";
+  extra?: React.ReactNode;
 }) {
   const variantStyles = {
     default: "border-border",
     warning: "border-yellow-200 bg-yellow-50/40",
     danger: "border-red-200 bg-red-50/40",
-  }
+  };
 
   return (
     <Card className={`${variantStyles[variant]} relative overflow-hidden`}>
@@ -94,7 +94,7 @@ function KpiCard({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ==================
@@ -102,13 +102,13 @@ function KpiCard({
 // ==================
 function AlertBanner() {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-5 py-3.5">
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 sm:px-5 py-3.5">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 shrink-0">
           <AlertTriangle className="h-4 w-4 text-red-600" />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-semibold text-red-800">
               {"紧急警报：教育部政策变动"}
             </span>
@@ -117,27 +117,29 @@ function AlertBanner() {
             </Badge>
           </div>
           <p className="mt-0.5 text-xs text-red-600">
-            {'今早发布的《人工智能伦理合规新指引》要求立即审查。需在第四季度资金审批前，由伦理委员会完成合规评估。'}
+            {
+              "今早发布的《人工智能伦理合规新指引》要求立即审查。需在第四季度资金审批前，由伦理委员会完成合规评估。"
+            }
           </p>
         </div>
       </div>
       <button
         type="button"
-        className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+        className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 shrink-0 w-full sm:w-auto justify-center"
       >
         {"查看简报"}
         <ArrowRight className="h-4 w-4" />
       </button>
     </div>
-  )
+  );
 }
 
 // ==================
 // Sentiment Gauge Badge (Compact)
 // ==================
 function SentimentGaugeBadge() {
-  const score = 82
-  const filledDots = Math.round((score / 100) * 4) // 4 dots max
+  const score = 82;
+  const filledDots = Math.round((score / 100) * 4); // 4 dots max
 
   return (
     <Card>
@@ -150,7 +152,9 @@ function SentimentGaugeBadge() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl font-bold text-foreground">{score}</span>
-            <span className="text-sm text-green-600 font-medium">{"积极向好"}</span>
+            <span className="text-sm text-green-600 font-medium">
+              {"积极向好"}
+            </span>
           </div>
           <div className="flex gap-1">
             {[...Array(4)].map((_, i) => (
@@ -168,7 +172,7 @@ function SentimentGaugeBadge() {
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ==================
@@ -179,28 +183,31 @@ function NewsFeed() {
     <Card className="col-span-full">
       <CardContent className="p-0">
         <Tabs defaultValue="tech" className="w-full">
-          <div className="flex items-center justify-between border-b px-5 pt-4 pb-0">
-            <TabsList className="h-auto bg-transparent p-0">
+          <div className="flex items-center justify-between border-b px-5 pt-4 pb-0 overflow-x-auto">
+            <TabsList className="h-auto bg-transparent p-0 shrink-0">
               <TabsTrigger
                 value="ops"
-                className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-0 text-sm data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none"
+                className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-0 text-sm data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none whitespace-nowrap"
               >
                 <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-blue-500" />
-                {"内部运营监控"}
+                <span className="hidden sm:inline">{"内部运营监控"}</span>
+                <span className="sm:hidden">{"运营"}</span>
               </TabsTrigger>
               <TabsTrigger
                 value="tech"
-                className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-0 text-sm data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none"
+                className="rounded-none border-b-2 border-transparent px-4 pb-3 pt-0 text-sm data-[state=active]:border-blue-500 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none whitespace-nowrap"
               >
                 <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-green-500" />
-                {"全球科技情报"}
+                <span className="hidden sm:inline">{"全球科技情报"}</span>
+                <span className="sm:hidden">{"科技"}</span>
               </TabsTrigger>
             </TabsList>
             <button
               type="button"
-              className="text-xs text-blue-500 hover:underline"
+              className="text-xs text-blue-500 hover:underline shrink-0 ml-3 pb-3"
             >
-              {"查看所有来源"}
+              <span className="hidden sm:inline">{"查看所有来源"}</span>
+              <span className="sm:hidden">{"全部"}</span>
             </button>
           </div>
 
@@ -212,7 +219,9 @@ function NewsFeed() {
                   {"重大突破"}
                 </Badge>
                 <h3 className="mt-3 text-lg font-semibold leading-snug">
-                  {"DeepMind 发布 AlphaFold 更新：蛋白质折叠预测准确率突破 98.5%"}
+                  {
+                    "DeepMind 发布 AlphaFold 更新：蛋白质折叠预测准确率突破 98.5%"
+                  }
                 </h3>
                 <div className="mt-3 flex items-center gap-3 text-xs text-slate-300">
                   <span className="flex items-center gap-1">
@@ -261,10 +270,10 @@ function NewsFeed() {
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-foreground leading-relaxed">
-                    {"大型语言模型(LLM)的未来不仅仅在于参数规模的扩大，更在于建立世界模型和推理能力。"}
-                    <span className="text-blue-500">
-                      {" #AI #机器学习"}
-                    </span>
+                    {
+                      "大型语言模型(LLM)的未来不仅仅在于参数规模的扩大，更在于建立世界模型和推理能力。"
+                    }
+                    <span className="text-blue-500">{" #AI #机器学习"}</span>
                   </p>
                   <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                     <span>{"1.2k"}</span>
@@ -338,7 +347,7 @@ function NewsFeed() {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ==================
@@ -371,7 +380,7 @@ function ScheduleSidebar() {
       dotColor: "bg-gray-300",
       conflict: "与部委电话会议冲突",
     },
-  ]
+  ];
 
   return (
     <Card>
@@ -381,10 +390,16 @@ function ScheduleSidebar() {
             {"2月10日星期二"}
           </CardTitle>
           <div className="flex gap-1">
-            <button type="button" className="rounded p-1 text-muted-foreground hover:bg-muted">
+            <button
+              type="button"
+              className="rounded p-1 text-muted-foreground hover:bg-muted"
+            >
               {"<"}
             </button>
-            <button type="button" className="rounded p-1 text-muted-foreground hover:bg-muted">
+            <button
+              type="button"
+              className="rounded p-1 text-muted-foreground hover:bg-muted"
+            >
               {">"}
             </button>
           </div>
@@ -393,10 +408,15 @@ function ScheduleSidebar() {
       <CardContent className="pt-0">
         <div className="space-y-3">
           {events.map((event) => (
-            <div key={event.title} className="relative flex gap-2 border-l-2 border-muted pl-3">
+            <div
+              key={event.title}
+              className="relative flex gap-2 border-l-2 border-muted pl-3"
+            >
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-medium ${event.dotColor === "bg-blue-500" ? "text-blue-600" : "text-muted-foreground"}`}>
+                  <span
+                    className={`text-xs font-medium ${event.dotColor === "bg-blue-500" ? "text-blue-600" : "text-muted-foreground"}`}
+                  >
                     {event.time}
                   </span>
                   {event.status && (
@@ -434,7 +454,7 @@ function ScheduleSidebar() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ==================
@@ -452,7 +472,7 @@ function RiskMonitor() {
       level: "medium",
       tag: "截止日期临近",
     },
-  ]
+  ];
 
   return (
     <Card>
@@ -485,16 +505,12 @@ function RiskMonitor() {
                 <div className="mt-1 flex items-center gap-1.5">
                   <AlertTriangle
                     className={`h-3 w-3 ${
-                      risk.level === "high"
-                        ? "text-red-500"
-                        : "text-yellow-500"
+                      risk.level === "high" ? "text-red-500" : "text-yellow-500"
                     }`}
                   />
                   <span
                     className={`text-[11px] font-medium ${
-                      risk.level === "high"
-                        ? "text-red-600"
-                        : "text-yellow-600"
+                      risk.level === "high" ? "text-red-600" : "text-yellow-600"
                     }`}
                   >
                     {risk.tag}
@@ -506,7 +522,7 @@ function RiskMonitor() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 // ==================
@@ -514,12 +530,12 @@ function RiskMonitor() {
 // ==================
 export default function DashboardPage() {
   return (
-    <div className="space-y-5 p-6 max-w-7xl mx-auto">
+    <div className="space-y-5 p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Alert Banner */}
       <AlertBanner />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="科研经费到位率"
           value="¥9,840"
@@ -574,21 +590,21 @@ export default function DashboardPage() {
       {/* Main Content Grid */}
       <div className="grid grid-cols-12 gap-4">
         {/* Left: Sentiment + Risk */}
-        <div className="col-span-4 space-y-4">
+        <div className="col-span-12 lg:col-span-4 space-y-4">
           <SentimentGaugeBadge />
           <RiskMonitor />
         </div>
 
         {/* Center: News Feed */}
-        <div className="col-span-5">
+        <div className="col-span-12 lg:col-span-5">
           <NewsFeed />
         </div>
 
         {/* Right: Schedule */}
-        <div className="col-span-3">
+        <div className="col-span-12 lg:col-span-3">
           <ScheduleSidebar />
         </div>
       </div>
     </div>
-  )
+  );
 }

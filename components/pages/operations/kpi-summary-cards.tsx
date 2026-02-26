@@ -8,7 +8,7 @@ import { kpiData } from "@/lib/mock-data/operations";
 
 export default function KpiSummaryCards() {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
         <CardContent className="p-5">
           <div className="flex items-start justify-between">

@@ -92,7 +92,7 @@ export interface StudentAlert {
   aiRecommendation: string;
 }
 
-// ── 社媒动态 ──
+// ── 社媒动态 (mock legacy) ──
 export interface SocialMediaItem {
   id: string;
   platform: string;
@@ -101,4 +101,80 @@ export interface SocialMediaItem {
   time: string;
   content: string;
   risk: boolean;
+}
+
+// ── 舆情监测 (Supabase real data) ──
+
+export interface SentimentContentItem {
+  id: number;
+  platform: string;
+  content_id: string;
+  content_type: string;
+  title: string;
+  description: string;
+  content_url: string;
+  cover_url: string;
+  nickname: string;
+  avatar: string;
+  ip_location: string;
+  liked_count: number;
+  comment_count: number;
+  share_count: number;
+  collected_count: number;
+  source_keyword: string | null;
+  publish_time: number | null;
+  created_at: string | null;
+  platform_data: {
+    tag_list?: string;
+    video_url?: string;
+    image_list?: string;
+    [key: string]: unknown;
+  } | null;
+}
+
+export interface SentimentComment {
+  id: number;
+  platform: string;
+  comment_id: string;
+  content_id: string;
+  parent_comment_id: string;
+  content: string;
+  nickname: string;
+  avatar: string;
+  ip_location: string;
+  like_count: number;
+  sub_comment_count: number;
+  publish_time: number | null;
+  created_at: string | null;
+}
+
+export interface SentimentContentDetail extends SentimentContentItem {
+  comments: SentimentComment[];
+}
+
+export interface PlatformStats {
+  platform: string;
+  platform_label: string;
+  content_count: number;
+  total_likes: number;
+  total_comments: number;
+  total_shares: number;
+  total_collected: number;
+}
+
+export interface SentimentOverview {
+  total_contents: number;
+  total_comments: number;
+  total_engagement: number;
+  platforms: PlatformStats[];
+  top_content: SentimentContentItem[];
+  keywords: string[];
+}
+
+export interface SentimentFeedResponse {
+  items: SentimentContentItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
