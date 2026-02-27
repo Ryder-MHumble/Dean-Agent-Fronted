@@ -170,3 +170,64 @@ export async function fetchUniversityResearch(params?: {
     return null;
   }
 }
+
+// ── Sentiment Monitoring ─────────────────────────────────
+
+import type {
+  SentimentOverview,
+  SentimentFeedResponse,
+  SentimentContentDetail,
+} from "@/lib/types/internal-mgmt";
+
+export async function fetchSentimentOverview(): Promise<SentimentOverview | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/sentiment/overview`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as SentimentOverview;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSentimentFeed(params?: {
+  platform?: string;
+  keyword?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<SentimentFeedResponse | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (params?.platform) sp.set("platform", params.platform);
+    if (params?.keyword) sp.set("keyword", params.keyword);
+    if (params?.sortBy) sp.set("sort_by", params.sortBy);
+    if (params?.sortOrder) sp.set("sort_order", params.sortOrder);
+    sp.set("page", String(params?.page ?? 1));
+    sp.set("page_size", String(params?.pageSize ?? 20));
+    const res = await fetch(`${API_BASE}/api/v1/sentiment/feed?${sp}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as SentimentFeedResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSentimentContentDetail(
+  contentId: string,
+): Promise<SentimentContentDetail | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/v1/sentiment/content/${contentId}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as SentimentContentDetail;
+  } catch {
+    return null;
+  }
+}
