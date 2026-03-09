@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import type {
   SentimentOverview,
   SentimentFeedResponse,
@@ -30,8 +30,10 @@ export function useSentimentOverview(): UseSentimentOverviewResult {
       setIsLoading(true);
       const data = await fetchSentimentOverview();
       if (!cancelled) {
-        setOverview(data);
-        setIsLoading(false);
+        startTransition(() => {
+          setOverview(data);
+          setIsLoading(false);
+        });
       }
     }
 
@@ -84,8 +86,10 @@ export function useSentimentFeed(
         pageSize,
       });
       if (!cancelled) {
-        setFeed(data);
-        setIsLoading(false);
+        startTransition(() => {
+          setFeed(data);
+          setIsLoading(false);
+        });
       }
     }
 

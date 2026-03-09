@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import type {
   ResearchOutput,
   ResearchOutputsResponse,
@@ -59,18 +59,20 @@ export function useUniversityResearch(): UseUniversityResearchResult {
 
       if (cancelled) return;
 
-      if (data && data.items.length > 0) {
-        setItems(data.items.map(transformItem));
-        setTypeStats(data.type_stats);
-        setGeneratedAt(data.generated_at);
-        setIsUsingMock(false);
-      } else {
-        setItems(mockResearchOutputs);
-        setTypeStats(null);
-        setIsUsingMock(true);
-      }
+      startTransition(() => {
+        if (data && data.items.length > 0) {
+          setItems(data.items.map(transformItem));
+          setTypeStats(data.type_stats);
+          setGeneratedAt(data.generated_at);
+          setIsUsingMock(false);
+        } else {
+          setItems(mockResearchOutputs);
+          setTypeStats(null);
+          setIsUsingMock(true);
+        }
 
-      setIsLoading(false);
+        setIsLoading(false);
+      });
     }
 
     load();

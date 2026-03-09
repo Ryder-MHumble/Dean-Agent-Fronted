@@ -1,5 +1,6 @@
 "use client";
 
+import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +64,9 @@ function SuggestionBadge({
 }
 
 export default function InvitationEval() {
+  const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
+    pageName: "邀约评估",
+  });
   const { selectedItem, open, close, isOpen } = useDetailView<Invitation>();
   const [processedItems, setProcessedItems] = useState<
     Map<string, "accepted" | "declined" | "forwarded">
@@ -96,6 +100,7 @@ export default function InvitationEval() {
 
   return (
     <>
+      <UnderDevelopmentOverlay />
       <div className="grid grid-cols-3 gap-4 mb-4">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">

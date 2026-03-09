@@ -1,5 +1,6 @@
 "use client";
 
+import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
 import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -64,7 +65,15 @@ function StrengthBar({ strength }: { strength: number }) {
 }
 
 export default function RelationshipMgmt() {
-  const { selectedItem: selectedContact, open, close, isOpen } = useDetailView<Contact>();
+  const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
+    pageName: "关系维护",
+  });
+  const {
+    selectedItem: selectedContact,
+    open,
+    close,
+    isOpen,
+  } = useDetailView<Contact>();
   const [contactActions, setContactActions] = useState<
     Map<string, "scheduled" | "talked" | "gifted">
   >(new Map());
@@ -89,6 +98,7 @@ export default function RelationshipMgmt() {
 
   return (
     <>
+      <UnderDevelopmentOverlay />
       <div className="grid grid-cols-4 gap-4 mb-4">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
@@ -215,11 +225,7 @@ export default function RelationshipMgmt() {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {selectedContact.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="text-[10px]"
-                  >
+                  <Badge key={tag} variant="secondary" className="text-[10px]">
                     {tag}
                   </Badge>
                 ))}

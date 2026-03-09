@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import type { PersonnelChangeItem } from "@/lib/types/personnel-intel";
 import type {
   PersonnelNewsItem,
@@ -130,30 +130,32 @@ export function usePersonnelNews(): UsePersonnelNewsResult {
 
       if (cancelled) return;
 
-      if (data && data.items.length > 0) {
-        const newsItems = data.items
-          .map(transformToNewsItem)
-          .sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
-        setItems(newsItems);
-        setGeneratedAt(data.generated_at);
-        setIsUsingMock(false);
+      startTransition(() => {
+        if (data && data.items.length > 0) {
+          const newsItems = data.items
+            .map(transformToNewsItem)
+            .sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
+          setItems(newsItems);
+          setGeneratedAt(data.generated_at);
+          setIsUsingMock(false);
 
-        // Extract unique profiles from all items
-        const profileMap = new Map<string, PersonProfile>();
-        for (const item of data.items) {
-          const profile = buildProfile(item);
-          if (profile && !profileMap.has(profile.name)) {
-            profileMap.set(profile.name, profile);
+          // Extract unique profiles from all items
+          const profileMap = new Map<string, PersonProfile>();
+          for (const item of data.items) {
+            const profile = buildProfile(item);
+            if (profile && !profileMap.has(profile.name)) {
+              profileMap.set(profile.name, profile);
+            }
           }
+          setProfiles(Array.from(profileMap.values()));
+        } else {
+          setItems([]);
+          setProfiles([]);
+          setIsUsingMock(true);
         }
-        setProfiles(Array.from(profileMap.values()));
-      } else {
-        setItems([]);
-        setProfiles([]);
-        setIsUsingMock(true);
-      }
 
-      setIsLoading(false);
+        setIsLoading(false);
+      });
     }
 
     load();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 import { fetchPolicyFeed } from "@/lib/api";
 
@@ -26,16 +26,18 @@ export function usePolicyFeed(): UsePolicyFeedResult {
 
       if (cancelled) return;
 
-      if (data && data.items.length > 0) {
-        setItems(data.items);
-        setGeneratedAt(data.generated_at);
-        setIsUsingMock(false);
-      } else {
-        setItems([]);
-        setGeneratedAt(null);
-        setIsUsingMock(true);
-      }
-      setIsLoading(false);
+      startTransition(() => {
+        if (data && data.items.length > 0) {
+          setItems(data.items);
+          setGeneratedAt(data.generated_at);
+          setIsUsingMock(false);
+        } else {
+          setItems([]);
+          setGeneratedAt(null);
+          setIsUsingMock(true);
+        }
+        setIsLoading(false);
+      });
     }
 
     load();

@@ -1,7 +1,16 @@
-"use client"
+"use client";
 
-import NetworkIntelligenceView from "@/components/policy/network-intelligence-view"
+import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
+import NetworkIntelligenceView from "@/components/policy/network-intelligence-view";
 
 export default function PersonnelChanges() {
-  return <NetworkIntelligenceView />
+  const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
+    pageName: "人事变动",
+  });
+  return (
+    <>
+      <UnderDevelopmentOverlay />
+      <NetworkIntelligenceView />
+    </>
+  );
 }

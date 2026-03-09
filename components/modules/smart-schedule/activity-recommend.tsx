@@ -1,5 +1,6 @@
 "use client";
 
+import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,9 @@ function RelevanceBadge({ score }: { score: number }) {
 }
 
 export default function ActivityRecommend() {
+  const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
+    pageName: "活动推荐",
+  });
   const {
     selectedItem: selectedActivity,
     open,
@@ -61,6 +65,7 @@ export default function ActivityRecommend() {
 
   return (
     <>
+      <UnderDevelopmentOverlay />
       <div className="grid grid-cols-3 gap-4 mb-4">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">

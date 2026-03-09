@@ -1,5 +1,6 @@
 "use client";
 
+import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -590,6 +591,9 @@ function FeedSkeleton() {
 // ── Main component ────────────────────────────────────────
 
 export default function SentimentMonitor() {
+  const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
+    pageName: "舆情监测",
+  });
   const { overview, isLoading: overviewLoading } = useSentimentOverview();
   const [platform, setPlatform] = useState("");
   const [keyword, setKeyword] = useState("");
@@ -629,263 +633,266 @@ export default function SentimentMonitor() {
   );
 
   return (
-    <div className="space-y-4">
-      {/* ── Stat cards ── */}
-      {overviewLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="shadow-card border-0">
-              <CardContent className="p-4 flex items-center gap-4">
-                <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
-                <div className="space-y-1.5 flex-1">
-                  <Skeleton className="h-2.5 w-14" />
-                  <Skeleton className="h-5 w-10" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : overview ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
-            label="监测内容"
-            value={overview.total_contents}
-            icon={Globe}
-            color="bg-blue-50 text-blue-600"
-            delay={0}
-          />
-          <StatCard
-            label="总评论"
-            value={overview.total_comments}
-            icon={MessageCircle}
-            color="bg-green-50 text-green-600"
-            delay={0.05}
-          />
-          <StatCard
-            label="总互动量"
-            value={overview.total_engagement}
-            icon={TrendingUp}
-            color="bg-purple-50 text-purple-600"
-            delay={0.1}
-          />
-          <StatCard
-            label="覆盖平台"
-            value={overview.platforms.length}
-            icon={Eye}
-            color="bg-amber-50 text-amber-600"
-            delay={0.15}
-          />
-        </div>
-      ) : null}
-
-      {/* ── Feed card ── */}
-      <MotionCard delay={0.1}>
-        <Card className="shadow-card border-0">
-          <CardHeader className="pb-4 space-y-4">
-            <div className="flex items-center justify-between mb-0">
-              <div className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-muted-foreground" />
-                <CardTitle className="text-base font-bold">
-                  社媒舆情信息流
-                </CardTitle>
-                {feed && (
-                  <Badge variant="secondary" className="text-xs font-medium">
-                    {feed.total}
-                  </Badge>
-                )}
-              </div>
-
-              {/* Sort options */}
-              <div className="flex items-center gap-1.5">
-                {sortOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => {
-                      setSortBy(opt.value);
-                      setPage(1);
-                    }}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs transition-all",
-                      sortBy === opt.value
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-muted/50",
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Platform chips */}
-            {overview && (
-              <PlatformChips
-                platforms={overview.platforms}
-                selected={platform}
-                onSelect={handlePlatformChange}
-              />
-            )}
-
-            {/* Search */}
-            <div className="flex gap-2 mt-0">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="搜索标题、内容或作者..."
-                  className="h-10 pl-10 text-sm"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                />
-              </div>
-              <button
-                onClick={handleSearch}
-                className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-xs font-medium
-                           hover:bg-primary/90 transition-all"
-              >
-                搜索
-              </button>
-            </div>
-          </CardHeader>
-
-          <CardContent className="pt-0">
-            {feedLoading ? (
-              <FeedSkeleton />
-            ) : feed && feed.items.length > 0 ? (
-              <>
-                <StaggerContainer>
-                  {feed.items.map((item) => (
-                    <ContentCard
-                      key={item.id}
-                      item={item}
-                      onClick={() => setSelectedContentId(item.content_id)}
-                    />
-                  ))}
-                </StaggerContainer>
-
-                {/* Pagination */}
-                {feed.total_pages > 1 && (
-                  <div className="flex items-center justify-center gap-4 pt-6 pb-2">
-                    <button
-                      disabled={page <= 1}
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      className="h-9 w-9 rounded-lg border flex items-center justify-center
-                                 text-muted-foreground hover:bg-muted disabled:opacity-30
-                                 disabled:cursor-not-allowed transition-all"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </button>
-                    <span className="text-sm text-muted-foreground font-medium min-w-[60px] text-center">
-                      {page} / {feed.total_pages}
-                    </span>
-                    <button
-                      disabled={page >= feed.total_pages}
-                      onClick={() =>
-                        setPage((p) => Math.min(feed.total_pages, p + 1))
-                      }
-                      className="h-9 w-9 rounded-lg border flex items-center justify-center
-                                 text-muted-foreground hover:bg-muted disabled:opacity-30
-                                 disabled:cursor-not-allowed transition-all"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </button>
+    <>
+      <UnderDevelopmentOverlay />
+      <div className="space-y-4">
+        {/* ── Stat cards ── */}
+        {overviewLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="shadow-card border-0">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
+                  <div className="space-y-1.5 flex-1">
+                    <Skeleton className="h-2.5 w-14" />
+                    <Skeleton className="h-5 w-10" />
                   </div>
-                )}
-              </>
-            ) : (
-              <div className="py-16 text-center">
-                <Globe className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">
-                  {keyword
-                    ? `未找到包含「${keyword}」的内容`
-                    : "暂无社媒监测数据"}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </MotionCard>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : overview ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatCard
+              label="监测内容"
+              value={overview.total_contents}
+              icon={Globe}
+              color="bg-blue-50 text-blue-600"
+              delay={0}
+            />
+            <StatCard
+              label="总评论"
+              value={overview.total_comments}
+              icon={MessageCircle}
+              color="bg-green-50 text-green-600"
+              delay={0.05}
+            />
+            <StatCard
+              label="总互动量"
+              value={overview.total_engagement}
+              icon={TrendingUp}
+              color="bg-purple-50 text-purple-600"
+              delay={0.1}
+            />
+            <StatCard
+              label="覆盖平台"
+              value={overview.platforms.length}
+              icon={Eye}
+              color="bg-amber-50 text-amber-600"
+              delay={0.15}
+            />
+          </div>
+        ) : null}
 
-      {/* ── Top content (from overview) ── */}
-      {overview && overview.top_content.length > 0 && (
-        <MotionCard delay={0.15}>
+        {/* ── Feed card ── */}
+        <MotionCard delay={0.1}>
           <Card className="shadow-card border-0">
             <CardHeader className="pb-4 space-y-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-muted-foreground" />
-                <CardTitle className="text-base font-bold">
-                  热门内容 TOP5
-                </CardTitle>
+              <div className="flex items-center justify-between mb-0">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle className="text-base font-bold">
+                    社媒舆情信息流
+                  </CardTitle>
+                  {feed && (
+                    <Badge variant="secondary" className="text-xs font-medium">
+                      {feed.total}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Sort options */}
+                <div className="flex items-center gap-1.5">
+                  {sortOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        setSortBy(opt.value);
+                        setPage(1);
+                      }}
+                      className={cn(
+                        "px-3 py-1.5 rounded-lg text-xs transition-all",
+                        sortBy === opt.value
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:bg-muted/50",
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Platform chips */}
+              {overview && (
+                <PlatformChips
+                  platforms={overview.platforms}
+                  selected={platform}
+                  onSelect={handlePlatformChange}
+                />
+              )}
+
+              {/* Search */}
+              <div className="flex gap-2 mt-0">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="搜索标题、内容或作者..."
+                    className="h-10 pl-10 text-sm"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  />
+                </div>
+                <button
+                  onClick={handleSearch}
+                  className="h-10 px-5 rounded-lg bg-primary text-primary-foreground text-xs font-medium
+                           hover:bg-primary/90 transition-all"
+                >
+                  搜索
+                </button>
               </div>
             </CardHeader>
+
             <CardContent className="pt-0">
-              <StaggerContainer>
-                {overview.top_content.map((item, idx) => {
-                  const cfg = getPlatform(item.platform);
-                  const totalEng =
-                    item.liked_count +
-                    item.comment_count +
-                    item.share_count +
-                    item.collected_count;
-                  return (
-                    <StaggerItem key={item.id}>
-                      <div
+              {feedLoading ? (
+                <FeedSkeleton />
+              ) : feed && feed.items.length > 0 ? (
+                <>
+                  <StaggerContainer>
+                    {feed.items.map((item) => (
+                      <ContentCard
+                        key={item.id}
+                        item={item}
                         onClick={() => setSelectedContentId(item.content_id)}
-                        className="flex items-center gap-3 py-2.5 px-3 border-b last:border-0
-                                   cursor-pointer rounded-sm hover:bg-muted/40 transition-all"
+                      />
+                    ))}
+                  </StaggerContainer>
+
+                  {/* Pagination */}
+                  {feed.total_pages > 1 && (
+                    <div className="flex items-center justify-center gap-4 pt-6 pb-2">
+                      <button
+                        disabled={page <= 1}
+                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                        className="h-9 w-9 rounded-lg border flex items-center justify-center
+                                 text-muted-foreground hover:bg-muted disabled:opacity-30
+                                 disabled:cursor-not-allowed transition-all"
                       >
-                        <span
-                          className={cn(
-                            "flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold shrink-0",
-                            idx < 3
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted text-muted-foreground",
-                          )}
-                        >
-                          {idx + 1}
-                        </span>
-                        <div
-                          className={cn(
-                            "flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold shrink-0 border",
-                            cfg.bgColor,
-                            cfg.color,
-                          )}
-                        >
-                          {cfg.icon}
-                        </div>
-                        <div className="flex-1 min-w-0 flex-1">
-                          <p className="text-xs font-medium truncate">
-                            {item.title}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {item.nickname} · 互动 {formatNumber(totalEng)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0">
-                          <span className="inline-flex items-center gap-0.5">
-                            <Heart className="h-2.5 w-2.5" />
-                            {formatNumber(item.liked_count)}
-                          </span>
-                          <span className="inline-flex items-center gap-0.5">
-                            <MessageCircle className="h-2.5 w-2.5" />
-                            {formatNumber(item.comment_count)}
-                          </span>
-                        </div>
-                      </div>
-                    </StaggerItem>
-                  );
-                })}
-              </StaggerContainer>
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <span className="text-sm text-muted-foreground font-medium min-w-[60px] text-center">
+                        {page} / {feed.total_pages}
+                      </span>
+                      <button
+                        disabled={page >= feed.total_pages}
+                        onClick={() =>
+                          setPage((p) => Math.min(feed.total_pages, p + 1))
+                        }
+                        className="h-9 w-9 rounded-lg border flex items-center justify-center
+                                 text-muted-foreground hover:bg-muted disabled:opacity-30
+                                 disabled:cursor-not-allowed transition-all"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="py-16 text-center">
+                  <Globe className="h-12 w-12 mx-auto mb-3 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">
+                    {keyword
+                      ? `未找到包含「${keyword}」的内容`
+                      : "暂无社媒监测数据"}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </MotionCard>
-      )}
 
-      {/* ── Detail sheet ── */}
-      <DetailPanel
-        contentId={selectedContentId}
-        onClose={() => setSelectedContentId(null)}
-      />
-    </div>
+        {/* ── Top content (from overview) ── */}
+        {overview && overview.top_content.length > 0 && (
+          <MotionCard delay={0.15}>
+            <Card className="shadow-card border-0">
+              <CardHeader className="pb-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle className="text-base font-bold">
+                    热门内容 TOP5
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <StaggerContainer>
+                  {overview.top_content.map((item, idx) => {
+                    const cfg = getPlatform(item.platform);
+                    const totalEng =
+                      item.liked_count +
+                      item.comment_count +
+                      item.share_count +
+                      item.collected_count;
+                    return (
+                      <StaggerItem key={item.id}>
+                        <div
+                          onClick={() => setSelectedContentId(item.content_id)}
+                          className="flex items-center gap-3 py-2.5 px-3 border-b last:border-0
+                                   cursor-pointer rounded-sm hover:bg-muted/40 transition-all"
+                        >
+                          <span
+                            className={cn(
+                              "flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold shrink-0",
+                              idx < 3
+                                ? "bg-primary/10 text-primary"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            {idx + 1}
+                          </span>
+                          <div
+                            className={cn(
+                              "flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold shrink-0 border",
+                              cfg.bgColor,
+                              cfg.color,
+                            )}
+                          >
+                            {cfg.icon}
+                          </div>
+                          <div className="flex-1 min-w-0 flex-1">
+                            <p className="text-xs font-medium truncate">
+                              {item.title}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {item.nickname} · 互动 {formatNumber(totalEng)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0">
+                            <span className="inline-flex items-center gap-0.5">
+                              <Heart className="h-2.5 w-2.5" />
+                              {formatNumber(item.liked_count)}
+                            </span>
+                            <span className="inline-flex items-center gap-0.5">
+                              <MessageCircle className="h-2.5 w-2.5" />
+                              {formatNumber(item.comment_count)}
+                            </span>
+                          </div>
+                        </div>
+                      </StaggerItem>
+                    );
+                  })}
+                </StaggerContainer>
+              </CardContent>
+            </Card>
+          </MotionCard>
+        )}
+
+        {/* ── Detail sheet ── */}
+        <DetailPanel
+          contentId={selectedContentId}
+          onClose={() => setSelectedContentId(null)}
+        />
+      </div>
+    </>
   );
 }

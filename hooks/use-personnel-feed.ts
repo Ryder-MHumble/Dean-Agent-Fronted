@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import type {
   PersonnelChangeItem,
   PersonnelEnrichedStatsResponse,
@@ -22,7 +22,9 @@ interface UsePersonnelFeedResult {
 
 export function usePersonnelFeed(): UsePersonnelFeedResult {
   const [items, setItems] = useState<PersonnelChangeItem[]>([]);
-  const [stats, setStats] = useState<PersonnelEnrichedStatsResponse | null>(null);
+  const [stats, setStats] = useState<PersonnelEnrichedStatsResponse | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMock, setIsUsingMock] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
@@ -42,22 +44,24 @@ export function usePersonnelFeed(): UsePersonnelFeedResult {
 
       if (cancelled) return;
 
-      if (feedData && feedData.items.length > 0) {
-        setItems(feedData.items);
-        setGeneratedAt(feedData.generated_at);
-        setActionCount(feedData.action_count);
-        setWatchCount(feedData.watch_count);
-        setIsUsingMock(false);
-      } else {
-        setItems([]);
-        setIsUsingMock(true);
-      }
+      startTransition(() => {
+        if (feedData && feedData.items.length > 0) {
+          setItems(feedData.items);
+          setGeneratedAt(feedData.generated_at);
+          setActionCount(feedData.action_count);
+          setWatchCount(feedData.watch_count);
+          setIsUsingMock(false);
+        } else {
+          setItems([]);
+          setIsUsingMock(true);
+        }
 
-      if (statsData) {
-        setStats(statsData);
-      }
+        if (statsData) {
+          setStats(statsData);
+        }
 
-      setIsLoading(false);
+        setIsLoading(false);
+      });
     }
 
     load();
@@ -66,5 +70,13 @@ export function usePersonnelFeed(): UsePersonnelFeedResult {
     };
   }, []);
 
-  return { items, stats, isLoading, isUsingMock, generatedAt, actionCount, watchCount };
+  return {
+    items,
+    stats,
+    isLoading,
+    isUsingMock,
+    generatedAt,
+    actionCount,
+    watchCount,
+  };
 }

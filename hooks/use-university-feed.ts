@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import type {
   PeerNewsItem,
   UniversityFeedItem,
@@ -70,21 +70,23 @@ export function useUniversityFeed(): UseUniversityFeedResult {
 
       if (cancelled) return;
 
-      if (feedData && feedData.items.length > 0) {
-        const newsItems = transformFeedItems(feedData.items);
-        setItems(newsItems);
-        setGeneratedAt(feedData.generated_at);
-        setIsUsingMock(false);
-      } else {
-        setItems(mockPeerNews);
-        setIsUsingMock(true);
-      }
+      startTransition(() => {
+        if (feedData && feedData.items.length > 0) {
+          const newsItems = transformFeedItems(feedData.items);
+          setItems(newsItems);
+          setGeneratedAt(feedData.generated_at);
+          setIsUsingMock(false);
+        } else {
+          setItems(mockPeerNews);
+          setIsUsingMock(true);
+        }
 
-      if (overviewData) {
-        setOverview(overviewData);
-      }
+        if (overviewData) {
+          setOverview(overviewData);
+        }
 
-      setIsLoading(false);
+        setIsLoading(false);
+      });
     }
 
     load();

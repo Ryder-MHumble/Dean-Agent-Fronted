@@ -1,5 +1,6 @@
 "use client";
 
+import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,10 +31,19 @@ import {
 const uncreditedPapers = mockStudentPapers.filter((p) => !p.credited);
 
 export default function StudentMgmt() {
-  const { selectedItem: selectedAlert, open, close, isOpen } = useDetailView<StudentAlert>();
+  const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
+    pageName: "学生管理",
+  });
+  const {
+    selectedItem: selectedAlert,
+    open,
+    close,
+    isOpen,
+  } = useDetailView<StudentAlert>();
 
   return (
     <>
+      <UnderDevelopmentOverlay />
       <div className="space-y-4">
         {/* Paper achievements */}
         <Card className="shadow-card">
