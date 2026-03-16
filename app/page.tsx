@@ -28,6 +28,10 @@ const UniversityEcoModule = dynamic(
   () => import("@/components/modules/university-eco"),
   { ssr: false, loading: () => <PageLoadingSkeleton /> },
 );
+const SentimentModule = dynamic(
+  () => import("@/components/modules/internal-mgmt/sentiment"),
+  { ssr: false, loading: () => <PageLoadingSkeleton /> },
+);
 const InternalMgmtModule = dynamic(
   () => import("@/components/modules/internal-mgmt"),
   { ssr: false, loading: () => <PageLoadingSkeleton /> },
@@ -104,6 +108,7 @@ export default function Page() {
             {activePage === "tech-frontier" && <TechFrontierModule />}
             {activePage === "talent-radar" && <TalentRadarModule />}
             {activePage === "university-eco" && <UniversityEcoModule />}
+            {activePage === "sentiment" && <SentimentModule />}
             {activePage === "internal-mgmt" && <InternalMgmtModule />}
             {activePage === "network" && <NetworkModule />}
             {activePage === "smart-schedule" && <SmartScheduleModule />}

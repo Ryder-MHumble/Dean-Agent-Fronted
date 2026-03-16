@@ -1,12 +1,11 @@
-"use client"
+"use client";
 
-import ModuleLayout from "@/components/module-layout"
-import type { SubPageConfig } from "@/components/module-layout"
-import { Building2, ClipboardList, GraduationCap, Globe } from "lucide-react"
-import CenterUpdates from "./center-updates"
-import ProjectSupervision from "./project-supervision"
-import StudentMgmt from "./student-mgmt"
-import SentimentMonitor from "./sentiment-monitor"
+import ModuleLayout from "@/components/module-layout";
+import type { SubPageConfig } from "@/components/module-layout";
+import { Building2, ClipboardList, GraduationCap } from "lucide-react";
+import CenterUpdates from "./center-updates";
+import ProjectSupervision from "./project-supervision";
+import StudentMgmt from "./student-mgmt";
 
 const subPages: SubPageConfig[] = [
   {
@@ -27,14 +26,8 @@ const subPages: SubPageConfig[] = [
     icon: GraduationCap,
     component: StudentMgmt,
   },
-  {
-    id: "sentiment",
-    label: "舆情监测",
-    icon: Globe,
-    component: SentimentMonitor,
-  },
-]
+];
 
 export default function InternalMgmtModule() {
-  return <ModuleLayout subPages={subPages} />
+  return <ModuleLayout subPages={subPages} />;
 }

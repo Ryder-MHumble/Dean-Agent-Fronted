@@ -234,3 +234,79 @@ export async function fetchSentimentContentDetail(
     return null;
   }
 }
+
+// ── Institutions ─────────────────────────────────────────────
+
+import type {
+  InstitutionListResponse,
+  InstitutionHierarchyResponse,
+  InstitutionTaxonomyResponse,
+  InstitutionDetail,
+  InstitutionQueryParams,
+} from "@/lib/types/institution";
+
+/**
+ * Fetch institutions with unified interface
+ * @param params Query parameters
+ * @returns Flat list or hierarchy structure based on view parameter
+ */
+export async function fetchInstitutions(
+  params?: InstitutionQueryParams,
+): Promise<InstitutionListResponse | InstitutionHierarchyResponse | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (params?.view) sp.set("view", params.view);
+    if (params?.entity_type) sp.set("entity_type", params.entity_type);
+    if (params?.region) sp.set("region", params.region);
+    if (params?.org_type) sp.set("org_type", params.org_type);
+    if (params?.classification) sp.set("classification", params.classification);
+    if (params?.sub_classification)
+      sp.set("sub_classification", params.sub_classification);
+    if (params?.keyword) sp.set("keyword", params.keyword);
+    sp.set("page", String(params?.page ?? 1));
+    sp.set("page_size", String(params?.page_size ?? 20));
+
+    const res = await fetch(`${API_BASE}/api/v1/institutions?${sp}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as
+      | InstitutionListResponse
+      | InstitutionHierarchyResponse;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch institution taxonomy (classification hierarchy with counts)
+ */
+export async function fetchInstitutionTaxonomy(): Promise<InstitutionTaxonomyResponse | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/institutions/taxonomy/v2`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as InstitutionTaxonomyResponse;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch single institution detail
+ */
+export async function fetchInstitutionDetail(
+  institutionId: string,
+): Promise<InstitutionDetail | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/v1/institutions/${institutionId}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as InstitutionDetail;
+  } catch {
+    return null;
+  }
+}
