@@ -1051,7 +1051,7 @@ import DOMPurify from "dompurify";
 
 ```bash
 # .env.local（不提交到 Git）
-NEXT_PUBLIC_API_URL=http://43.98.254.243:8001
+NEXT_PUBLIC_API_URL=http://http://10.1.132.21/:8001
 API_SECRET_KEY=your-secret-key
 ```
 
@@ -1070,9 +1070,9 @@ npm audit fix
 
 | 服务 | 地址 |
 |------|------|
-| 前端 | `http://43.98.254.243:8080/` |
-| 后端 API | `http://43.98.254.243:8001/` |
-| API 文档 | `http://43.98.254.243:8001/docs` |
+| 前端 | `http://http://10.1.132.21/:8080/` |
+| 后端 API | `http://http://10.1.132.21/:8001/` |
+| API 文档 | `http://http://10.1.132.21/:8001/docs` |
 
 ### 服务器路径
 

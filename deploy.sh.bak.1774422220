@@ -92,7 +92,7 @@ _time=$(date '+%Y-%m-%d  %H:%M:%S')
 
 echo -e "  ${DIM}TIME${R}   ${WHITE}${_time}${R}    ${DIM}PORT${R}  ${CYAN}${BOLD}:${APP_PORT}${R}"
 echo -e "  ${DIM}BRANCH${R} ${YELLOW}${_branch}${R}          ${DIM}NODE${R}  ${GREEN}${_node}${R}"
-echo -e "  ${DIM}TARGET${R} ${DIM}43.98.254.243${R}"
+echo -e "  ${DIM}TARGET${R} ${DIM}http://10.1.132.21/${R}"
 echo ""
 
 # ── 步骤 1 — 拉取代码 ─────────────────────────────────────────────────
@@ -179,7 +179,7 @@ printf "  ${P5}${BOLD}✦  DEPLOY COMPLETE${R}"
 echo -e "  ${DIM}耗时 ${WHITE}${TOTAL_DURATION}s${R}"
 echo -e "  ${P3}$(printf '%.0s═' {1..56})${R}"
 echo ""
-echo -e "  ${DIM}URL${R}   ${CYAN}${BOLD}http://43.98.254.243:${APP_PORT}${R}"
+echo -e "  ${DIM}URL${R}   ${CYAN}${BOLD}http://http://10.1.132.21/:${APP_PORT}${R}"
 echo -e "  ${DIM}PID${R}   ${WHITE}${NEW_PID}${R}"
 echo -e "  ${DIM}LOG${R}   ${DIM}tail -f ${LOG_FILE}${R}"
 echo ""
