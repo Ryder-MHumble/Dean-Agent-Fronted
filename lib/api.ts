@@ -7,6 +7,10 @@ import type {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001";
 
+const ACADEMIC_API_BASE =
+  process.env.NEXT_PUBLIC_ACADEMIC_MONITOR_API_BASE_URL ||
+  "http://10.1.132.21:8000";
+
 // ── Policy ────────────────────────────────────────────────
 
 /** Response shape from GET /api/v1/intel/policy/feed */
@@ -180,6 +184,11 @@ import type {
   SentimentOverview,
   SentimentFeedResponse,
   SentimentContentDetail,
+  AcademicStudentSummary,
+  AcademicStudentsResponse,
+  AcademicStudentPapersResponse,
+  AcademicPaperUpsertPayload,
+  AcademicPaperCompliancePayload,
 } from "@/lib/types/internal-mgmt";
 
 export async function fetchSentimentOverview(): Promise<SentimentOverview | null> {
@@ -232,6 +241,122 @@ export async function fetchSentimentContentDetail(
     return (await res.json()) as SentimentContentDetail;
   } catch {
     return null;
+  }
+}
+
+// ── Academic Monitor (Student Management) ─────────────────
+
+export async function fetchAcademicStudents(
+  keyword?: string,
+  page = 1,
+  pageSize = 20,
+): Promise<AcademicStudentsResponse | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (keyword?.trim()) sp.set("keyword", keyword.trim());
+    sp.set("page", String(page));
+    sp.set("page_size", String(pageSize));
+    const suffix = sp.toString();
+    const res = await fetch(
+      `${ACADEMIC_API_BASE}/api/v1/students${suffix ? `?${suffix}` : ""}`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as AcademicStudentsResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchAcademicStudentPapers(
+  targetKey: string,
+): Promise<AcademicStudentPapersResponse | null> {
+  try {
+    const res = await fetch(
+      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as AcademicStudentPapersResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function createAcademicPaper(
+  targetKey: string,
+  payload: AcademicPaperUpsertPayload,
+): Promise<{ status: string; paper_uid: string } | null> {
+  try {
+    const res = await fetch(
+      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as { status: string; paper_uid: string };
+  } catch {
+    return null;
+  }
+}
+
+export async function updateAcademicPaper(
+  targetKey: string,
+  paperUid: string,
+  payload: AcademicPaperUpsertPayload,
+): Promise<{ status: string; paper_uid: string } | null> {
+  try {
+    const res = await fetch(
+      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as { status: string; paper_uid: string };
+  } catch {
+    return null;
+  }
+}
+
+export async function updateAcademicPaperCompliance(
+  targetKey: string,
+  paperUid: string,
+  payload: AcademicPaperCompliancePayload,
+): Promise<{ status: string; paper_uid: string } | null> {
+  try {
+    const res = await fetch(
+      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}/compliance`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as { status: string; paper_uid: string };
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteAcademicPaper(
+  targetKey: string,
+  paperUid: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}`,
+      { method: "DELETE" },
+    );
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 

@@ -73,6 +73,69 @@ export interface StudentPaper {
   source: string;
 }
 
+export interface AcademicStudentSummary {
+  target_key: string;
+  name: string;
+  target_type: string;
+  paper_count: number;
+  compliant_count: number;
+  non_compliant_count: number;
+  unknown_count: number;
+}
+
+export interface AcademicStudentsResponse {
+  items: AcademicStudentSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export interface AcademicStudentPapersResponse {
+  items: AcademicPaperRecord[];
+  total: number;
+}
+
+export interface AcademicPaperRecord {
+  paper_uid: string;
+  title: string;
+  doi: string | null;
+  arxiv_id: string | null;
+  abstract: string | null;
+  publication_date: string | null;
+  authors: string[];
+  affiliations: string[];
+  source: string;
+  affiliation_status: string | null;
+  compliance_reason: string | null;
+  matched_tokens: string[];
+  assessed_at: string | null;
+  created_at: string | null;
+}
+
+export interface AcademicPaperUpsertPayload {
+  paper_uid?: string;
+  title: string;
+  doi?: string | null;
+  arxiv_id?: string | null;
+  abstract?: string | null;
+  publication_date?: string | null;
+  authors?: string[];
+  affiliations?: string[];
+  source?: string;
+  affiliation_status?: string | null;
+  compliance_reason?: string | null;
+  matched_tokens?: string[];
+  assessed_at?: string | null;
+}
+
+export interface AcademicPaperCompliancePayload {
+  affiliation_status?: string | null;
+  compliance_reason?: string | null;
+  matched_tokens?: string[];
+  assessed_at?: string | null;
+}
+
 export interface EnrollmentData {
   category: string;
   count: number;
