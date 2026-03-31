@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,7 @@ function datetimeToInputValue(value: string | null): string {
 }
 
 export default function StudentMgmt() {
+  const router = useRouter();
   const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
     pageName: "学生管理",
   });
@@ -311,6 +313,16 @@ export default function StudentMgmt() {
     await loadStudents(keyword, studentPage);
   };
 
+  const openStudentDetailPage = (student: AcademicStudentSummary) => {
+    const sp = new URLSearchParams();
+    sp.set("name", student.name);
+    sp.set("paper_count", String(student.paper_count));
+    sp.set("compliant_count", String(student.compliant_count));
+    sp.set("non_compliant_count", String(student.non_compliant_count));
+    sp.set("unknown_count", String(student.unknown_count));
+    router.push(`/students/${encodeURIComponent(student.target_key)}?${sp.toString()}`);
+  };
+
   return (
     <>
       <UnderDevelopmentOverlay />
@@ -480,12 +492,19 @@ export default function StudentMgmt() {
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                     {students.map((student) => (
-                      <button
+                      <div
                         key={student.target_key}
-                        type="button"
-                        onClick={() => openStudent(student)}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openStudentDetailPage(student)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            openStudentDetailPage(student);
+                          }
+                        }}
                         className={cn(
-                          "text-left rounded-lg border p-3 transition-colors hover:bg-muted/30",
+                          "text-left rounded-lg border p-3 transition-colors hover:bg-muted/30 cursor-pointer",
                           selectedStudent?.target_key === student.target_key &&
                             "border-blue-500 bg-blue-50/50",
                         )}
@@ -521,7 +540,21 @@ export default function StudentMgmt() {
                             未判定 {student.unknown_count}
                           </Badge>
                         </div>
-                      </button>
+                        <div className="mt-3 flex justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openStudent(student);
+                            }}
+                          >
+                            当前页管理论文
+                          </Button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                   <div className="flex items-center justify-end gap-2">
