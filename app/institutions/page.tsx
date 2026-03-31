@@ -32,6 +32,37 @@ export default function InstitutionsPage() {
   const [selectedClassification, setSelectedClassification] =
     useState<Classification | null>(null);
 
+  const companyCount =
+    taxonomy
+      ? Object.values(taxonomy.regions).reduce(
+          (sum, region) => sum + (region.org_types["企业"]?.count || 0),
+          0,
+        )
+      : 0;
+
+  const isCompanyPreset = selectedOrgType === "企业";
+
+  const handleSelectAllPreset = () => {
+    setSelectedRegion(null);
+    setSelectedOrgType(null);
+    setSelectedClassification(null);
+  };
+
+  const handleSelectCompanyPreset = () => {
+    setSelectedRegion(null);
+    setSelectedOrgType("企业");
+    setSelectedClassification(null);
+  };
+
+  const getOrgTypeLabel = (
+    orgType: string,
+    node?: { display_name?: string | undefined },
+  ) => {
+    if (node?.display_name) return node.display_name;
+    if (orgType === "企业") return "公司";
+    return orgType;
+  };
+
   // Load taxonomy on mount
   useEffect(() => {
     fetchInstitutionTaxonomy().then(setTaxonomy);
@@ -82,6 +113,33 @@ export default function InstitutionsPage() {
                   onChange={(e) => setKeyword(e.target.value)}
                   className="pl-8"
                 />
+              </div>
+
+              {/* Preset Filter */}
+              <div>
+                <h3 className="font-semibold mb-2 text-sm">机构分页</h3>
+                <div className="space-y-1">
+                  <button
+                    onClick={handleSelectAllPreset}
+                    className={`w-full text-left px-3 py-2 rounded text-sm ${
+                      !isCompanyPreset
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-accent"
+                    }`}
+                  >
+                    机构总览 ({taxonomy?.total || 0})
+                  </button>
+                  <button
+                    onClick={handleSelectCompanyPreset}
+                    className={`w-full text-left px-3 py-2 rounded text-sm ${
+                      isCompanyPreset
+                        ? "bg-primary text-primary-foreground"
+                        : "hover:bg-accent"
+                    }`}
+                  >
+                    公司 ({companyCount})
+                  </button>
+                </div>
               </div>
 
               {/* Region Filter */}
@@ -142,7 +200,7 @@ export default function InstitutionsPage() {
                             : "hover:bg-accent"
                         }`}
                       >
-                        {orgType} ({data.count})
+                        {getOrgTypeLabel(orgType, data)} ({data.count})
                       </button>
                     ))}
                   </div>

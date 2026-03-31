@@ -6,6 +6,7 @@ export interface PersonnelNewsItem {
   id: string;
   title: string;
   summary: string;
+  content?: string;
   category: PersonnelNewsCategory;
   importance: ImportanceLevel;
   date: string;

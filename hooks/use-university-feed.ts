@@ -2,12 +2,12 @@
 
 import { useState, useEffect, startTransition } from "react";
 import type {
+  PeerNewsGroup,
   PeerNewsItem,
   UniversityFeedItem,
   UniversityOverviewResponse,
 } from "@/lib/types/university-eco";
 import { fetchUniversityOverview, fetchUniversityFeed } from "@/lib/api";
-import { mockPeerNews } from "@/lib/mock-data/university-eco";
 
 // ── Transform API items to PeerNewsItem ──────────────────
 
@@ -44,18 +44,32 @@ interface UseUniversityFeedResult {
   items: PeerNewsItem[];
   overview: UniversityOverviewResponse | null;
   isLoading: boolean;
-  isUsingMock: boolean;
   generatedAt: string | null;
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
-export function useUniversityFeed(): UseUniversityFeedResult {
+interface UseUniversityFeedParams {
+  group?: PeerNewsGroup;
+  page?: number;
+  pageSize?: number;
+}
+
+export function useUniversityFeed(
+  params?: UseUniversityFeedParams,
+): UseUniversityFeedResult {
+  const page = params?.page ?? 1;
+  const pageSize = params?.pageSize ?? 20;
   const [items, setItems] = useState<PeerNewsItem[]>([]);
   const [overview, setOverview] = useState<UniversityOverviewResponse | null>(
     null,
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [isUsingMock, setIsUsingMock] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,21 +78,28 @@ export function useUniversityFeed(): UseUniversityFeedResult {
       setIsLoading(true);
 
       const [feedData, overviewData] = await Promise.all([
-        fetchUniversityFeed({ pageSize: 200 }),
+        fetchUniversityFeed({
+          group: params?.group,
+          page,
+          pageSize,
+        }),
         fetchUniversityOverview(),
       ]);
 
       if (cancelled) return;
 
       startTransition(() => {
-        if (feedData && feedData.items.length > 0) {
+        if (feedData) {
           const newsItems = transformFeedItems(feedData.items);
           setItems(newsItems);
           setGeneratedAt(feedData.generated_at);
-          setIsUsingMock(false);
+          setTotal(feedData.total);
+          setTotalPages(feedData.total_pages);
         } else {
-          setItems(mockPeerNews);
-          setIsUsingMock(true);
+          setItems([]);
+          setGeneratedAt(null);
+          setTotal(0);
+          setTotalPages(1);
         }
 
         if (overviewData) {
@@ -93,7 +114,7 @@ export function useUniversityFeed(): UseUniversityFeedResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [params?.group, page, pageSize]);
 
-  return { items, overview, isLoading, isUsingMock, generatedAt };
+  return { items, overview, isLoading, generatedAt, total, page, pageSize, totalPages };
 }

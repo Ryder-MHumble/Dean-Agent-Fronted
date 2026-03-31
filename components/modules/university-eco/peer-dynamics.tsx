@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,8 +83,16 @@ export default function PeerDynamics() {
     isOpen,
   } = useDetailView<PeerNewsItem>();
   const [activeFilter, setActiveFilter] = useState<FilterTag>("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  const activeGroup = activeFilter === "all" ? undefined : activeFilter;
 
-  const { items, isLoading, isUsingMock, generatedAt } = useUniversityFeed();
+  const { items, overview, isLoading, generatedAt, total, totalPages } =
+    useUniversityFeed({
+      group: activeGroup,
+      page,
+      pageSize,
+    });
 
   const [articleContent, setArticleContent] = useState<{
     content?: string | null;
@@ -122,20 +130,38 @@ export default function PeerDynamics() {
   );
 
   const filteredNews = useMemo(() => {
-    const sorted = [...items].sort(
+    return [...items].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
-    if (activeFilter === "all") return sorted;
-    return sorted.filter((n) => n.group === activeFilter);
-  }, [items, activeFilter]);
+  }, [items]);
 
   const groupCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: items.length };
+    const counts: Record<string, number> = {};
+    if (overview) {
+      counts.all = overview.total_articles;
+      for (const group of overview.groups) {
+        counts[group.group] = group.total_articles;
+      }
+      return counts;
+    }
+    counts.all = total;
     for (const item of items) {
       counts[item.group] = (counts[item.group] || 0) + 1;
     }
     return counts;
-  }, [items]);
+  }, [overview, total, items]);
+
+  useEffect(() => {
+    setPage(1);
+    close();
+    setArticleContent({});
+  }, [activeFilter, close]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   if (isLoading) {
     return <SkeletonPeerDynamics />;
@@ -176,14 +202,6 @@ export default function PeerDynamics() {
             })}
           </div>
           <div className="flex items-center gap-2">
-            {isUsingMock && (
-              <Badge
-                variant="outline"
-                className="text-[10px] text-amber-600 border-amber-200"
-              >
-                模拟数据
-              </Badge>
-            )}
             <DataFreshness
               updatedAt={generatedAt ? new Date(generatedAt) : new Date()}
             />
@@ -277,46 +295,81 @@ export default function PeerDynamics() {
             )
           }
         >
-          <DateGroupedList
-            key={activeFilter}
-            items={filteredNews}
-            emptyMessage="暂无同行动态"
-            renderItem={(news) => (
-              <DataItemCard
-                isSelected={selectedNews?.id === news.id}
-                onClick={() => handleOpen(news)}
-                accentColor="blue"
-              >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <h4
-                    className={cn(
-                      "text-sm font-semibold leading-snug flex-1 transition-colors",
-                      accentConfig.blue.title,
-                    )}
-                  >
-                    {news.title}
-                  </h4>
-                  <ItemChevron accentColor="blue" />
-                </div>
-                {news.summary && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
-                    {news.summary}
-                  </p>
-                )}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <GroupBadge group={news.group} />
+          <div className="flex flex-col gap-3 pb-2">
+            <DateGroupedList
+              key={`${activeFilter}-${page}`}
+              items={filteredNews}
+              emptyMessage="暂无同行动态"
+              renderItem={(news) => (
+                <DataItemCard
+                  isSelected={selectedNews?.id === news.id}
+                  onClick={() => handleOpen(news)}
+                  accentColor="blue"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h4
+                      className={cn(
+                        "text-sm font-semibold leading-snug flex-1 transition-colors",
+                        accentConfig.blue.title,
+                      )}
+                    >
+                      {news.title}
+                    </h4>
+                    <ItemChevron accentColor="blue" />
+                  </div>
+                  {news.summary && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
+                      {news.summary}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <GroupBadge group={news.group} />
+                      <span className="text-[11px] text-muted-foreground">
+                        {news.sourceName}
+                      </span>
+                    </div>
                     <span className="text-[11px] text-muted-foreground">
-                      {news.sourceName}
+                      {news.date}
                     </span>
                   </div>
-                  <span className="text-[11px] text-muted-foreground">
-                    {news.date}
-                  </span>
-                </div>
-              </DataItemCard>
-            )}
-          />
+                </DataItemCard>
+              )}
+            />
+            <div className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs text-muted-foreground">
+              <span>
+                第 {page}/{totalPages} 页，共 {total} 条
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPage((prev) => Math.max(1, prev - 1));
+                    close();
+                    setArticleContent({});
+                  }}
+                  disabled={page <= 1}
+                >
+                  上一页
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPage((prev) => Math.min(totalPages, prev + 1));
+                    close();
+                    setArticleContent({});
+                  }}
+                  disabled={page >= totalPages}
+                >
+                  下一页
+                </Button>
+              </div>
+            </div>
+          </div>
         </MasterDetailView>
       </div>
     </div>

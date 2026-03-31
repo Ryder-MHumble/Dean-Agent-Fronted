@@ -5,14 +5,14 @@ import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 import { fetchPolicyFeed } from "@/lib/api";
 import type { PolicyFeedResponse } from "@/lib/api";
 
-const CACHE_KEY = "policy_feed_cache";
+const CACHE_KEY = "policy_feed_cache_v2";
 // Data is considered "fresh" for 10 minutes — skip the network call entirely
 const CACHE_TTL_MS = 10 * 60 * 1000;
 // Hard expiry: discard cache entirely after 24 hours
 const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
-const INITIAL_LIMIT = 30;
-const FULL_LIMIT = 200;
+const INITIAL_LIMIT = 500;
+const FULL_LIMIT = 500;
 
 interface CachedEntry {
   data: PolicyFeedResponse;
@@ -83,7 +83,6 @@ export function usePolicyFeed(): UsePolicyFeedResult {
           setItems(cached.data.items);
           setGeneratedAt(cached.data.generated_at);
           setIsUsingMock(false);
-          // If cache only has the initial batch, mark as having more
           setHasMore(cached.data.items.length < cached.data.item_count);
           setIsLoading(false);
         });
@@ -94,7 +93,7 @@ export function usePolicyFeed(): UsePolicyFeedResult {
         setIsRefreshing(true);
       }
 
-      // ── Step 2: initial fast fetch (limit=30) ─────────────────────────
+      // ── Step 2: fetch the full policy feed ────────────────────────────
       const data = await fetchPolicyFeed(INITIAL_LIMIT);
       if (cancelled) return;
 

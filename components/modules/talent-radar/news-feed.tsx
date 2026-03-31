@@ -78,6 +78,7 @@ export default function NewsFeed({ items }: NewsFeedProps) {
                   }
                 : undefined
             }
+            content={selectedItem.content}
             summary={selectedItem.summary}
             extraMeta={
               <Badge

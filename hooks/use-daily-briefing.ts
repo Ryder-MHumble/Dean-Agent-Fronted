@@ -4,26 +4,23 @@ import { useState, useEffect, startTransition } from "react";
 import type { DailySummaryData } from "@/components/home/ai-daily-summary";
 import type { MetricCardData } from "@/components/home/aggregated-metric-cards";
 import { fetchDailyBriefing } from "@/lib/api";
-import {
-  mockDailySummary,
-  mockMetricCards,
-} from "@/lib/mock-data/home-briefing";
 
 interface UseDailyBriefingResult {
   dailySummary: DailySummaryData;
   metricCards: MetricCardData[];
   isLoading: boolean;
-  isUsingMock: boolean;
 }
+
+const EMPTY_SUMMARY: DailySummaryData = {
+  generatedAt: new Date(0),
+  paragraphs: [["今日早报尚未生成，请在定时任务完成后稍后查看。"]],
+};
 
 export function useDailyBriefing(): UseDailyBriefingResult {
   const [dailySummary, setDailySummary] =
-    useState<DailySummaryData>(mockDailySummary);
-  const [metricCards, setMetricCards] =
-    useState<MetricCardData[]>(mockMetricCards);
-  // Start with mock data shown immediately — no blocking skeleton
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUsingMock, setIsUsingMock] = useState(true);
+    useState<DailySummaryData>(EMPTY_SUMMARY);
+  const [metricCards, setMetricCards] = useState<MetricCardData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,10 +36,13 @@ export function useDailyBriefing(): UseDailyBriefingResult {
             paragraphs: data.paragraphs,
             generatedAt: new Date(data.generated_at),
           });
-          if (data.metric_cards.length > 0) {
-            setMetricCards(data.metric_cards);
-          }
-          setIsUsingMock(false);
+          setMetricCards(data.metric_cards);
+        } else {
+          setDailySummary({
+            ...EMPTY_SUMMARY,
+            generatedAt: new Date(),
+          });
+          setMetricCards([]);
         }
         setIsLoading(false);
       });
@@ -54,5 +54,5 @@ export function useDailyBriefing(): UseDailyBriefingResult {
     };
   }, []);
 
-  return { dailySummary, metricCards, isLoading, isUsingMock };
+  return { dailySummary, metricCards, isLoading };
 }

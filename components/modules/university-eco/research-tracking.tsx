@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,7 +64,10 @@ export default function ResearchTracking() {
     isOpen,
   } = useDetailView<ResearchOutput>();
 
-  const { items, typeStats, isLoading, isUsingMock } = useUniversityResearch();
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  const { items, typeStats, isLoading, itemCount, totalPages } =
+    useUniversityResearch({ page, pageSize });
 
   const [articleContent, setArticleContent] = useState<{
     content?: string | null;
@@ -117,23 +120,18 @@ export default function ResearchTracking() {
     [items],
   );
 
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
   if (isLoading) {
     return <SkeletonResearchTracking />;
   }
 
   return (
     <div className="flex flex-col" style={{ height: "calc(100vh - 12rem)" }}>
-      {isUsingMock && (
-        <div className="mb-3 shrink-0">
-          <Badge
-            variant="outline"
-            className="text-[11px] text-amber-600 border-amber-300 bg-amber-50"
-          >
-            模拟数据
-          </Badge>
-        </div>
-      )}
-
       <div className="grid grid-cols-3 gap-4 mb-4 shrink-0">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
@@ -270,48 +268,84 @@ export default function ResearchTracking() {
             )
           }
         >
-          <DateGroupedList
-            items={sortedOutputs}
-            emptyMessage="暂无科研成果"
-            renderItem={(output) => (
-              <DataItemCard
-                isSelected={selectedOutput?.id === output.id}
-                onClick={() => handleOpen(output)}
-                accentColor="purple"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <ItemAvatar text={output.institution.charAt(0)} />
-                    <div>
-                      <h4
-                        className={cn(
-                          "text-sm font-semibold transition-colors",
-                          accentConfig.purple.title,
-                        )}
-                      >
-                        {output.title}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
-                        <span>{output.institution}</span>
-                        <span>&middot;</span>
-                        <span>{output.field}</span>
+          <div className="flex flex-col gap-3 pb-2">
+            <DateGroupedList
+              key={page}
+              items={sortedOutputs}
+              emptyMessage="暂无科研成果"
+              renderItem={(output) => (
+                <DataItemCard
+                  isSelected={selectedOutput?.id === output.id}
+                  onClick={() => handleOpen(output)}
+                  accentColor="purple"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <ItemAvatar text={output.institution.charAt(0)} />
+                      <div>
+                        <h4
+                          className={cn(
+                            "text-sm font-semibold transition-colors",
+                            accentConfig.purple.title,
+                          )}
+                        >
+                          {output.title}
+                        </h4>
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
+                          <span>{output.institution}</span>
+                          <span>&middot;</span>
+                          <span>{output.field}</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <InfluenceBadge level={output.influence} />
+                      <ItemChevron accentColor="purple" />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <InfluenceBadge level={output.influence} />
-                    <ItemChevron accentColor="purple" />
+                  <div className="flex items-center gap-2 ml-[52px]">
+                    <TypeBadge type={output.type} />
+                    <span className="text-xs text-muted-foreground truncate max-w-[500px]">
+                      {output.authors}
+                    </span>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 ml-[52px]">
-                  <TypeBadge type={output.type} />
-                  <span className="text-xs text-muted-foreground truncate max-w-[500px]">
-                    {output.authors}
-                  </span>
-                </div>
-              </DataItemCard>
-            )}
-          />
+                </DataItemCard>
+              )}
+            />
+            <div className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs text-muted-foreground">
+              <span>
+                第 {page}/{totalPages} 页，共 {itemCount} 条
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPage((prev) => Math.max(1, prev - 1));
+                    close();
+                    setArticleContent({});
+                  }}
+                  disabled={page <= 1}
+                >
+                  上一页
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPage((prev) => Math.min(totalPages, prev + 1));
+                    close();
+                    setArticleContent({});
+                  }}
+                  disabled={page >= totalPages}
+                >
+                  下一页
+                </Button>
+              </div>
+            </div>
+          </div>
         </MasterDetailView>
       </div>
     </div>

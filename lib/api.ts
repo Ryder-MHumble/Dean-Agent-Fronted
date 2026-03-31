@@ -125,7 +125,7 @@ export async function fetchUniversityFeed(params?: {
     if (params?.group) sp.set("group", params.group);
     if (params?.keyword) sp.set("keyword", params.keyword);
     sp.set("page", String(params?.page ?? 1));
-    sp.set("page_size", String(params?.pageSize ?? 200));
+    sp.set("page_size", String(params?.pageSize ?? 20));
     const res = await fetch(`${API_BASE}/api/v1/intel/university/feed?${sp}`, {
       cache: "no-store",
     });
@@ -162,7 +162,7 @@ export async function fetchUniversityResearch(params?: {
     if (params?.type) sp.set("type", params.type);
     if (params?.influence) sp.set("influence", params.influence);
     sp.set("page", String(params?.page ?? 1));
-    sp.set("page_size", String(params?.pageSize ?? 200));
+    sp.set("page_size", String(params?.pageSize ?? 20));
     const res = await fetch(
       `${API_BASE}/api/v1/intel/university/research?${sp}`,
       { cache: "no-store" },
@@ -283,11 +283,16 @@ export async function fetchInstitutions(
  */
 export async function fetchInstitutionTaxonomy(): Promise<InstitutionTaxonomyResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/v1/institutions/taxonomy/v2`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as InstitutionTaxonomyResponse;
+    const candidates = [
+      `${API_BASE}/api/v1/institutions/taxonomy`,
+      `${API_BASE}/api/v1/institutions/taxonomy/v2`,
+    ];
+    for (const url of candidates) {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) continue;
+      return (await res.json()) as InstitutionTaxonomyResponse;
+    }
+    return null;
   } catch {
     return null;
   }

@@ -136,6 +136,9 @@ export interface ResearchOutputApiItem {
 export interface ResearchOutputsResponse {
   generated_at: string;
   item_count: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
   type_stats: { 论文: number; 专利: number; 获奖: number };
   items: ResearchOutputApiItem[];
 }

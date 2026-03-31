@@ -56,13 +56,15 @@ export default function HomeBriefingPage({
       </MotionCard>
 
       {/* Module Overview Cards — clickable navigation */}
-      <MotionCard delay={0.2}>
-        <AggregatedMetricCards
-          cards={metricCards}
-          onCardClick={(cardId) => onNavigate?.(cardId)}
-          columns={4}
-        />
-      </MotionCard>
+      {metricCards.length > 0 && (
+        <MotionCard delay={0.2}>
+          <AggregatedMetricCards
+            cards={metricCards}
+            onCardClick={(cardId) => onNavigate?.(cardId)}
+            columns={4}
+          />
+        </MotionCard>
+      )}
     </div>
   );
 }

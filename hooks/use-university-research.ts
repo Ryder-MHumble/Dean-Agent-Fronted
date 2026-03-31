@@ -3,11 +3,9 @@
 import { useState, useEffect, startTransition } from "react";
 import type {
   ResearchOutput,
-  ResearchOutputsResponse,
   ResearchOutputApiItem,
 } from "@/lib/types/university-eco";
 import { fetchUniversityResearch } from "@/lib/api";
-import { mockResearchOutputs } from "@/lib/mock-data/university-eco";
 
 // ── Transform API items to frontend ResearchOutput ───────
 
@@ -34,11 +32,25 @@ interface UseUniversityResearchResult {
   items: ResearchOutput[];
   typeStats: { 论文: number; 专利: number; 获奖: number } | null;
   isLoading: boolean;
-  isUsingMock: boolean;
   generatedAt: string | null;
+  itemCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
-export function useUniversityResearch(): UseUniversityResearchResult {
+interface UseUniversityResearchParams {
+  type?: string;
+  influence?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export function useUniversityResearch(
+  params?: UseUniversityResearchParams,
+): UseUniversityResearchResult {
+  const page = params?.page ?? 1;
+  const pageSize = params?.pageSize ?? 20;
   const [items, setItems] = useState<ResearchOutput[]>([]);
   const [typeStats, setTypeStats] = useState<{
     论文: number;
@@ -46,8 +58,9 @@ export function useUniversityResearch(): UseUniversityResearchResult {
     获奖: number;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUsingMock, setIsUsingMock] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [itemCount, setItemCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,20 +68,28 @@ export function useUniversityResearch(): UseUniversityResearchResult {
     async function load() {
       setIsLoading(true);
 
-      const data = await fetchUniversityResearch({ pageSize: 200 });
+      const data = await fetchUniversityResearch({
+        type: params?.type,
+        influence: params?.influence,
+        page,
+        pageSize,
+      });
 
       if (cancelled) return;
 
       startTransition(() => {
-        if (data && data.items.length > 0) {
+        if (data) {
           setItems(data.items.map(transformItem));
           setTypeStats(data.type_stats);
           setGeneratedAt(data.generated_at);
-          setIsUsingMock(false);
+          setItemCount(data.item_count);
+          setTotalPages(data.total_pages);
         } else {
-          setItems(mockResearchOutputs);
+          setItems([]);
           setTypeStats(null);
-          setIsUsingMock(true);
+          setGeneratedAt(null);
+          setItemCount(0);
+          setTotalPages(1);
         }
 
         setIsLoading(false);
@@ -79,7 +100,16 @@ export function useUniversityResearch(): UseUniversityResearchResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [params?.type, params?.influence, page, pageSize]);
 
-  return { items, typeStats, isLoading, isUsingMock, generatedAt };
+  return {
+    items,
+    typeStats,
+    isLoading,
+    generatedAt,
+    itemCount,
+    page,
+    pageSize,
+    totalPages,
+  };
 }

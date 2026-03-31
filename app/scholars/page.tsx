@@ -33,6 +33,15 @@ export default function ScholarsPage() {
   const [selectedClassification, setSelectedClassification] =
     useState<Classification | null>(null);
 
+  const getOrgTypeLabel = (
+    orgType: string,
+    node?: { display_name?: string | undefined },
+  ) => {
+    if (node?.display_name) return node.display_name;
+    if (orgType === "企业") return "公司";
+    return orgType;
+  };
+
   // Load taxonomy on mount
   useEffect(() => {
     fetchInstitutionTaxonomy().then(setTaxonomy);
@@ -153,7 +162,7 @@ export default function ScholarsPage() {
                             : "hover:bg-accent"
                         }`}
                       >
-                        {orgType} ({data.count})
+                        {getOrgTypeLabel(orgType, data)} ({data.count})
                       </button>
                     ))}
                   </div>

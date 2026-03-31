@@ -22,18 +22,26 @@ export function usePageUnderDevelopment({
 
   // Check if user has dismissed this page in current session
   useEffect(() => {
-    const dismissed = sessionStorage.getItem(
-      `page-dev-dismissed-${pageName}`
-    );
-    if (dismissed === "true") {
-      setIsOpen(false);
-      setIsDismissed(true);
+    try {
+      const dismissed = sessionStorage.getItem(
+        `page-dev-dismissed-${pageName}`,
+      );
+      if (dismissed === "true") {
+        setIsOpen(false);
+        setIsDismissed(true);
+      }
+    } catch {
+      // sessionStorage may be unavailable in restricted contexts
     }
   }, [pageName]);
 
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem(`page-dev-dismissed-${pageName}`, "true");
+    try {
+      sessionStorage.setItem(`page-dev-dismissed-${pageName}`, "true");
+    } catch {
+      // no-op when storage is unavailable
+    }
   };
 
   const UnderDevelopmentOverlay = () => (

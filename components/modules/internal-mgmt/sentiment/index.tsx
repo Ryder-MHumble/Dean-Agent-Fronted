@@ -22,7 +22,6 @@ import {
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/utils";
 import { getPlatformConfig } from "@/lib/config/platforms";
-import { usePageUnderDevelopment } from "@/hooks/use-page-under-development";
 import { useSentimentOverview, useSentimentFeed } from "@/hooks/use-sentiment";
 import { ContentCard } from "./content-card";
 import { DetailPanel } from "./detail-panel";
@@ -128,9 +127,6 @@ function PlatformChips({
 // ── Main component ────────────────────────────────────────
 
 export default function SentimentMonitor() {
-  const { UnderDevelopmentOverlay } = usePageUnderDevelopment({
-    pageName: "舆情监测",
-  });
   const { overview, isLoading: overviewLoading } = useSentimentOverview();
   const [platform, setPlatform] = useState("");
   const [keyword, setKeyword] = useState("");
@@ -170,7 +166,6 @@ export default function SentimentMonitor() {
 
   return (
     <>
-      <UnderDevelopmentOverlay />
       <div className="space-y-4">
         {/* Stat cards */}
         {overviewLoading ? (

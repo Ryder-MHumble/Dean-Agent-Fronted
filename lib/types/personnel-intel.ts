@@ -12,7 +12,10 @@ export interface PersonnelChangeItem {
   department: string | null;
   date: string;
   source: string;
+  source_name?: string | null;
   sourceUrl: string | null;
+  sourceTitle?: string | null;
+  sourceContent?: string | null;
   relevance: number;
   importance: PersonnelImportance;
   group: PersonnelGroup;

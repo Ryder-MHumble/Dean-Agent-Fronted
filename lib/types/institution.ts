@@ -73,6 +73,7 @@ export interface ClassificationNode {
 
 export interface OrgTypeNode {
   count: number;
+  display_name?: string;
   classifications: {
     [classification: string]: ClassificationNode;
   };
@@ -87,6 +88,7 @@ export interface RegionNode {
 
 export interface InstitutionTaxonomyResponse {
   total: number;
+  org_type_aliases?: Record<string, string>;
   regions: {
     [region: string]: RegionNode;
   };
