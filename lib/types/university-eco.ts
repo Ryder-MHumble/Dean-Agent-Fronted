@@ -41,6 +41,9 @@ export interface ResearchOutput {
   id: string;
   title: string;
   institution: string;
+  sourceId: string;
+  sourceName: string;
+  sourceUrl?: string | null;
   type: "论文" | "专利" | "获奖";
   influence: "高" | "中" | "低";
   date: string;
@@ -109,6 +112,24 @@ export interface UniversityArticleDetailResponse {
   content: string | null;
   images: { src: string; alt: string | null }[];
   is_new: boolean;
+}
+
+export interface UniversitySourceItem {
+  source_id: string;
+  source_name: string;
+  group: string;
+  url: string;
+  item_count: number;
+  new_item_count: number;
+  last_crawled_at: string | null;
+  is_enabled: boolean;
+}
+
+export interface UniversitySourcesResponse {
+  generated_at: string;
+  total_sources: number;
+  enabled_sources: number;
+  items: UniversitySourceItem[];
 }
 
 // ── Research outputs (from processed data) ───────────────

@@ -6,6 +6,7 @@ import type {
   ResearchOutputApiItem,
 } from "@/lib/types/university-eco";
 import { fetchUniversityResearch } from "@/lib/api";
+import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 // ── Transform API items to frontend ResearchOutput ───────
 
@@ -14,6 +15,11 @@ function transformItem(item: ResearchOutputApiItem): ResearchOutput {
     id: item.id,
     title: item.title,
     institution: item.institution,
+    sourceId: item.source_id,
+    sourceName:
+      normalizeUniversityInstitutionName(item.source_name, item.source_id) ||
+      item.institution,
+    sourceUrl: item.url,
     type: item.type,
     influence: item.influence,
     date: item.date,

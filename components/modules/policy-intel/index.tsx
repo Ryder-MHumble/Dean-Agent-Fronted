@@ -63,18 +63,26 @@ export default function PolicyIntelModule() {
     if (activeCategory !== "全部") {
       base = base.filter((n) => n.category === activeCategory);
     }
-    const map = new Map<string, number>();
+    const map = new Map<string, { count: number; label: string }>();
     for (const item of base) {
-      map.set(item.source, (map.get(item.source) || 0) + 1);
+      const current = map.get(item.source);
+      if (current) {
+        current.count += 1;
+      } else {
+        map.set(item.source, {
+          count: 1,
+          label: item.sourceName ?? item.source,
+        });
+      }
     }
     return Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([id, value]) => ({ id, label: value.label, count: value.count }));
   }, [feedItems, activeCategory]);
 
   // Reset source selection when category changes and selected sources are no longer available
   const availableSourceNames = useMemo(
-    () => new Set(sourcesWithCount.map((s) => s.name)),
+    () => new Set(sourcesWithCount.map((s) => s.id)),
     [sourcesWithCount],
   );
 
@@ -87,6 +95,14 @@ export default function PolicyIntelModule() {
   }, [selectedSources, availableSourceNames]);
 
   const isAllSourcesSelected = effectiveSources.size === 0;
+
+  const sourceIdToLabel = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const source of sourcesWithCount) {
+      map.set(source.id, source.label);
+    }
+    return map;
+  }, [sourcesWithCount]);
 
   const toggleSource = (source: string) => {
     setSelectedSources((prev) => {
@@ -115,6 +131,7 @@ export default function PolicyIntelModule() {
           n.title.toLowerCase().includes(q) ||
           n.summary.toLowerCase().includes(q) ||
           n.source.toLowerCase().includes(q) ||
+          (n.sourceName && n.sourceName.toLowerCase().includes(q)) ||
           n.tags.some((t) => t.toLowerCase().includes(q)) ||
           (n.leader && n.leader.toLowerCase().includes(q)),
       );
@@ -203,13 +220,13 @@ export default function PolicyIntelModule() {
                         </div>
                       </div>
                       <div className="max-h-64 overflow-y-auto overscroll-contain p-1.5">
-                        {sourcesWithCount.map(({ name, count }) => {
-                          const checked = effectiveSources.has(name);
+                        {sourcesWithCount.map(({ id, label, count }) => {
+                          const checked = effectiveSources.has(id);
                           return (
                             <button
-                              key={name}
+                              key={id}
                               type="button"
-                              onClick={() => toggleSource(name)}
+                              onClick={() => toggleSource(id)}
                               className={cn(
                                 "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-left transition-colors",
                                 checked ? "bg-blue-50" : "hover:bg-muted/60",
@@ -228,7 +245,7 @@ export default function PolicyIntelModule() {
                                 )}
                               </div>
                               <span className="text-[12px] flex-1 truncate">
-                                {name}
+                                {label}
                               </span>
                               <span className="text-[10px] text-muted-foreground font-tabular">
                                 {count}
@@ -278,7 +295,7 @@ export default function PolicyIntelModule() {
                       onClick={() => toggleSource(s)}
                       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
                     >
-                      {s}
+                      {sourceIdToLabel.get(s) ?? s}
                       <X className="h-2.5 w-2.5" />
                     </button>
                   ))}

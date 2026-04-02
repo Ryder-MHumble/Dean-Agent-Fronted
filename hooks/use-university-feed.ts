@@ -6,8 +6,14 @@ import type {
   PeerNewsItem,
   UniversityFeedItem,
   UniversityOverviewResponse,
+  UniversitySourceItem,
 } from "@/lib/types/university-eco";
-import { fetchUniversityOverview, fetchUniversityFeed } from "@/lib/api";
+import {
+  fetchUniversityOverview,
+  fetchUniversityFeed,
+  fetchUniversitySources,
+} from "@/lib/api";
+import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 // ── Transform API items to PeerNewsItem ──────────────────
 
@@ -22,7 +28,10 @@ function transformFeedItems(items: UniversityFeedItem[]): PeerNewsItem[] {
       id: item.id,
       title: item.title,
       sourceId: item.source_id,
-      sourceName: item.source_name,
+      sourceName: normalizeUniversityInstitutionName(
+        item.source_name,
+        item.source_id,
+      ),
       group: (item.group ?? "university_news") as PeerNewsItem["group"],
       url: item.url,
       date: item.published_at
@@ -43,6 +52,7 @@ function transformFeedItems(items: UniversityFeedItem[]): PeerNewsItem[] {
 interface UseUniversityFeedResult {
   items: PeerNewsItem[];
   overview: UniversityOverviewResponse | null;
+  sources: UniversitySourceItem[];
   isLoading: boolean;
   generatedAt: string | null;
   total: number;
@@ -53,6 +63,7 @@ interface UseUniversityFeedResult {
 
 interface UseUniversityFeedParams {
   group?: PeerNewsGroup;
+  sourceIds?: string[];
   page?: number;
   pageSize?: number;
 }
@@ -66,10 +77,12 @@ export function useUniversityFeed(
   const [overview, setOverview] = useState<UniversityOverviewResponse | null>(
     null,
   );
+  const [sources, setSources] = useState<UniversitySourceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const sourceIdsKey = (params?.sourceIds ?? []).join(",");
 
   useEffect(() => {
     let cancelled = false;
@@ -77,13 +90,15 @@ export function useUniversityFeed(
     async function load() {
       setIsLoading(true);
 
-      const [feedData, overviewData] = await Promise.all([
+      const [feedData, overviewData, sourcesData] = await Promise.all([
         fetchUniversityFeed({
           group: params?.group,
+          sourceIds: params?.sourceIds,
           page,
           pageSize,
         }),
         fetchUniversityOverview(),
+        fetchUniversitySources({ group: params?.group }),
       ]);
 
       if (cancelled) return;
@@ -106,6 +121,22 @@ export function useUniversityFeed(
           setOverview(overviewData);
         }
 
+        if (sourcesData) {
+          setSources(
+            sourcesData.items
+              .filter((item) => item.is_enabled)
+              .map((item) => ({
+                ...item,
+                source_name: normalizeUniversityInstitutionName(
+                  item.source_name,
+                  item.source_id,
+                ),
+              })),
+          );
+        } else {
+          setSources([]);
+        }
+
         setIsLoading(false);
       });
     }
@@ -114,7 +145,17 @@ export function useUniversityFeed(
     return () => {
       cancelled = true;
     };
-  }, [params?.group, page, pageSize]);
+  }, [params?.group, sourceIdsKey, page, pageSize]);
 
-  return { items, overview, isLoading, generatedAt, total, page, pageSize, totalPages };
+  return {
+    items,
+    overview,
+    sources,
+    isLoading,
+    generatedAt,
+    total,
+    page,
+    pageSize,
+    totalPages,
+  };
 }

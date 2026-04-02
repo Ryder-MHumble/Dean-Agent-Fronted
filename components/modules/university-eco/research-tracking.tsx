@@ -1,10 +1,18 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Lightbulb, Trophy, Loader2 } from "lucide-react";
+import {
+  BookOpen,
+  Lightbulb,
+  Trophy,
+  Loader2,
+  SlidersHorizontal,
+  Check,
+  X,
+} from "lucide-react";
 import { SkeletonResearchTracking } from "@/components/shared/skeleton-states";
 import { MotionNumber } from "@/components/motion";
 import MasterDetailView from "@/components/shared/master-detail-view";
@@ -20,7 +28,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ResearchOutput } from "@/lib/types/university-eco";
 import { useUniversityResearch } from "@/hooks/use-university-research";
-import { fetchUniversityArticle } from "@/lib/api";
+import { fetchUniversityArticle, fetchUniversitySources } from "@/lib/api";
+import DataFreshness from "@/components/shared/data-freshness";
+import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 function TypeBadge({ type }: { type: ResearchOutput["type"] }) {
   const config = {
@@ -56,6 +66,51 @@ function InfluenceBadge({ level }: { level: ResearchOutput["influence"] }) {
   );
 }
 
+function ArticleCover({
+  imageUrl,
+  fallbackText,
+}: {
+  imageUrl?: string | null;
+  fallbackText: string;
+}) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (!imageUrl || imgFailed) {
+    return (
+      <ItemAvatar
+        text={fallbackText.slice(0, 1)}
+        className="h-20 w-32 rounded-xl bg-purple-50 text-purple-700"
+      />
+    );
+  }
+
+  return (
+    <img
+      src={imageUrl}
+      alt="成果封面"
+      loading="lazy"
+      onError={() => setImgFailed(true)}
+      className="h-20 w-32 shrink-0 rounded-xl object-cover border border-border/50"
+    />
+  );
+}
+
+function mergeOutputsById(
+  previous: ResearchOutput[],
+  incoming: ResearchOutput[],
+): ResearchOutput[] {
+  const map = new Map<string, ResearchOutput>();
+  for (const item of previous) {
+    map.set(item.id, item);
+  }
+  for (const item of incoming) {
+    map.set(item.id, item);
+  }
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+}
+
 export default function ResearchTracking() {
   const {
     selectedItem: selectedOutput,
@@ -65,8 +120,19 @@ export default function ResearchTracking() {
   } = useDetailView<ResearchOutput>();
 
   const [page, setPage] = useState(1);
+  const [selectedSources, setSelectedSources] = useState<Set<string>>(
+    new Set(),
+  );
+  const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
+  const [allSources, setAllSources] = useState<
+    { id: string; label: string; count: number }[]
+  >([]);
+  const [loadedOutputs, setLoadedOutputs] = useState<ResearchOutput[]>([]);
+  const [requestingNextPage, setRequestingNextPage] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const pageSize = 20;
-  const { items, typeStats, isLoading, itemCount, totalPages } =
+  const { items, typeStats, isLoading, generatedAt, itemCount, totalPages } =
     useUniversityResearch({ page, pageSize });
 
   const [articleContent, setArticleContent] = useState<{
@@ -100,10 +166,9 @@ export default function ResearchTracking() {
     [open],
   );
 
-  // Derive metric values from processed research type stats
   const metrics = useMemo(() => {
     if (!typeStats) {
-      return { papers: 32, patents: 8, awards: 3 };
+      return { papers: 0, patents: 0, awards: 0 };
     }
     return {
       papers: typeStats.论文,
@@ -112,13 +177,124 @@ export default function ResearchTracking() {
     };
   }, [typeStats]);
 
-  const sortedOutputs = useMemo(
-    () =>
-      [...items].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      ),
-    [items],
+  useEffect(() => {
+    const sortedPageItems = [...items].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+    setLoadedOutputs((prev) =>
+      page === 1 ? sortedPageItems : mergeOutputsById(prev, sortedPageItems),
+    );
+  }, [items, page]);
+
+  const sortedOutputs = useMemo(() => {
+    return [...loadedOutputs].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+  }, [loadedOutputs]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSources() {
+      const data = await fetchUniversitySources();
+      if (cancelled) return;
+
+      if (!data) {
+        setAllSources([]);
+        return;
+      }
+
+      setAllSources(
+        data.items
+          .filter((item) => item.is_enabled)
+          .map((item) => ({
+            id: item.source_id,
+            label: normalizeUniversityInstitutionName(
+              item.source_name,
+              item.source_id,
+            ),
+            count: item.item_count ?? 0,
+          }))
+          .sort(
+            (a, b) =>
+              b.count - a.count || a.label.localeCompare(b.label, "zh-CN"),
+          ),
+      );
+    }
+
+    loadSources();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sourcesWithCount = useMemo(() => {
+    if (allSources.length > 0) {
+      return allSources;
+    }
+
+    const map = new Map<string, { label: string; count: number }>();
+    for (const item of sortedOutputs) {
+      const sourceLabel = item.sourceName?.trim() || "未知来源";
+      const existing = map.get(item.sourceId);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        map.set(item.sourceId, { label: sourceLabel, count: 1 });
+      }
+    }
+    return Array.from(map.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([id, value]) => ({ id, label: value.label, count: value.count }));
+  }, [allSources, sortedOutputs]);
+
+  const availableSourceIds = useMemo(
+    () => new Set(sourcesWithCount.map((s) => s.id)),
+    [sourcesWithCount],
   );
+
+  const effectiveSources = useMemo(() => {
+    const filtered = new Set<string>();
+    for (const source of selectedSources) {
+      if (availableSourceIds.has(source)) {
+        filtered.add(source);
+      }
+    }
+    return filtered;
+  }, [selectedSources, availableSourceIds]);
+
+  const filteredOutputs = useMemo(() => {
+    if (effectiveSources.size === 0) return sortedOutputs;
+    return sortedOutputs.filter((item) => effectiveSources.has(item.sourceId));
+  }, [sortedOutputs, effectiveSources]);
+
+  const activeSourceCount = effectiveSources.size;
+
+  const openDropdown = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setSourceDropdownOpen(true);
+  }, []);
+
+  const scheduleClose = useCallback(() => {
+    closeTimerRef.current = setTimeout(() => {
+      setSourceDropdownOpen(false);
+    }, 150);
+  }, []);
+
+  const toggleSource = useCallback((sourceId: string) => {
+    setSelectedSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(sourceId)) {
+        next.delete(sourceId);
+      } else {
+        next.add(sourceId);
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -126,16 +302,160 @@ export default function ResearchTracking() {
     }
   }, [page, totalPages]);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading) {
+      setRequestingNextPage(false);
+    }
+  }, [isLoading]);
+
+  const canLoadMore = page < totalPages;
+  const isLoadingNextPage = isLoading && page > 1;
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !canLoadMore || isLoading || requestingNextPage) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setRequestingNextPage(true);
+        setPage((prev) => (prev < totalPages ? prev + 1 : prev));
+      },
+      {
+        root: null,
+        rootMargin: "0px 0px 260px 0px",
+        threshold: 0.01,
+      },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [canLoadMore, isLoading, requestingNextPage, totalPages]);
+
+  if (isLoading && loadedOutputs.length === 0) {
     return <SkeletonResearchTracking />;
   }
 
   return (
     <div className="flex flex-col" style={{ height: "calc(100vh - 12rem)" }}>
-      <div className="grid grid-cols-3 gap-4 mb-4 shrink-0">
+      <div className="flex items-center justify-end gap-2 mb-3 shrink-0">
+        {sourcesWithCount.length > 0 && (
+          <div
+            className="relative shrink-0"
+            onMouseEnter={openDropdown}
+            onMouseLeave={scheduleClose}
+          >
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border text-xs font-medium transition-colors",
+                activeSourceCount > 0
+                  ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted",
+              )}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              信源筛选
+              {activeSourceCount > 0 && (
+                <Badge className="h-4 min-w-4 px-1 text-[10px] bg-blue-600 hover:bg-blue-600">
+                  {activeSourceCount}
+                </Badge>
+              )}
+            </button>
+
+            {sourceDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1.5 z-50 w-72 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150">
+                <div className="px-3 py-2.5 border-b">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold">信源渠道</span>
+                    {activeSourceCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSources(new Set())}
+                        className="text-[11px] text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        清除筛选
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="max-h-72 overflow-y-auto overscroll-contain p-1.5">
+                  {sourcesWithCount.map(({ id, label, count }) => {
+                    const checked = effectiveSources.has(id);
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => toggleSource(id)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-left transition-colors",
+                          checked ? "bg-blue-50" : "hover:bg-muted/60",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border transition-colors",
+                            checked
+                              ? "bg-blue-600 border-blue-600"
+                              : "border-muted-foreground/30",
+                          )}
+                        >
+                          {checked && (
+                            <Check className="h-2.5 w-2.5 text-white" />
+                          )}
+                        </div>
+                        <span className="text-[12px] flex-1 truncate">
+                          {label}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-tabular">
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        <DataFreshness
+          updatedAt={generatedAt ? new Date(generatedAt) : new Date()}
+        />
+      </div>
+
+      {activeSourceCount > 0 && (
+        <div className="flex items-center gap-2 mb-3 shrink-0">
+          {Array.from(effectiveSources).map((sourceId) => {
+            const source = sourcesWithCount.find((s) => s.id === sourceId);
+            if (!source) return null;
+            return (
+              <button
+                key={sourceId}
+                type="button"
+                onClick={() => toggleSource(sourceId)}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
+              >
+                {source.label}
+                <X className="h-2.5 w-2.5" />
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => setSelectedSources(new Set())}
+            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            清除
+          </button>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 shrink-0">
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
               <BookOpen className="h-5 w-5" />
             </div>
             <div>
@@ -148,7 +468,7 @@ export default function ResearchTracking() {
         </Card>
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-500">
               <Lightbulb className="h-5 w-5" />
             </div>
             <div>
@@ -161,7 +481,7 @@ export default function ResearchTracking() {
         </Card>
         <Card className="shadow-card">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
               <Trophy className="h-5 w-5" />
             </div>
             <div>
@@ -193,9 +513,14 @@ export default function ResearchTracking() {
                       <span>&middot;</span>
                       <span>{selectedOutput.field}</span>
                       <span>&middot;</span>
+                      <span className="font-medium">
+                        来源：{selectedOutput.sourceName || "未知来源"}
+                      </span>
+                      <span>&middot;</span>
                       <span>{selectedOutput.date}</span>
                     </div>
                   ),
+                  sourceUrl: selectedOutput.sourceUrl ?? undefined,
                 }
               : undefined
           }
@@ -270,81 +595,79 @@ export default function ResearchTracking() {
         >
           <div className="flex flex-col gap-3 pb-2">
             <DateGroupedList
-              key={page}
-              items={sortedOutputs}
+              items={filteredOutputs}
               emptyMessage="暂无科研成果"
               renderItem={(output) => (
                 <DataItemCard
                   isSelected={selectedOutput?.id === output.id}
                   onClick={() => handleOpen(output)}
                   accentColor="purple"
+                  className="p-0 overflow-hidden"
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <ItemAvatar text={output.institution.charAt(0)} />
-                      <div>
-                        <h4
-                          className={cn(
-                            "text-sm font-semibold transition-colors",
-                            accentConfig.purple.title,
-                          )}
-                        >
-                          {output.title}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
-                          <span>{output.institution}</span>
-                          <span>&middot;</span>
-                          <span>{output.field}</span>
+                  <div className="px-4 py-3 sm:px-5 sm:py-4">
+                    <div className="flex items-start gap-3">
+                      <ArticleCover
+                        imageUrl={output.images?.[0]?.src}
+                        fallbackText={(output.institution || "机").trim()}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h4
+                              className={cn(
+                                "text-[15px] font-semibold leading-snug transition-colors",
+                                accentConfig.purple.title,
+                              )}
+                            >
+                              {output.title}
+                            </h4>
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground/80">
+                                {output.institution}
+                              </span>
+                              <span>&middot;</span>
+                              <span>{output.field}</span>
+                              <span>&middot;</span>
+                              <span>{output.date}</span>
+                            </div>
+                          </div>
+                          <InfluenceBadge level={output.influence} />
+                          <ItemChevron accentColor="purple" />
                         </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <TypeBadge type={output.type} />
+                          <span className="inline-flex items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 max-w-full">
+                            来源：{output.sourceName || "未知来源"}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-muted-foreground line-clamp-1">
+                          作者/团队：{output.authors}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <InfluenceBadge level={output.influence} />
-                      <ItemChevron accentColor="purple" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-[52px]">
-                    <TypeBadge type={output.type} />
-                    <span className="text-xs text-muted-foreground truncate max-w-[500px]">
-                      {output.authors}
-                    </span>
                   </div>
                 </DataItemCard>
               )}
             />
-            <div className="flex items-center justify-between rounded-lg border px-3 py-2 text-xs text-muted-foreground">
-              <span>
-                第 {page}/{totalPages} 页，共 {itemCount} 条
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPage((prev) => Math.max(1, prev - 1));
-                    close();
-                    setArticleContent({});
-                  }}
-                  disabled={page <= 1}
-                >
-                  上一页
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPage((prev) => Math.min(totalPages, prev + 1));
-                    close();
-                    setArticleContent({});
-                  }}
-                  disabled={page >= totalPages}
-                >
-                  下一页
-                </Button>
+
+            <div ref={loadMoreRef} className="h-4" />
+            {(isLoadingNextPage || canLoadMore) && (
+              <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground">
+                {isLoadingNextPage ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    正在加载更多成果...
+                  </>
+                ) : (
+                  "下拉到底自动加载更多"
+                )}
               </div>
-            </div>
+            )}
+            {!canLoadMore && filteredOutputs.length > 0 && (
+              <div className="text-center text-[11px] text-muted-foreground py-1">
+                已加载全部 {loadedOutputs.length} 条
+              </div>
+            )}
           </div>
         </MasterDetailView>
       </div>

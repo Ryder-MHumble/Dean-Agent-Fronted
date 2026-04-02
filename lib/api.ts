@@ -20,6 +20,13 @@ export interface PolicyFeedResponse {
   items: PolicyFeedItem[];
 }
 
+interface SourceBrief {
+  id: string;
+  name: string;
+}
+
+const POLICY_FEED_PAGE_SIZE = 200;
+
 /**
  * Fetch the full policy intelligence feed from the backend API.
  * Returns null if the request fails (caller handles fallback).
@@ -28,14 +35,60 @@ export async function fetchPolicyFeed(
   limit = 30,
 ): Promise<PolicyFeedResponse | null> {
   try {
-    const res = await fetch(
-      `${API_BASE}/api/v1/intel/policy/feed?limit=${limit}`,
-      { cache: "no-store" },
-    );
-    if (!res.ok) return null;
-    return (await res.json()) as PolicyFeedResponse;
+    // Backend enforces limit<=200, so fetch in pages when caller asks for more.
+    const target = Math.max(1, limit);
+    let offset = 0;
+    let total = 0;
+    let generatedAt: string | null = null;
+    const allItems: PolicyFeedItem[] = [];
+
+    while (allItems.length < target) {
+      const pageSize = Math.min(POLICY_FEED_PAGE_SIZE, target - allItems.length);
+      const res = await fetch(
+        `${API_BASE}/api/v1/intel/policy/feed?limit=${pageSize}&offset=${offset}`,
+        { cache: "no-store" },
+      );
+      if (!res.ok) return null;
+
+      const page = (await res.json()) as PolicyFeedResponse;
+      if (generatedAt === null) generatedAt = page.generated_at;
+      total = page.item_count;
+
+      if (!page.items.length) break;
+      allItems.push(...page.items);
+      offset += page.items.length;
+
+      if (offset >= total) break;
+    }
+
+    return {
+      generated_at: generatedAt,
+      item_count: total || allItems.length,
+      items: allItems,
+    };
   } catch {
     return null;
+  }
+}
+
+export async function fetchPolicySourceNameMap(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/v1/sources?dimensions=beijing_policy,national_policy`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return {};
+
+    const items = (await res.json()) as SourceBrief[];
+    const map: Record<string, string> = {};
+    for (const item of items) {
+      if (item?.id && item?.name) {
+        map[item.id] = item.name;
+      }
+    }
+    return map;
+  } catch {
+    return {};
   }
 }
 
@@ -103,6 +156,7 @@ import type {
   UniversityOverviewResponse,
   UniversityFeedResponse,
   UniversityArticleDetailResponse,
+  UniversitySourcesResponse,
   ResearchOutputsResponse,
 } from "@/lib/types/university-eco";
 
@@ -121,6 +175,7 @@ export async function fetchUniversityOverview(): Promise<UniversityOverviewRespo
 export async function fetchUniversityFeed(params?: {
   group?: string;
   keyword?: string;
+  sourceIds?: string[];
   page?: number;
   pageSize?: number;
 }): Promise<UniversityFeedResponse | null> {
@@ -128,6 +183,9 @@ export async function fetchUniversityFeed(params?: {
     const sp = new URLSearchParams();
     if (params?.group) sp.set("group", params.group);
     if (params?.keyword) sp.set("keyword", params.keyword);
+    if (params?.sourceIds?.length) {
+      sp.set("source_ids", params.sourceIds.join(","));
+    }
     sp.set("page", String(params?.page ?? 1));
     sp.set("page_size", String(params?.pageSize ?? 20));
     const res = await fetch(`${API_BASE}/api/v1/intel/university/feed?${sp}`, {
@@ -135,6 +193,26 @@ export async function fetchUniversityFeed(params?: {
     });
     if (!res.ok) return null;
     return (await res.json()) as UniversityFeedResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchUniversitySources(params?: {
+  group?: string;
+}): Promise<UniversitySourcesResponse | null> {
+  try {
+    const sp = new URLSearchParams();
+    if (params?.group) sp.set("group", params.group);
+    const suffix = sp.toString();
+    const res = await fetch(
+      `${API_BASE}/api/v1/intel/university/sources${suffix ? `?${suffix}` : ""}`,
+      {
+        cache: "no-store",
+      },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as UniversitySourcesResponse;
   } catch {
     return null;
   }

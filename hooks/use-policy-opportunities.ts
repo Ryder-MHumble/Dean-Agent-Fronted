@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, startTransition } from "react";
 import type { PolicyFeedItem } from "@/lib/types/policy-intel";
-import { fetchPolicyFeed } from "@/lib/api";
+import { fetchPolicyFeed, fetchPolicySourceNameMap } from "@/lib/api";
 import type { PolicyFeedResponse } from "@/lib/api";
 
 const CACHE_KEY = "policy_feed_cache_v2";
@@ -17,6 +17,25 @@ const FULL_LIMIT = 500;
 interface CachedEntry {
   data: PolicyFeedResponse;
   cachedAt: number;
+}
+
+let sourceNameMapPromise: Promise<Record<string, string>> | null = null;
+
+function getPolicySourceNameMap() {
+  if (!sourceNameMapPromise) {
+    sourceNameMapPromise = fetchPolicySourceNameMap();
+  }
+  return sourceNameMapPromise;
+}
+
+function withSourceNames(
+  items: PolicyFeedItem[],
+  sourceNameMap: Record<string, string>,
+): PolicyFeedItem[] {
+  return items.map((item) => ({
+    ...item,
+    sourceName: item.sourceName ?? sourceNameMap[item.source] ?? item.source,
+  }));
 }
 
 function readCache(): CachedEntry | null {
@@ -78,12 +97,18 @@ export function usePolicyFeed(): UsePolicyFeedResult {
         cached !== null && Date.now() - cached.cachedAt < CACHE_TTL_MS;
 
       if (cached && cached.data.items.length > 0) {
+        const sourceNameMap = await getPolicySourceNameMap();
+        const enrichedCachedItems = withSourceNames(
+          cached.data.items,
+          sourceNameMap,
+        );
+
         // Render cached data immediately — no skeleton shown
         startTransition(() => {
-          setItems(cached.data.items);
+          setItems(enrichedCachedItems);
           setGeneratedAt(cached.data.generated_at);
           setIsUsingMock(false);
-          setHasMore(cached.data.items.length < cached.data.item_count);
+          setHasMore(enrichedCachedItems.length < cached.data.item_count);
           setIsLoading(false);
         });
 
@@ -95,11 +120,12 @@ export function usePolicyFeed(): UsePolicyFeedResult {
 
       // ── Step 2: fetch the full policy feed ────────────────────────────
       const data = await fetchPolicyFeed(INITIAL_LIMIT);
+      const sourceNameMap = await getPolicySourceNameMap();
       if (cancelled) return;
 
       startTransition(() => {
         if (data && data.items.length > 0) {
-          setItems(data.items);
+          setItems(withSourceNames(data.items, sourceNameMap));
           setGeneratedAt(data.generated_at);
           setIsUsingMock(false);
           setHasMore(data.items.length < data.item_count);
@@ -126,9 +152,10 @@ export function usePolicyFeed(): UsePolicyFeedResult {
     setIsLoadingMore(true);
     try {
       const data = await fetchPolicyFeed(FULL_LIMIT);
+      const sourceNameMap = await getPolicySourceNameMap();
       if (data && data.items.length > 0) {
         startTransition(() => {
-          setItems(data.items);
+          setItems(withSourceNames(data.items, sourceNameMap));
           setGeneratedAt(data.generated_at);
           setHasMore(false);
           writeCache(data);
