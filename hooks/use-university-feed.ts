@@ -17,12 +17,31 @@ import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 // ── Transform API items to PeerNewsItem ──────────────────
 
+function normalizePublishedAt(publishedAt: string | null): {
+  date: string;
+  displayDate: string;
+} {
+  if (!publishedAt) {
+    return { date: "", displayDate: "未知日期" };
+  }
+
+  const date = publishedAt.slice(0, 10);
+  const timeMatch = publishedAt.match(/[T ](\d{2}:\d{2})/);
+  const hasMeaningfulTime = timeMatch && timeMatch[1] !== "00:00";
+
+  return {
+    date,
+    displayDate: hasMeaningfulTime ? `${date} ${timeMatch[1]}` : date,
+  };
+}
+
 function transformFeedItems(items: UniversityFeedItem[]): PeerNewsItem[] {
   return items.map((item) => {
     // Generate summary from content: take first 120 chars of plain text
     const summary = item.content
       ? item.content.replace(/\s+/g, " ").trim().slice(0, 120)
       : "";
+    const { date, displayDate } = normalizePublishedAt(item.published_at);
 
     return {
       id: item.id,
@@ -34,9 +53,8 @@ function transformFeedItems(items: UniversityFeedItem[]): PeerNewsItem[] {
       ),
       group: (item.group ?? "university_news") as PeerNewsItem["group"],
       url: item.url,
-      date: item.published_at
-        ? item.published_at.slice(0, 10)
-        : new Date().toISOString().slice(0, 10),
+      date,
+      displayDate,
       summary,
       tags: item.tags,
       thumbnail: item.thumbnail,

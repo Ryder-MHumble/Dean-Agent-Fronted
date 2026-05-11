@@ -8,6 +8,7 @@ import { Search, X, SlidersHorizontal, Check } from "lucide-react";
 import { MotionCard } from "@/components/motion";
 import DataFreshness from "@/components/shared/data-freshness";
 import { cn } from "@/lib/utils";
+import { getPolicySourceId, getPolicySourceLabel } from "@/lib/policy-source-label";
 import PolicyFeed from "./policy-feed";
 import { usePolicyFeed } from "@/hooks/use-policy-opportunities";
 import { SkeletonPolicyIntel } from "@/components/shared/skeleton-states";
@@ -65,13 +66,14 @@ export default function PolicyIntelModule() {
     }
     const map = new Map<string, { count: number; label: string }>();
     for (const item of base) {
-      const current = map.get(item.source);
+      const sourceId = getPolicySourceId(item);
+      const current = map.get(sourceId);
       if (current) {
         current.count += 1;
       } else {
-        map.set(item.source, {
+        map.set(sourceId, {
           count: 1,
-          label: item.sourceName ?? item.source,
+          label: getPolicySourceLabel(item),
         });
       }
     }
@@ -122,7 +124,7 @@ export default function PolicyIntelModule() {
       items = items.filter((n) => n.category === activeCategory);
     }
     if (!isAllSourcesSelected) {
-      items = items.filter((n) => effectiveSources.has(n.source));
+      items = items.filter((n) => effectiveSources.has(getPolicySourceId(n)));
     }
     if (isSearching) {
       const q = searchQuery.trim().toLowerCase();
@@ -131,7 +133,8 @@ export default function PolicyIntelModule() {
           n.title.toLowerCase().includes(q) ||
           n.summary.toLowerCase().includes(q) ||
           n.source.toLowerCase().includes(q) ||
-          (n.sourceName && n.sourceName.toLowerCase().includes(q)) ||
+          getPolicySourceId(n).toLowerCase().includes(q) ||
+          getPolicySourceLabel(n).toLowerCase().includes(q) ||
           n.tags.some((t) => t.toLowerCase().includes(q)) ||
           (n.leader && n.leader.toLowerCase().includes(q)),
       );

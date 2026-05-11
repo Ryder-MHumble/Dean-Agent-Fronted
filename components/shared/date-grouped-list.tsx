@@ -8,7 +8,7 @@ import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { groupByDate } from "@/lib/group-by-date";
 import { cn } from "@/lib/utils";
 
-interface DateGroupedListProps<T extends { id: string; date: string }> {
+interface DateGroupedListProps<T extends { id: string; date?: string | null }> {
   items: T[];
   renderItem: (item: T) => ReactNode;
   className?: string;
@@ -16,7 +16,7 @@ interface DateGroupedListProps<T extends { id: string; date: string }> {
 }
 
 export default function DateGroupedList<
-  T extends { id: string; date: string },
+  T extends { id: string; date?: string | null },
 >({
   items,
   renderItem,

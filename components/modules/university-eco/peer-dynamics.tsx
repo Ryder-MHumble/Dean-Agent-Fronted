@@ -117,9 +117,16 @@ function mergeNewsById(
   for (const item of incoming) {
     map.set(item.id, item);
   }
-  return Array.from(map.values()).sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+  return Array.from(map.values()).sort(sortNewsByDateDesc);
+}
+
+function getNewsDateTimestamp(value?: string) {
+  const ts = Date.parse(value || "");
+  return Number.isFinite(ts) ? ts : 0;
+}
+
+function sortNewsByDateDesc(a: PeerNewsItem, b: PeerNewsItem) {
+  return getNewsDateTimestamp(b.date) - getNewsDateTimestamp(a.date);
 }
 
 export default function PeerDynamics() {
@@ -198,18 +205,14 @@ export default function PeerDynamics() {
   );
 
   useEffect(() => {
-    const sortedPageItems = [...items].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
+    const sortedPageItems = [...items].sort(sortNewsByDateDesc);
     setLoadedNews((prev) =>
       page === 1 ? sortedPageItems : mergeNewsById(prev, sortedPageItems),
     );
   }, [items, page]);
 
   const sortedNews = useMemo(() => {
-    return [...loadedNews].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
+    return [...loadedNews].sort(sortNewsByDateDesc);
   }, [loadedNews]);
 
   useEffect(() => {
@@ -592,7 +595,7 @@ export default function PeerDynamics() {
                         &middot;
                       </span>
                       <span className="text-sm text-muted-foreground">
-                        {selectedNews.date}
+                        {selectedNews.displayDate || selectedNews.date || "未知日期"}
                       </span>
                     </div>
                   ),
@@ -705,7 +708,7 @@ export default function PeerDynamics() {
                             来源：{news.sourceName || "未知来源"}
                           </span>
                           <span className="ml-auto text-xs text-muted-foreground">
-                            {news.date}
+                            {news.displayDate || news.date || "未知日期"}
                           </span>
                         </div>
                       </div>

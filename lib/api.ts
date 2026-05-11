@@ -4,16 +4,27 @@ import type {
   PersonnelEnrichedStatsResponse,
 } from "@/lib/types/personnel-intel";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001";
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001"
+).replace(/\/+$/, "");
 
-const ACADEMIC_API_BASE =
-  process.env.NEXT_PUBLIC_ACADEMIC_MONITOR_API_BASE_URL ||
-  "http://10.1.132.21:8000";
+function resolveAcademicApiBase(rawBase: string): string {
+  const normalized = rawBase.replace(/\/+$/, "");
+  if (normalized.endsWith("/academic-monitor")) return normalized;
+  if (normalized.endsWith("/academic-monitor/api")) {
+    return normalized.slice(0, -"/api".length);
+  }
+  if (normalized.endsWith("/api")) {
+    return `${normalized.slice(0, -"/api".length)}/academic-monitor`;
+  }
+  return `${normalized}/academic-monitor`;
+}
+
+const ACADEMIC_API_BASE = resolveAcademicApiBase(API_BASE);
 
 // ── Policy ────────────────────────────────────────────────
 
-/** Response shape from GET /api/v1/intel/policy/feed */
+/** Response shape from GET /api/intel/policy/feed */
 export interface PolicyFeedResponse {
   generated_at: string | null;
   item_count: number;
@@ -45,7 +56,7 @@ export async function fetchPolicyFeed(
     while (allItems.length < target) {
       const pageSize = Math.min(POLICY_FEED_PAGE_SIZE, target - allItems.length);
       const res = await fetch(
-        `${API_BASE}/api/v1/intel/policy/feed?limit=${pageSize}&offset=${offset}`,
+        `${API_BASE}/api/intel/policy/feed?limit=${pageSize}&offset=${offset}`,
         { cache: "no-store" },
       );
       if (!res.ok) return null;
@@ -74,7 +85,7 @@ export async function fetchPolicyFeed(
 export async function fetchPolicySourceNameMap(): Promise<Record<string, string>> {
   try {
     const res = await fetch(
-      `${API_BASE}/api/v1/sources?dimensions=beijing_policy,national_policy`,
+      `${API_BASE}/api/sources?dimensions=beijing_policy,national_policy`,
       { cache: "no-store" },
     );
     if (!res.ok) return {};
@@ -97,7 +108,7 @@ export async function fetchPolicySourceNameMap(): Promise<Record<string, string>
 export async function fetchPersonnelEnrichedFeed(): Promise<PersonnelEnrichedFeedResponse | null> {
   try {
     const res = await fetch(
-      `${API_BASE}/api/v1/intel/personnel/enriched-feed?limit=200`,
+      `${API_BASE}/api/intel/personnel/enriched-feed?limit=200`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;
@@ -112,7 +123,7 @@ export async function fetchPersonnelEnrichedFeed(): Promise<PersonnelEnrichedFee
 import type { BriefingSegment } from "@/components/home/ai-daily-summary";
 import type { MetricCardData } from "@/components/home/aggregated-metric-cards";
 
-/** Response shape from GET /api/v1/intel/daily-briefing/report */
+/** Response shape from GET /api/intel/daily-briefing/report */
 export interface DailyBriefingResponse {
   generated_at: string;
   date: string;
@@ -125,7 +136,7 @@ export interface DailyBriefingResponse {
 
 export async function fetchDailyBriefing(): Promise<DailyBriefingResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/v1/intel/daily-briefing/report`, {
+    const res = await fetch(`${API_BASE}/api/intel/daily-briefing/report`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -140,7 +151,7 @@ export async function fetchDailyBriefing(): Promise<DailyBriefingResponse | null
 export async function fetchPersonnelEnrichedStats(): Promise<PersonnelEnrichedStatsResponse | null> {
   try {
     const res = await fetch(
-      `${API_BASE}/api/v1/intel/personnel/enriched-stats`,
+      `${API_BASE}/api/intel/personnel/enriched-stats`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;
@@ -162,7 +173,7 @@ import type {
 
 export async function fetchUniversityOverview(): Promise<UniversityOverviewResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/v1/intel/university/overview`, {
+    const res = await fetch(`${API_BASE}/api/intel/university/overview`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -188,7 +199,7 @@ export async function fetchUniversityFeed(params?: {
     }
     sp.set("page", String(params?.page ?? 1));
     sp.set("page_size", String(params?.pageSize ?? 20));
-    const res = await fetch(`${API_BASE}/api/v1/intel/university/feed?${sp}`, {
+    const res = await fetch(`${API_BASE}/api/intel/university/feed?${sp}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -206,7 +217,7 @@ export async function fetchUniversitySources(params?: {
     if (params?.group) sp.set("group", params.group);
     const suffix = sp.toString();
     const res = await fetch(
-      `${API_BASE}/api/v1/intel/university/sources${suffix ? `?${suffix}` : ""}`,
+      `${API_BASE}/api/intel/university/sources${suffix ? `?${suffix}` : ""}`,
       {
         cache: "no-store",
       },
@@ -223,7 +234,7 @@ export async function fetchUniversityArticle(
 ): Promise<UniversityArticleDetailResponse | null> {
   try {
     const res = await fetch(
-      `${API_BASE}/api/v1/intel/university/article/${urlHash}`,
+      `${API_BASE}/api/intel/university/article/${urlHash}`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;
@@ -246,7 +257,7 @@ export async function fetchUniversityResearch(params?: {
     sp.set("page", String(params?.page ?? 1));
     sp.set("page_size", String(params?.pageSize ?? 20));
     const res = await fetch(
-      `${API_BASE}/api/v1/intel/university/research?${sp}`,
+      `${API_BASE}/api/intel/university/research?${sp}`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;
@@ -271,7 +282,7 @@ import type {
 
 export async function fetchSentimentOverview(): Promise<SentimentOverview | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/v1/sentiment/overview`, {
+    const res = await fetch(`${API_BASE}/api/sentiment/overview`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -297,7 +308,7 @@ export async function fetchSentimentFeed(params?: {
     if (params?.sortOrder) sp.set("sort_order", params.sortOrder);
     sp.set("page", String(params?.page ?? 1));
     sp.set("page_size", String(params?.pageSize ?? 20));
-    const res = await fetch(`${API_BASE}/api/v1/sentiment/feed?${sp}`, {
+    const res = await fetch(`${API_BASE}/api/sentiment/feed?${sp}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -312,7 +323,7 @@ export async function fetchSentimentContentDetail(
 ): Promise<SentimentContentDetail | null> {
   try {
     const res = await fetch(
-      `${API_BASE}/api/v1/sentiment/content/${contentId}`,
+      `${API_BASE}/api/sentiment/content/${contentId}`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;
@@ -336,7 +347,7 @@ export async function fetchAcademicStudents(
     sp.set("page_size", String(pageSize));
     const suffix = sp.toString();
     const res = await fetch(
-      `${ACADEMIC_API_BASE}/api/v1/students${suffix ? `?${suffix}` : ""}`,
+      `${ACADEMIC_API_BASE}/api/students${suffix ? `?${suffix}` : ""}`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;
@@ -351,7 +362,7 @@ export async function fetchAcademicStudentPapers(
 ): Promise<AcademicStudentPapersResponse | null> {
   try {
     const res = await fetch(
-      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers`,
+      `${ACADEMIC_API_BASE}/api/students/${encodeURIComponent(targetKey)}/papers`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;
@@ -367,7 +378,7 @@ export async function createAcademicPaper(
 ): Promise<{ status: string; paper_uid: string } | null> {
   try {
     const res = await fetch(
-      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers`,
+      `${ACADEMIC_API_BASE}/api/students/${encodeURIComponent(targetKey)}/papers`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -388,7 +399,7 @@ export async function updateAcademicPaper(
 ): Promise<{ status: string; paper_uid: string } | null> {
   try {
     const res = await fetch(
-      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}`,
+      `${ACADEMIC_API_BASE}/api/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -409,7 +420,7 @@ export async function updateAcademicPaperCompliance(
 ): Promise<{ status: string; paper_uid: string } | null> {
   try {
     const res = await fetch(
-      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}/compliance`,
+      `${ACADEMIC_API_BASE}/api/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}/compliance`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -429,7 +440,7 @@ export async function deleteAcademicPaper(
 ): Promise<boolean> {
   try {
     const res = await fetch(
-      `${ACADEMIC_API_BASE}/api/v1/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}`,
+      `${ACADEMIC_API_BASE}/api/students/${encodeURIComponent(targetKey)}/papers/${encodeURIComponent(paperUid)}`,
       { method: "DELETE" },
     );
     return res.ok;
@@ -469,7 +480,7 @@ export async function fetchInstitutions(
     sp.set("page", String(params?.page ?? 1));
     sp.set("page_size", String(params?.page_size ?? 20));
 
-    const res = await fetch(`${API_BASE}/api/v1/institutions?${sp}`, {
+    const res = await fetch(`${API_BASE}/api/institutions?${sp}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -487,8 +498,8 @@ export async function fetchInstitutions(
 export async function fetchInstitutionTaxonomy(): Promise<InstitutionTaxonomyResponse | null> {
   try {
     const candidates = [
-      `${API_BASE}/api/v1/institutions/taxonomy`,
-      `${API_BASE}/api/v1/institutions/taxonomy/v2`,
+      `${API_BASE}/api/institutions/taxonomy`,
+      `${API_BASE}/api/institutions/taxonomy/v2`,
     ];
     for (const url of candidates) {
       const res = await fetch(url, { cache: "no-store" });
@@ -509,7 +520,7 @@ export async function fetchInstitutionDetail(
 ): Promise<InstitutionDetail | null> {
   try {
     const res = await fetch(
-      `${API_BASE}/api/v1/institutions/${institutionId}`,
+      `${API_BASE}/api/institutions/${institutionId}`,
       { cache: "no-store" },
     );
     if (!res.ok) return null;

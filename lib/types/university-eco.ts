@@ -15,6 +15,7 @@ export interface PeerNewsItem {
   group: PeerNewsGroup;
   url: string;
   date: string;
+  displayDate?: string;
   summary: string;
   tags: string[];
   thumbnail?: string | null;

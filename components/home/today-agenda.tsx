@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   CalendarDays,
   ChevronRight,
+  Construction,
 } from "lucide-react";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ export interface AgendaItem {
 interface TodayAgendaProps {
   items: AgendaItem[];
   onNavigateToSchedule?: () => void;
+  underDevelopment?: boolean;
 }
 
 const typeIcons: Record<string, typeof Clock> = {
@@ -77,6 +79,7 @@ const statusConfig: Record<
 export default function TodayAgenda({
   items,
   onNavigateToSchedule,
+  underDevelopment = false,
 }: TodayAgendaProps) {
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
@@ -95,141 +98,173 @@ export default function TodayAgenda({
   const pendingCount = items.filter((i) => !completedIds.has(i.id)).length;
 
   return (
-    <Card className="shadow-card">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            今日待办
-          </CardTitle>
-          <Badge variant="secondary" className="text-[10px]">
-            {pendingCount} 项待处理
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <StaggerContainer className="space-y-1">
-          {sortedItems.map((item) => {
-            const Icon = typeIcons[item.type] || Clock;
-            const isDone = completedIds.has(item.id);
-            const status = item.status
-              ? statusConfig[item.status]
-              : undefined;
+    <Card
+      className="relative overflow-hidden shadow-card"
+      aria-label={underDevelopment ? "今日待办正在开发" : undefined}
+    >
+      <div
+        className={cn(underDevelopment && "select-none opacity-50")}
+        aria-hidden={underDevelopment}
+      >
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
+              今日待办
+            </CardTitle>
+            <Badge variant="secondary" className="text-[10px]">
+              {pendingCount} 项待处理
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <StaggerContainer className="space-y-1">
+            {sortedItems.map((item) => {
+              const Icon = typeIcons[item.type] || Clock;
+              const isDone = completedIds.has(item.id);
+              const status = item.status
+                ? statusConfig[item.status]
+                : undefined;
 
-            return (
-              <StaggerItem key={item.id}>
-                <div
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all",
-                    isDone
-                      ? "bg-green-50/30 opacity-50"
-                      : item.status === "conflict"
-                        ? "bg-red-50/30"
-                        : "hover:bg-muted/30",
-                  )}
-                >
-                  {/* Time column */}
-                  <div className="w-12 shrink-0 text-right">
-                    {isDone ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />
-                    ) : item.time ? (
-                      <span className="text-xs font-medium font-tabular text-foreground">
-                        {item.time}
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">
-                        待办
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Icon */}
+              return (
+                <StaggerItem key={item.id}>
                   <div
                     className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-md shrink-0",
-                      item.status === "conflict"
-                        ? "bg-red-50 text-red-500"
-                        : item.status === "urgent"
-                          ? "bg-red-50 text-red-500"
-                          : "bg-muted/50 text-muted-foreground",
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all",
+                      isDone
+                        ? "bg-green-50/30 opacity-50"
+                        : item.status === "conflict"
+                          ? "bg-red-50/30"
+                          : "hover:bg-muted/30",
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={cn(
-                        "text-sm font-medium truncate",
-                        isDone && "line-through text-muted-foreground",
-                      )}
-                    >
-                      {item.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {item.source && (
-                        <span className="text-[10px] text-muted-foreground">
-                          {item.source}
+                    {/* Time column */}
+                    <div className="w-12 shrink-0 text-right">
+                      {isDone ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />
+                      ) : item.time ? (
+                        <span className="text-xs font-medium font-tabular text-foreground">
+                          {item.time}
                         </span>
-                      )}
-                      {item.metadata && (
+                      ) : (
                         <span className="text-[10px] text-muted-foreground">
-                          {item.metadata}
+                          待办
                         </span>
                       )}
                     </div>
-                  </div>
 
-                  {/* Status + Action */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    {status && !isDone && (
-                      <Badge
-                        variant="outline"
+                    {/* Icon */}
+                    <div
+                      className={cn(
+                        "flex h-7 w-7 items-center justify-center rounded-md shrink-0",
+                        item.status === "conflict"
+                          ? "bg-red-50 text-red-500"
+                          : item.status === "urgent"
+                            ? "bg-red-50 text-red-500"
+                            : "bg-muted/50 text-muted-foreground",
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <p
                         className={cn(
-                          "text-[10px] px-1.5 py-0",
-                          status.bg,
-                          status.color,
+                          "text-sm font-medium truncate",
+                          isDone && "line-through text-muted-foreground",
                         )}
                       >
-                        {status.label}
-                      </Badge>
-                    )}
-                    {!isDone && item.actionLabel && (
-                      <Button
-                        size="sm"
-                        variant={
-                          item.status === "conflict" ? "destructive" : "ghost"
-                        }
-                        className="h-7 text-xs px-2"
-                        onClick={() =>
-                          handleComplete(item.id, item.title)
-                        }
-                      >
-                        {item.actionLabel}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </StaggerItem>
-            );
-          })}
-        </StaggerContainer>
+                        {item.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {item.source && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {item.source}
+                          </span>
+                        )}
+                        {item.metadata && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {item.metadata}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-        {onNavigateToSchedule && (
-          <div className="mt-3 pt-3 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs text-muted-foreground hover:text-foreground"
-              onClick={onNavigateToSchedule}
-            >
-              查看完整日程
-              <ChevronRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
+                    {/* Status + Action */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {status && !isDone && (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px] px-1.5 py-0",
+                            status.bg,
+                            status.color,
+                          )}
+                        >
+                          {status.label}
+                        </Badge>
+                      )}
+                      {!isDone && item.actionLabel && (
+                        <Button
+                          size="sm"
+                          variant={
+                            item.status === "conflict" ? "destructive" : "ghost"
+                          }
+                          className="h-7 text-xs px-2"
+                          disabled={underDevelopment}
+                          onClick={() =>
+                            handleComplete(item.id, item.title)
+                          }
+                        >
+                          {item.actionLabel}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </StaggerItem>
+              );
+            })}
+          </StaggerContainer>
+
+          {onNavigateToSchedule && (
+            <div className="mt-3 pt-3 border-t">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs text-muted-foreground hover:text-foreground"
+                disabled={underDevelopment}
+                onClick={onNavigateToSchedule}
+              >
+                查看完整日程
+                <ChevronRight className="h-3.5 w-3.5 ml-1" />
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </div>
+
+      {underDevelopment && (
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center bg-background/70 px-4 backdrop-blur-[1.5px]"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex w-full max-w-[520px] items-center gap-3 rounded-lg border border-primary/15 bg-background/95 px-4 py-3 shadow-lg">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Construction className="h-[18px] w-[18px]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                正在开发
+              </p>
+              <p className="text-xs text-muted-foreground">
+                当前待办数据为 Mock 数据，暂不开放处理操作
+              </p>
+            </div>
           </div>
-        )}
-      </CardContent>
+        </div>
+      )}
     </Card>
   );
 }

@@ -7,6 +7,7 @@ import DetailArticleBody from "@/components/shared/detail-article-body";
 import DateGroupedList from "@/components/shared/date-grouped-list";
 import DataItemCard, { ItemChevron, accentConfig } from "@/components/shared/data-item-card";
 import { useDetailView } from "@/hooks/use-detail-view";
+import { getPolicySourceLabel } from "@/lib/policy-source-label";
 import { cn } from "@/lib/utils";
 import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 
@@ -94,7 +95,7 @@ export default function PolicyFeed({ items }: PolicyFeedProps) {
                   >
                     {selectedItem.category}
                   </Badge>
-                  <span>{selectedItem.source}</span>
+                  <span>{getPolicySourceLabel(selectedItem)}</span>
                   <span>&middot;</span>
                   <span>{selectedItem.date}</span>
                   {selectedItem.matchScore !== undefined && (
@@ -221,7 +222,7 @@ export default function PolicyFeed({ items }: PolicyFeedProps) {
                   {item.category}
                 </Badge>
                 <span className="text-[11px] text-muted-foreground">
-                  {item.source}
+                  {getPolicySourceLabel(item)}
                 </span>
                 {item.matchScore !== undefined && (
                   <MatchBar score={item.matchScore} />

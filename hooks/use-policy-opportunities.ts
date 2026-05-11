@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, startTransition } from "react";
 import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 import { fetchPolicyFeed, fetchPolicySourceNameMap } from "@/lib/api";
 import type { PolicyFeedResponse } from "@/lib/api";
+import { getPolicySourceId, getPolicySourceLabel } from "@/lib/policy-source-label";
 
 const CACHE_KEY = "policy_feed_cache_v2";
 // Data is considered "fresh" for 10 minutes — skip the network call entirely
@@ -32,10 +33,20 @@ function withSourceNames(
   items: PolicyFeedItem[],
   sourceNameMap: Record<string, string>,
 ): PolicyFeedItem[] {
-  return items.map((item) => ({
-    ...item,
-    sourceName: item.sourceName ?? sourceNameMap[item.source] ?? item.source,
-  }));
+  return items.map((item) => {
+    const sourceId = getPolicySourceId(item);
+    const backendSourceName = item.sourceName ?? item.source_name;
+    const sourceName =
+      backendSourceName && backendSourceName !== sourceId
+        ? backendSourceName
+        : sourceNameMap[sourceId] ?? getPolicySourceLabel(item);
+
+    return {
+      ...item,
+      sourceId,
+      sourceName,
+    };
+  });
 }
 
 function readCache(): CachedEntry | null {

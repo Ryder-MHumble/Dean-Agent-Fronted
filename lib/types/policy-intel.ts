@@ -33,7 +33,10 @@ export interface PolicyFeedItem {
   importance: PolicyFeedImportance;
   date: string;
   source: string;
+  sourceId?: string;
+  source_id?: string;
   sourceName?: string;
+  source_name?: string;
   tags: string[];
   // Policy opportunity fields
   matchScore?: number;

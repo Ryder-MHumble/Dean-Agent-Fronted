@@ -51,6 +51,7 @@ export default function HomeBriefingPage({
       <MotionCard delay={0.1}>
         <TodayAgenda
           items={mockAgendaItems}
+          underDevelopment
           onNavigateToSchedule={() => onNavigate?.("smart-schedule")}
         />
       </MotionCard>
