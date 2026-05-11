@@ -8,6 +8,7 @@ import DataItemCard, {
   ItemChevron,
   accentConfig,
 } from "@/components/shared/data-item-card";
+import FeedPagination from "@/components/shared/feed-pagination";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { cn } from "@/lib/utils";
 import PersonCard from "./person-card";
@@ -27,9 +28,17 @@ const importanceConfig: Record<string, string> = {
 
 interface NewsFeedProps {
   items: PersonnelNewsItem[];
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+    isLoading?: boolean;
+    onPageChange: (page: number) => void;
+  };
 }
 
-export default function NewsFeed({ items }: NewsFeedProps) {
+export default function NewsFeed({ items, pagination }: NewsFeedProps) {
   const { selectedItem, open, close, isOpen } =
     useDetailView<PersonnelNewsItem>();
 
@@ -103,75 +112,87 @@ export default function NewsFeed({ items }: NewsFeedProps) {
         )
       }
     >
-      <DateGroupedList
-        items={items}
-        className="max-h-[calc(100vh-280px)]"
-        emptyMessage="暂无匹配的人事动态"
-        renderItem={(item) => (
-          <DataItemCard
-            isSelected={selectedItem?.id === item.id}
-            onClick={() => open(item)}
-            accentColor="indigo"
-          >
-            {/* Row 1: Title with importance dot + Chevron */}
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                {item.importance === "重要" && (
-                  <span
+      <div className="flex flex-col gap-3 pb-2">
+        <DateGroupedList
+          items={items}
+          className="max-h-[calc(100vh-280px)]"
+          emptyMessage="暂无匹配的人事动态"
+          renderItem={(item) => (
+            <DataItemCard
+              isSelected={selectedItem?.id === item.id}
+              onClick={() => open(item)}
+              accentColor="indigo"
+            >
+              {/* Row 1: Title with importance dot + Chevron */}
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {item.importance === "重要" && (
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full shrink-0",
+                        importanceConfig[item.importance],
+                      )}
+                    />
+                  )}
+                  <h4
                     className={cn(
-                      "h-2 w-2 rounded-full shrink-0",
-                      importanceConfig[item.importance],
+                      "text-sm font-semibold leading-snug flex-1 transition-colors line-clamp-1",
+                      accentConfig.indigo.title,
                     )}
-                  />
-                )}
-                <h4
-                  className={cn(
-                    "text-sm font-semibold leading-snug flex-1 transition-colors line-clamp-1",
-                    accentConfig.indigo.title,
-                  )}
-                >
-                  {item.title}
-                </h4>
-              </div>
-              <ItemChevron accentColor="indigo" />
-            </div>
-            {/* Row 2: Summary */}
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
-              {item.summary}
-            </p>
-            {/* Row 3: Footer - category, source, people badges, date */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "text-[11px] font-medium",
-                    categoryConfig[item.category]?.bg,
-                    categoryConfig[item.category]?.color,
-                  )}
-                >
-                  {item.category}
-                </Badge>
-                <span className="text-[11px] text-muted-foreground">
-                  {item.source}
-                </span>
-                {item.people.slice(0, 3).map((p) => (
-                  <Badge
-                    key={p}
-                    variant="secondary"
-                    className="text-[9px] px-1.5 py-0"
                   >
-                    {p}
-                  </Badge>
-                ))}
+                    {item.title}
+                  </h4>
+                </div>
+                <ItemChevron accentColor="indigo" />
               </div>
-              <span className="text-[11px] text-muted-foreground shrink-0">
-                {item.date}
-              </span>
-            </div>
-          </DataItemCard>
+              {/* Row 2: Summary */}
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
+                {item.summary}
+              </p>
+              {/* Row 3: Footer - category, source, people badges, date */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-[11px] font-medium",
+                      categoryConfig[item.category]?.bg,
+                      categoryConfig[item.category]?.color,
+                    )}
+                  >
+                    {item.category}
+                  </Badge>
+                  <span className="text-[11px] text-muted-foreground">
+                    {item.source}
+                  </span>
+                  {item.people.slice(0, 3).map((p) => (
+                    <Badge
+                      key={p}
+                      variant="secondary"
+                      className="text-[9px] px-1.5 py-0"
+                    >
+                      {p}
+                    </Badge>
+                  ))}
+                </div>
+                <span className="text-[11px] text-muted-foreground shrink-0">
+                  {item.date}
+                </span>
+              </div>
+            </DataItemCard>
+          )}
+        />
+        {pagination && (
+          <FeedPagination
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            isLoading={pagination.isLoading}
+            onPageChange={pagination.onPageChange}
+          />
         )}
-      />
+      </div>
     </MasterDetailView>
   );
 }

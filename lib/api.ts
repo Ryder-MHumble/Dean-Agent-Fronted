@@ -3,6 +3,7 @@ import type {
   PersonnelEnrichedFeedResponse,
   PersonnelEnrichedStatsResponse,
 } from "@/lib/types/personnel-intel";
+import { fetchWithTimeout } from "@/lib/fetch-timeout";
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001"
@@ -31,52 +32,46 @@ export interface PolicyFeedResponse {
   items: PolicyFeedItem[];
 }
 
+export interface PolicyFeedQuery {
+  category?: string;
+  importance?: string;
+  minMatchScore?: number;
+  keyword?: string;
+  sourceIds?: string[];
+  limit?: number;
+  offset?: number;
+}
+
 interface SourceBrief {
   id: string;
   name: string;
 }
 
-const POLICY_FEED_PAGE_SIZE = 200;
-
 /**
- * Fetch the full policy intelligence feed from the backend API.
+ * Fetch a policy intelligence feed page from the backend API.
  * Returns null if the request fails (caller handles fallback).
  */
 export async function fetchPolicyFeed(
-  limit = 30,
+  params: PolicyFeedQuery | number = {},
 ): Promise<PolicyFeedResponse | null> {
   try {
-    // Backend enforces limit<=200, so fetch in pages when caller asks for more.
-    const target = Math.max(1, limit);
-    let offset = 0;
-    let total = 0;
-    let generatedAt: string | null = null;
-    const allItems: PolicyFeedItem[] = [];
+    const query = typeof params === "number" ? { limit: params } : params;
+    const sp = new URLSearchParams();
+    if (query.category && query.category !== "全部")
+      sp.set("category", query.category);
+    if (query.importance) sp.set("importance", query.importance);
+    if (query.minMatchScore != null)
+      sp.set("min_match_score", String(query.minMatchScore));
+    if (query.keyword?.trim()) sp.set("keyword", query.keyword.trim());
+    if (query.sourceIds?.length) sp.set("source_ids", query.sourceIds.join(","));
+    sp.set("limit", String(Math.min(200, Math.max(1, query.limit ?? 50))));
+    sp.set("offset", String(Math.max(0, query.offset ?? 0)));
 
-    while (allItems.length < target) {
-      const pageSize = Math.min(POLICY_FEED_PAGE_SIZE, target - allItems.length);
-      const res = await fetch(
-        `${API_BASE}/api/intel/policy/feed?limit=${pageSize}&offset=${offset}`,
-        { cache: "no-store" },
-      );
-      if (!res.ok) return null;
-
-      const page = (await res.json()) as PolicyFeedResponse;
-      if (generatedAt === null) generatedAt = page.generated_at;
-      total = page.item_count;
-
-      if (!page.items.length) break;
-      allItems.push(...page.items);
-      offset += page.items.length;
-
-      if (offset >= total) break;
-    }
-
-    return {
-      generated_at: generatedAt,
-      item_count: total || allItems.length,
-      items: allItems,
-    };
+    const res = await fetchWithTimeout(`${API_BASE}/api/intel/policy/feed?${sp}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as PolicyFeedResponse;
   } catch {
     return null;
   }
@@ -84,7 +79,7 @@ export async function fetchPolicyFeed(
 
 export async function fetchPolicySourceNameMap(): Promise<Record<string, string>> {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${API_BASE}/api/sources?dimensions=beijing_policy,national_policy`,
       { cache: "no-store" },
     );
@@ -105,12 +100,34 @@ export async function fetchPolicySourceNameMap(): Promise<Record<string, string>
 
 // ── Personnel ─────────────────────────────────────────────
 
-export async function fetchPersonnelEnrichedFeed(): Promise<PersonnelEnrichedFeedResponse | null> {
+export interface PersonnelEnrichedFeedQuery {
+  group?: string;
+  importance?: string;
+  minRelevance?: number;
+  keyword?: string;
+  sourceIds?: string[];
+  limit?: number;
+  offset?: number;
+}
+
+export async function fetchPersonnelEnrichedFeed(
+  params: PersonnelEnrichedFeedQuery = {},
+): Promise<PersonnelEnrichedFeedResponse | null> {
   try {
-    const res = await fetch(
-      `${API_BASE}/api/intel/personnel/enriched-feed?limit=200`,
-      { cache: "no-store" },
-    );
+    const sp = new URLSearchParams();
+    if (params.group) sp.set("group", params.group);
+    if (params.importance) sp.set("importance", params.importance);
+    if (params.minRelevance != null)
+      sp.set("min_relevance", String(params.minRelevance));
+    if (params.keyword?.trim()) sp.set("keyword", params.keyword.trim());
+    if (params.sourceIds?.length) {
+      sp.set("source_ids", params.sourceIds.join(","));
+    }
+    sp.set("limit", String(Math.min(200, Math.max(1, params.limit ?? 50))));
+    sp.set("offset", String(Math.max(0, params.offset ?? 0)));
+    const res = await fetchWithTimeout(`${API_BASE}/api/intel/personnel/enriched-feed?${sp}`, {
+      cache: "no-store",
+    });
     if (!res.ok) return null;
     return (await res.json()) as PersonnelEnrichedFeedResponse;
   } catch {
@@ -136,9 +153,13 @@ export interface DailyBriefingResponse {
 
 export async function fetchDailyBriefing(): Promise<DailyBriefingResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/intel/daily-briefing/report`, {
-      cache: "no-store",
-    });
+    const res = await fetchWithTimeout(
+      `${API_BASE}/api/intel/daily-briefing/report`,
+      {
+        cache: "no-store",
+        timeoutMs: 8000,
+      },
+    );
     if (!res.ok) return null;
     return (await res.json()) as DailyBriefingResponse;
   } catch {
@@ -150,7 +171,7 @@ export async function fetchDailyBriefing(): Promise<DailyBriefingResponse | null
 
 export async function fetchPersonnelEnrichedStats(): Promise<PersonnelEnrichedStatsResponse | null> {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${API_BASE}/api/intel/personnel/enriched-stats`,
       { cache: "no-store" },
     );
@@ -173,7 +194,7 @@ import type {
 
 export async function fetchUniversityOverview(): Promise<UniversityOverviewResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/intel/university/overview`, {
+    const res = await fetchWithTimeout(`${API_BASE}/api/intel/university/overview`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -187,6 +208,8 @@ export async function fetchUniversityFeed(params?: {
   group?: string;
   keyword?: string;
   sourceIds?: string[];
+  dateFrom?: string;
+  dateTo?: string;
   page?: number;
   pageSize?: number;
 }): Promise<UniversityFeedResponse | null> {
@@ -197,9 +220,11 @@ export async function fetchUniversityFeed(params?: {
     if (params?.sourceIds?.length) {
       sp.set("source_ids", params.sourceIds.join(","));
     }
+    if (params?.dateFrom) sp.set("date_from", params.dateFrom);
+    if (params?.dateTo) sp.set("date_to", params.dateTo);
     sp.set("page", String(params?.page ?? 1));
     sp.set("page_size", String(params?.pageSize ?? 20));
-    const res = await fetch(`${API_BASE}/api/intel/university/feed?${sp}`, {
+    const res = await fetchWithTimeout(`${API_BASE}/api/intel/university/feed?${sp}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
@@ -216,7 +241,7 @@ export async function fetchUniversitySources(params?: {
     const sp = new URLSearchParams();
     if (params?.group) sp.set("group", params.group);
     const suffix = sp.toString();
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${API_BASE}/api/intel/university/sources${suffix ? `?${suffix}` : ""}`,
       {
         cache: "no-store",
@@ -233,7 +258,7 @@ export async function fetchUniversityArticle(
   urlHash: string,
 ): Promise<UniversityArticleDetailResponse | null> {
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${API_BASE}/api/intel/university/article/${urlHash}`,
       { cache: "no-store" },
     );
@@ -256,7 +281,7 @@ export async function fetchUniversityResearch(params?: {
     if (params?.influence) sp.set("influence", params.influence);
     sp.set("page", String(params?.page ?? 1));
     sp.set("page_size", String(params?.pageSize ?? 20));
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${API_BASE}/api/intel/university/research?${sp}`,
       { cache: "no-store" },
     );

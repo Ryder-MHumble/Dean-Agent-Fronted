@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import NewsFeed from "./news-feed";
 import PersonCard from "./person-card";
 import { usePersonnelNews } from "@/hooks/use-personnel-news";
+import DateRangeFilter from "@/components/shared/date-range-filter";
 import type { PersonnelNewsCategory } from "@/lib/types/talent-radar";
 
 const CATEGORIES: { label: string; value: PersonnelNewsCategory | "全部" }[] = [
@@ -21,39 +22,34 @@ const CATEGORIES: { label: string; value: PersonnelNewsCategory | "全部" }[] =
   { label: "人才要闻", value: "人才要闻" },
 ];
 
+const PAGE_SIZE = 20;
+
 export default function TalentRadarModule() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<
     PersonnelNewsCategory | "全部"
   >("全部");
+  const [page, setPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const {
-    items: allNews,
+    items: newsItems,
     profiles: allProfiles,
     isLoading,
     isUsingMock,
     generatedAt,
-  } = usePersonnelNews();
+    total,
+    totalPages,
+  } = usePersonnelNews({
+    category: activeCategory,
+    keyword: searchQuery,
+    page,
+    pageSize: PAGE_SIZE,
+    dateRange: { from: dateFrom, to: dateTo },
+  });
 
   const isSearching = searchQuery.trim().length > 0;
-
-  const filteredNews = useMemo(() => {
-    let items = allNews;
-    if (activeCategory !== "全部") {
-      items = items.filter((n) => n.category === activeCategory);
-    }
-    if (isSearching) {
-      const q = searchQuery.trim().toLowerCase();
-      items = items.filter(
-        (n) =>
-          n.title.toLowerCase().includes(q) ||
-          n.summary.toLowerCase().includes(q) ||
-          n.people.some((p) => p.toLowerCase().includes(q)) ||
-          n.organizations.some((o) => o.toLowerCase().includes(q)),
-      );
-    }
-    return items;
-  }, [allNews, activeCategory, searchQuery, isSearching]);
 
   const matchedProfiles = useMemo(() => {
     if (!isSearching) return [];
@@ -66,6 +62,16 @@ export default function TalentRadarModule() {
         (p.field && p.field.toLowerCase().includes(q)),
     );
   }, [allProfiles, searchQuery, isSearching]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, activeCategory, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   const freshnessDate = generatedAt
     ? new Date(generatedAt)
@@ -98,28 +104,41 @@ export default function TalentRadarModule() {
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-3">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.value}
-                  type="button"
-                  onClick={() =>
-                    setActiveCategory((prev) =>
-                      prev === cat.value && cat.value !== "全部"
-                        ? "全部"
-                        : cat.value,
-                    )
-                  }
-                  className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                    activeCategory === cat.value
-                      ? "bg-blue-100 text-blue-700 shadow-sm"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  {cat.label}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.value}
+                    type="button"
+                    onClick={() =>
+                      setActiveCategory((prev) =>
+                        prev === cat.value && cat.value !== "全部"
+                          ? "全部"
+                          : cat.value,
+                      )
+                    }
+                    className={cn(
+                      "px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                      activeCategory === cat.value
+                        ? "bg-blue-100 text-blue-700 shadow-sm"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+              <DateRangeFilter
+                from={dateFrom}
+                to={dateTo}
+                onFromChange={setDateFrom}
+                onToChange={setDateTo}
+                onClear={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                className="shrink-0"
+              />
               <div className="ml-auto flex items-center gap-2">
                 {isUsingMock && (
                   <Badge
@@ -151,7 +170,18 @@ export default function TalentRadarModule() {
       )}
 
       <MotionCard delay={isSearching && matchedProfiles.length > 0 ? 0.2 : 0.1}>
-        <NewsFeed key={activeCategory + searchQuery} items={filteredNews} />
+        <NewsFeed
+          key={`${activeCategory}-${searchQuery}-${dateFrom}-${dateTo}`}
+          items={newsItems}
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            totalPages,
+            isLoading,
+            onPageChange: setPage,
+          }}
+        />
       </MotionCard>
     </div>
   );

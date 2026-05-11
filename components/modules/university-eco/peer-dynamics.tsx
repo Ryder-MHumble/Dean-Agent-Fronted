@@ -23,6 +23,8 @@ import DataItemCard, {
   accentConfig,
 } from "@/components/shared/data-item-card";
 import DataFreshness from "@/components/shared/data-freshness";
+import DateRangeFilter from "@/components/shared/date-range-filter";
+import FeedPagination from "@/components/shared/feed-pagination";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { useUniversityFeed } from "@/hooks/use-university-feed";
 import { fetchUniversityArticle } from "@/lib/api";
@@ -106,20 +108,6 @@ function ArticleCover({
   );
 }
 
-function mergeNewsById(
-  previous: PeerNewsItem[],
-  incoming: PeerNewsItem[],
-): PeerNewsItem[] {
-  const map = new Map<string, PeerNewsItem>();
-  for (const item of previous) {
-    map.set(item.id, item);
-  }
-  for (const item of incoming) {
-    map.set(item.id, item);
-  }
-  return Array.from(map.values()).sort(sortNewsByDateDesc);
-}
-
 function getNewsDateTimestamp(value?: string) {
   const ts = Date.parse(value || "");
   return Number.isFinite(ts) ? ts : 0;
@@ -142,10 +130,9 @@ export default function PeerDynamics() {
   );
   const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [page, setPage] = useState(1);
-  const [loadedNews, setLoadedNews] = useState<PeerNewsItem[]>([]);
-  const [requestingNextPage, setRequestingNextPage] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const pageSize = 20;
   const activeGroup = activeFilter === "all" ? undefined : activeFilter;
   const selectedSourceIds = useMemo(
@@ -158,6 +145,8 @@ export default function PeerDynamics() {
     useUniversityFeed({
       group: activeGroup,
       sourceIds: selectedSourceIds.length > 0 ? selectedSourceIds : undefined,
+      dateFrom,
+      dateTo,
       page,
       pageSize,
     });
@@ -204,16 +193,9 @@ export default function PeerDynamics() {
     [open],
   );
 
-  useEffect(() => {
-    const sortedPageItems = [...items].sort(sortNewsByDateDesc);
-    setLoadedNews((prev) =>
-      page === 1 ? sortedPageItems : mergeNewsById(prev, sortedPageItems),
-    );
-  }, [items, page]);
-
   const sortedNews = useMemo(() => {
-    return [...loadedNews].sort(sortNewsByDateDesc);
-  }, [loadedNews]);
+    return [...items].sort(sortNewsByDateDesc);
+  }, [items]);
 
   useEffect(() => {
     let cancelled = false;
@@ -358,17 +340,15 @@ export default function PeerDynamics() {
       return counts;
     }
     counts.all = total;
-    for (const item of loadedNews) {
+    for (const item of sortedNews) {
       counts[item.group] = (counts[item.group] || 0) + 1;
     }
     return counts;
-  }, [overview, total, loadedNews]);
+  }, [overview, total, sortedNews]);
 
   useEffect(() => {
     setPage(1);
-    setLoadedNews([]);
     setSelectedSources(new Set());
-    setRequestingNextPage(false);
     setCoverImageMap({});
     coverLoadingIdsRef.current.clear();
     close();
@@ -377,13 +357,11 @@ export default function PeerDynamics() {
 
   useEffect(() => {
     setPage(1);
-    setLoadedNews([]);
-    setRequestingNextPage(false);
     setCoverImageMap({});
     coverLoadingIdsRef.current.clear();
     close();
     setArticleContent({});
-  }, [sourceIdsKey, close]);
+  }, [sourceIdsKey, dateFrom, dateTo, close]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -391,39 +369,7 @@ export default function PeerDynamics() {
     }
   }, [page, totalPages]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      setRequestingNextPage(false);
-    }
-  }, [isLoading]);
-
-  const canLoadMore = page < totalPages;
-  const isLoadingNextPage = isLoading && page > 1;
-
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (!target || !canLoadMore || isLoading || requestingNextPage) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting) return;
-        setRequestingNextPage(true);
-        setPage((prev) => (prev < totalPages ? prev + 1 : prev));
-      },
-      {
-        root: null,
-        rootMargin: "0px 0px 260px 0px",
-        threshold: 0.01,
-      },
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [canLoadMore, isLoading, requestingNextPage, totalPages]);
-
-  if (isLoading && loadedNews.length === 0) {
+  if (isLoading && sortedNews.length === 0) {
     return <SkeletonPeerDynamics />;
   }
 
@@ -460,7 +406,18 @@ export default function PeerDynamics() {
               );
             })}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <DateRangeFilter
+              from={dateFrom}
+              to={dateTo}
+              onFromChange={setDateFrom}
+              onToChange={setDateTo}
+              onClear={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="shrink-0"
+            />
             {sourcesWithCount.length > 0 && (
               <div
                 className="relative shrink-0"
@@ -718,24 +675,14 @@ export default function PeerDynamics() {
               )}
             />
 
-            <div ref={loadMoreRef} className="h-4" />
-            {(isLoadingNextPage || canLoadMore) && (
-              <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground">
-                {isLoadingNextPage ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    正在加载更多动态...
-                  </>
-                ) : (
-                  "下拉到底自动加载更多"
-                )}
-              </div>
-            )}
-            {!canLoadMore && filteredBySourceNews.length > 0 && (
-              <div className="text-center text-[11px] text-muted-foreground py-1">
-                已加载全部 {loadedNews.length} 条
-              </div>
-            )}
+            <FeedPagination
+              page={page}
+              pageSize={pageSize}
+              total={total}
+              totalPages={totalPages}
+              isLoading={isLoading}
+              onPageChange={setPage}
+            />
           </div>
         </MasterDetailView>
       </div>

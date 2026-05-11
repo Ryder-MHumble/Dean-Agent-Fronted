@@ -6,6 +6,7 @@ import MasterDetailView from "@/components/shared/master-detail-view";
 import DetailArticleBody from "@/components/shared/detail-article-body";
 import DateGroupedList from "@/components/shared/date-grouped-list";
 import DataItemCard, { ItemChevron, accentConfig } from "@/components/shared/data-item-card";
+import FeedPagination from "@/components/shared/feed-pagination";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { getPolicySourceLabel } from "@/lib/policy-source-label";
 import { cn } from "@/lib/utils";
@@ -65,9 +66,17 @@ function MatchBar({ score }: { score: number }) {
 
 interface PolicyFeedProps {
   items: PolicyFeedItem[];
+  pagination?: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+    isLoading?: boolean;
+    onPageChange: (page: number) => void;
+  };
 }
 
-export default function PolicyFeed({ items }: PolicyFeedProps) {
+export default function PolicyFeed({ items, pagination }: PolicyFeedProps) {
   const { selectedItem, open, close, isOpen } = useDetailView<PolicyFeedItem>();
 
   return (
@@ -171,94 +180,106 @@ export default function PolicyFeed({ items }: PolicyFeedProps) {
       }
     >
       {/* List content */}
-      <DateGroupedList
-        items={items}
-        className="max-h-[calc(100vh-280px)]"
-        emptyMessage="暂无匹配的政策信息"
-        renderItem={(item) => (
-          <DataItemCard
-            isSelected={selectedItem?.id === item.id}
-            onClick={() => open(item)}
-            accentColor="blue"
-          >
-            {/* Row 1: Title with optional importance dot + Chevron */}
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                {(item.importance === "紧急" || item.importance === "重要") && (
-                  <span
+      <div className="flex flex-col gap-3 pb-2">
+        <DateGroupedList
+          items={items}
+          className="max-h-[calc(100vh-280px)]"
+          emptyMessage="暂无匹配的政策信息"
+          renderItem={(item) => (
+            <DataItemCard
+              isSelected={selectedItem?.id === item.id}
+              onClick={() => open(item)}
+              accentColor="blue"
+            >
+              {/* Row 1: Title with optional importance dot + Chevron */}
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {(item.importance === "紧急" || item.importance === "重要") && (
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full shrink-0",
+                        importanceConfig[item.importance]?.dot,
+                        item.importance === "紧急" && "animate-pulse-subtle",
+                      )}
+                    />
+                  )}
+                  <h4
                     className={cn(
-                      "h-2 w-2 rounded-full shrink-0",
-                      importanceConfig[item.importance]?.dot,
-                      item.importance === "紧急" && "animate-pulse-subtle",
+                      "text-sm font-semibold leading-snug flex-1 transition-colors line-clamp-1",
+                      accentConfig.blue.title,
                     )}
-                  />
-                )}
-                <h4
-                  className={cn(
-                    "text-sm font-semibold leading-snug flex-1 transition-colors line-clamp-1",
-                    accentConfig.blue.title,
-                  )}
-                >
-                  {item.title}
-                </h4>
+                  >
+                    {item.title}
+                  </h4>
+                </div>
+                <ItemChevron accentColor="blue" />
               </div>
-              <ItemChevron accentColor="blue" />
-            </div>
-            {/* Row 2: Summary */}
-            <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
-              {item.summary}
-            </p>
-            {/* Row 3: Footer - all metadata */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "text-[11px] font-medium",
-                    categoryConfig[item.category]?.bg,
-                    categoryConfig[item.category]?.color,
-                  )}
-                >
-                  {item.category}
-                </Badge>
-                <span className="text-[11px] text-muted-foreground">
-                  {getPolicySourceLabel(item)}
-                </span>
-                {item.matchScore !== undefined && (
-                  <MatchBar score={item.matchScore} />
-                )}
-                {item.daysLeft != null && item.daysLeft > 0 && (
+              {/* Row 2: Summary */}
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
+                {item.summary}
+              </p>
+              {/* Row 3: Footer - all metadata */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-[9px] px-1.5 py-0 gap-0.5",
-                      item.daysLeft <= 7
-                        ? "border-red-200 bg-red-50 text-red-600 font-semibold"
-                        : item.daysLeft <= 30
-                          ? "border-amber-200 bg-amber-50 text-amber-600"
-                          : "text-muted-foreground",
+                      "text-[11px] font-medium",
+                      categoryConfig[item.category]?.bg,
+                      categoryConfig[item.category]?.color,
                     )}
                   >
-                    <Clock className="h-2.5 w-2.5" />
-                    {item.daysLeft}天
+                    {item.category}
                   </Badge>
-                )}
-                {item.funding && (
-                  <Badge
-                    variant="secondary"
-                    className="text-[9px] px-1.5 py-0"
-                  >
-                    {item.funding}
-                  </Badge>
-                )}
+                  <span className="text-[11px] text-muted-foreground">
+                    {getPolicySourceLabel(item)}
+                  </span>
+                  {item.matchScore !== undefined && (
+                    <MatchBar score={item.matchScore} />
+                  )}
+                  {item.daysLeft != null && item.daysLeft > 0 && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[9px] px-1.5 py-0 gap-0.5",
+                        item.daysLeft <= 7
+                          ? "border-red-200 bg-red-50 text-red-600 font-semibold"
+                          : item.daysLeft <= 30
+                            ? "border-amber-200 bg-amber-50 text-amber-600"
+                            : "text-muted-foreground",
+                      )}
+                    >
+                      <Clock className="h-2.5 w-2.5" />
+                      {item.daysLeft}天
+                    </Badge>
+                  )}
+                  {item.funding && (
+                    <Badge
+                      variant="secondary"
+                      className="text-[9px] px-1.5 py-0"
+                    >
+                      {item.funding}
+                    </Badge>
+                  )}
+                </div>
+                <span className="text-[11px] text-muted-foreground shrink-0">
+                  {item.date}
+                </span>
               </div>
-              <span className="text-[11px] text-muted-foreground shrink-0">
-                {item.date}
-              </span>
-            </div>
-          </DataItemCard>
+            </DataItemCard>
+          )}
+        />
+        {pagination && (
+          <FeedPagination
+            page={pagination.page}
+            pageSize={pagination.pageSize}
+            total={pagination.total}
+            totalPages={pagination.totalPages}
+            isLoading={pagination.isLoading}
+            onPageChange={pagination.onPageChange}
+          />
         )}
-      />
+      </div>
     </MasterDetailView>
   );
 }

@@ -30,6 +30,8 @@ import type { ResearchOutput } from "@/lib/types/university-eco";
 import { useUniversityResearch } from "@/hooks/use-university-research";
 import { fetchUniversityArticle, fetchUniversitySources } from "@/lib/api";
 import DataFreshness from "@/components/shared/data-freshness";
+import DateRangeFilter from "@/components/shared/date-range-filter";
+import FeedPagination from "@/components/shared/feed-pagination";
 import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 function TypeBadge({ type }: { type: ResearchOutput["type"] }) {
@@ -95,22 +97,6 @@ function ArticleCover({
   );
 }
 
-function mergeOutputsById(
-  previous: ResearchOutput[],
-  incoming: ResearchOutput[],
-): ResearchOutput[] {
-  const map = new Map<string, ResearchOutput>();
-  for (const item of previous) {
-    map.set(item.id, item);
-  }
-  for (const item of incoming) {
-    map.set(item.id, item);
-  }
-  return Array.from(map.values()).sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
-}
-
 export default function ResearchTracking() {
   const {
     selectedItem: selectedOutput,
@@ -127,13 +113,22 @@ export default function ResearchTracking() {
   const [allSources, setAllSources] = useState<
     { id: string; label: string; count: number }[]
   >([]);
-  const [loadedOutputs, setLoadedOutputs] = useState<ResearchOutput[]>([]);
-  const [requestingNextPage, setRequestingNextPage] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const pageSize = 20;
+  const selectedSourceIds = useMemo(
+    () => Array.from(selectedSources).sort(),
+    [selectedSources],
+  );
+  const sourceIdsKey = selectedSourceIds.join(",");
   const { items, typeStats, isLoading, generatedAt, itemCount, totalPages } =
-    useUniversityResearch({ page, pageSize });
+    useUniversityResearch({
+      sourceIds: selectedSourceIds.length > 0 ? selectedSourceIds : undefined,
+      dateRange: { from: dateFrom, to: dateTo },
+      page,
+      pageSize,
+    });
 
   const [articleContent, setArticleContent] = useState<{
     content?: string | null;
@@ -177,20 +172,11 @@ export default function ResearchTracking() {
     };
   }, [typeStats]);
 
-  useEffect(() => {
-    const sortedPageItems = [...items].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-    );
-    setLoadedOutputs((prev) =>
-      page === 1 ? sortedPageItems : mergeOutputsById(prev, sortedPageItems),
-    );
-  }, [items, page]);
-
   const sortedOutputs = useMemo(() => {
-    return [...loadedOutputs].sort(
+    return [...items].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
-  }, [loadedOutputs]);
+  }, [items]);
 
   useEffect(() => {
     let cancelled = false;
@@ -303,44 +289,29 @@ export default function ResearchTracking() {
   }, [page, totalPages]);
 
   useEffect(() => {
-    if (!isLoading) {
-      setRequestingNextPage(false);
-    }
-  }, [isLoading]);
+    setPage(1);
+    close();
+    setArticleContent({});
+  }, [sourceIdsKey, dateFrom, dateTo, close]);
 
-  const canLoadMore = page < totalPages;
-  const isLoadingNextPage = isLoading && page > 1;
-
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (!target || !canLoadMore || isLoading || requestingNextPage) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting) return;
-        setRequestingNextPage(true);
-        setPage((prev) => (prev < totalPages ? prev + 1 : prev));
-      },
-      {
-        root: null,
-        rootMargin: "0px 0px 260px 0px",
-        threshold: 0.01,
-      },
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [canLoadMore, isLoading, requestingNextPage, totalPages]);
-
-  if (isLoading && loadedOutputs.length === 0) {
+  if (isLoading && sortedOutputs.length === 0) {
     return <SkeletonResearchTracking />;
   }
 
   return (
     <div className="flex flex-col" style={{ height: "calc(100vh - 12rem)" }}>
-      <div className="flex items-center justify-end gap-2 mb-3 shrink-0">
+      <div className="flex flex-wrap items-center justify-end gap-2 mb-3 shrink-0">
+        <DateRangeFilter
+          from={dateFrom}
+          to={dateTo}
+          onFromChange={setDateFrom}
+          onToChange={setDateTo}
+          onClear={() => {
+            setDateFrom("");
+            setDateTo("");
+          }}
+          className="shrink-0"
+        />
         {sourcesWithCount.length > 0 && (
           <div
             className="relative shrink-0"
@@ -650,24 +621,14 @@ export default function ResearchTracking() {
               )}
             />
 
-            <div ref={loadMoreRef} className="h-4" />
-            {(isLoadingNextPage || canLoadMore) && (
-              <div className="flex items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground">
-                {isLoadingNextPage ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    正在加载更多成果...
-                  </>
-                ) : (
-                  "下拉到底自动加载更多"
-                )}
-              </div>
-            )}
-            {!canLoadMore && filteredOutputs.length > 0 && (
-              <div className="text-center text-[11px] text-muted-foreground py-1">
-                已加载全部 {loadedOutputs.length} 条
-              </div>
-            )}
+            <FeedPagination
+              page={page}
+              pageSize={pageSize}
+              total={itemCount}
+              totalPages={totalPages}
+              isLoading={isLoading}
+              onPageChange={setPage}
+            />
           </div>
         </MasterDetailView>
       </div>

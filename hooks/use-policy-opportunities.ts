@@ -1,24 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback, startTransition } from "react";
+import { useState, useEffect, startTransition } from "react";
 import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 import { fetchPolicyFeed, fetchPolicySourceNameMap } from "@/lib/api";
-import type { PolicyFeedResponse } from "@/lib/api";
+import type { PolicyFeedQuery } from "@/lib/api";
 import { getPolicySourceId, getPolicySourceLabel } from "@/lib/policy-source-label";
+import {
+  filterItemsByDateRange,
+  hasActiveDateRange,
+  paginateItems,
+  type DateRangeValue,
+} from "@/lib/feed-list-utils";
 
-const CACHE_KEY = "policy_feed_cache_v2";
-// Data is considered "fresh" for 10 minutes — skip the network call entirely
-const CACHE_TTL_MS = 10 * 60 * 1000;
-// Hard expiry: discard cache entirely after 24 hours
-const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
-
-const INITIAL_LIMIT = 500;
-const FULL_LIMIT = 500;
-
-interface CachedEntry {
-  data: PolicyFeedResponse;
-  cachedAt: number;
-}
+const MAX_BACKEND_PAGE_SIZE = 200;
 
 let sourceNameMapPromise: Promise<Record<string, string>> | null = null;
 
@@ -49,30 +43,40 @@ function withSourceNames(
   });
 }
 
-function readCache(): CachedEntry | null {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const entry = JSON.parse(raw) as CachedEntry;
-    if (Date.now() - entry.cachedAt > CACHE_MAX_AGE_MS) {
-      localStorage.removeItem(CACHE_KEY);
-      return null;
-    }
-    return entry;
-  } catch {
-    return null;
-  }
+function getTotalPages(total: number, pageSize: number) {
+  return Math.max(1, Math.ceil(total / Math.max(1, pageSize)));
 }
 
-function writeCache(data: PolicyFeedResponse) {
-  try {
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({ data, cachedAt: Date.now() } satisfies CachedEntry),
-    );
-  } catch {
-    // localStorage full or unavailable — silently ignore
+async function fetchAllPolicyItems(
+  query: Omit<PolicyFeedQuery, "limit" | "offset">,
+) {
+  let offset = 0;
+  let total = 0;
+  let generatedAt: string | null = null;
+  const items: PolicyFeedItem[] = [];
+
+  while (true) {
+    const page = await fetchPolicyFeed({
+      ...query,
+      limit: MAX_BACKEND_PAGE_SIZE,
+      offset,
+    });
+    if (!page) return null;
+
+    if (generatedAt === null) generatedAt = page.generated_at;
+    total = page.item_count;
+    if (page.items.length === 0) break;
+
+    items.push(...page.items);
+    offset += page.items.length;
+    if (offset >= total) break;
   }
+
+  return {
+    generatedAt,
+    total,
+    items,
+  };
 }
 
 interface UsePolicyFeedResult {
@@ -80,75 +84,95 @@ interface UsePolicyFeedResult {
   isLoading: boolean;
   isUsingMock: boolean;
   generatedAt: string | null;
-  /** true while a background refresh is running */
-  isRefreshing: boolean;
-  /** true when only the initial batch is loaded and more is available */
-  hasMore: boolean;
-  /** fetch the full dataset; resolves when done */
-  loadMore: () => Promise<void>;
-  isLoadingMore: boolean;
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
-export function usePolicyFeed(): UsePolicyFeedResult {
+interface UsePolicyFeedParams {
+  category?: string;
+  keyword?: string;
+  sourceIds?: string[];
+  page?: number;
+  pageSize?: number;
+  dateRange?: DateRangeValue;
+}
+
+export function usePolicyFeed(params?: UsePolicyFeedParams): UsePolicyFeedResult {
+  const page = params?.page ?? 1;
+  const pageSize = params?.pageSize ?? 20;
   const [items, setItems] = useState<PolicyFeedItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMock, setIsUsingMock] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const sourceIdsKey = (params?.sourceIds ?? []).join(",");
+  const dateFrom = params?.dateRange?.from ?? "";
+  const dateTo = params?.dateRange?.to ?? "";
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
-      // ── Step 1: serve from cache if available ──────────────────────────
-      const cached = readCache();
-      const isFresh =
-        cached !== null && Date.now() - cached.cachedAt < CACHE_TTL_MS;
+      setIsLoading(true);
+      const query = {
+        category: params?.category,
+        keyword: params?.keyword,
+        sourceIds: params?.sourceIds,
+      } satisfies Omit<PolicyFeedQuery, "limit" | "offset">;
+      const shouldFilterByDate = hasActiveDateRange({
+        from: dateFrom,
+        to: dateTo,
+      });
 
-      if (cached && cached.data.items.length > 0) {
-        const sourceNameMap = await getPolicySourceNameMap();
-        const enrichedCachedItems = withSourceNames(
-          cached.data.items,
-          sourceNameMap,
-        );
-
-        // Render cached data immediately — no skeleton shown
-        startTransition(() => {
-          setItems(enrichedCachedItems);
-          setGeneratedAt(cached.data.generated_at);
-          setIsUsingMock(false);
-          setHasMore(enrichedCachedItems.length < cached.data.item_count);
-          setIsLoading(false);
-        });
-
-        if (isFresh) return;
-
-        // Stale: show cached but refresh in background
-        setIsRefreshing(true);
-      }
-
-      // ── Step 2: fetch the full policy feed ────────────────────────────
-      const data = await fetchPolicyFeed(INITIAL_LIMIT);
+      const data = shouldFilterByDate
+        ? await fetchAllPolicyItems(query)
+        : await fetchPolicyFeed({
+            ...query,
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+          });
       const sourceNameMap = await getPolicySourceNameMap();
       if (cancelled) return;
 
       startTransition(() => {
-        if (data && data.items.length > 0) {
-          setItems(withSourceNames(data.items, sourceNameMap));
-          setGeneratedAt(data.generated_at);
+        if (data) {
+          const dataGeneratedAt =
+            "generated_at" in data ? data.generated_at : data.generatedAt;
+          const dataTotal = "item_count" in data ? data.item_count : data.total;
+          const enrichedItems = withSourceNames(data.items, sourceNameMap);
+          const paginated = shouldFilterByDate
+            ? paginateItems(
+                filterItemsByDateRange(enrichedItems, {
+                  from: dateFrom,
+                  to: dateTo,
+                }),
+                page,
+                pageSize,
+              )
+            : {
+                items: enrichedItems,
+                page,
+                pageSize,
+                total: dataTotal,
+                totalPages: getTotalPages(dataTotal, pageSize),
+              };
+
+          setItems(paginated.items);
+          setGeneratedAt(dataGeneratedAt);
           setIsUsingMock(false);
-          setHasMore(data.items.length < data.item_count);
-          writeCache(data);
-        } else if (!cached) {
+          setTotal(paginated.total);
+          setTotalPages(paginated.totalPages);
+        } else {
           setItems([]);
           setGeneratedAt(null);
           setIsUsingMock(true);
-          setHasMore(false);
+          setTotal(0);
+          setTotalPages(1);
         }
         setIsLoading(false);
-        setIsRefreshing(false);
       });
     }
 
@@ -156,35 +180,24 @@ export function usePolicyFeed(): UsePolicyFeedResult {
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  const loadMore = useCallback(async () => {
-    if (isLoadingMore) return;
-    setIsLoadingMore(true);
-    try {
-      const data = await fetchPolicyFeed(FULL_LIMIT);
-      const sourceNameMap = await getPolicySourceNameMap();
-      if (data && data.items.length > 0) {
-        startTransition(() => {
-          setItems(withSourceNames(data.items, sourceNameMap));
-          setGeneratedAt(data.generated_at);
-          setHasMore(false);
-          writeCache(data);
-        });
-      }
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [isLoadingMore]);
+  }, [
+    params?.category,
+    params?.keyword,
+    sourceIdsKey,
+    page,
+    pageSize,
+    dateFrom,
+    dateTo,
+  ]);
 
   return {
     items,
     isLoading,
     isUsingMock,
     generatedAt,
-    isRefreshing,
-    hasMore,
-    loadMore,
-    isLoadingMore,
+    total,
+    page,
+    pageSize,
+    totalPages,
   };
 }

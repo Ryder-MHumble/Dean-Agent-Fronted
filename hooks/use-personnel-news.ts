@@ -9,6 +9,15 @@ import type {
   PersonProfile,
 } from "@/lib/types/talent-radar";
 import { fetchPersonnelEnrichedFeed } from "@/lib/api";
+import type { PersonnelEnrichedFeedQuery } from "@/lib/api";
+import {
+  filterItemsByDateRange,
+  hasActiveDateRange,
+  paginateItems,
+  type DateRangeValue,
+} from "@/lib/feed-list-utils";
+
+const MAX_BACKEND_PAGE_SIZE = 200;
 
 // ── Category detection ────────────────────────────────────
 
@@ -113,32 +122,130 @@ interface UsePersonnelNewsResult {
   isLoading: boolean;
   isUsingMock: boolean;
   generatedAt: string | null;
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
-export function usePersonnelNews(): UsePersonnelNewsResult {
+interface UsePersonnelNewsParams {
+  category?: PersonnelNewsCategory | "全部";
+  keyword?: string;
+  page?: number;
+  pageSize?: number;
+  dateRange?: DateRangeValue;
+}
+
+function getTotalPages(total: number, pageSize: number) {
+  return Math.max(1, Math.ceil(total / Math.max(1, pageSize)));
+}
+
+async function fetchAllPersonnelItems(
+  query: Omit<PersonnelEnrichedFeedQuery, "limit" | "offset">,
+) {
+  let offset = 0;
+  let total = 0;
+  let generatedAt: string | null = null;
+  const items: PersonnelChangeItem[] = [];
+
+  while (true) {
+    const page = await fetchPersonnelEnrichedFeed({
+      ...query,
+      limit: MAX_BACKEND_PAGE_SIZE,
+      offset,
+    });
+    if (!page) return null;
+
+    if (generatedAt === null) generatedAt = page.generated_at;
+    total = page.total_count;
+    if (page.items.length === 0) break;
+
+    items.push(...page.items);
+    offset += page.items.length;
+    if (offset >= total) break;
+  }
+
+  return { generatedAt, total, items };
+}
+
+export function usePersonnelNews(
+  params?: UsePersonnelNewsParams,
+): UsePersonnelNewsResult {
+  const page = params?.page ?? 1;
+  const pageSize = params?.pageSize ?? 20;
   const [items, setItems] = useState<PersonnelNewsItem[]>([]);
   const [profiles, setProfiles] = useState<PersonProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMock, setIsUsingMock] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const dateFrom = params?.dateRange?.from ?? "";
+  const dateTo = params?.dateRange?.to ?? "";
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       setIsLoading(true);
-      const data = await fetchPersonnelEnrichedFeed();
+      const query = {
+        keyword: params?.keyword,
+      } satisfies Omit<PersonnelEnrichedFeedQuery, "limit" | "offset">;
+      const shouldFilterByDate = hasActiveDateRange({
+        from: dateFrom,
+        to: dateTo,
+      });
+      const shouldUseLocalMode =
+        shouldFilterByDate ||
+        (params?.category !== undefined && params.category !== "全部");
+      const data = shouldUseLocalMode
+        ? await fetchAllPersonnelItems(query)
+        : await fetchPersonnelEnrichedFeed({
+            ...query,
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+          });
 
       if (cancelled) return;
 
       startTransition(() => {
-        if (data && data.items.length > 0) {
-          const newsItems = data.items
+        if (data) {
+          let newsItems = data.items
             .map(transformToNewsItem)
             .sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
-          setItems(newsItems);
-          setGeneratedAt(data.generated_at);
+          if (params?.category && params.category !== "全部") {
+            newsItems = newsItems.filter(
+              (item) => item.category === params.category,
+            );
+          }
+          if (shouldFilterByDate) {
+            newsItems = filterItemsByDateRange(newsItems, {
+              from: dateFrom,
+              to: dateTo,
+            });
+          }
+
+          const paginated = shouldUseLocalMode
+            ? paginateItems(newsItems, page, pageSize)
+            : {
+                items: newsItems,
+                page,
+                pageSize,
+                total:
+                  "total_count" in data ? data.total_count : data.total,
+                totalPages: getTotalPages(
+                  "total_count" in data ? data.total_count : data.total,
+                  pageSize,
+                ),
+              };
+
+          setItems(paginated.items);
+          setGeneratedAt(
+            "generated_at" in data ? data.generated_at : data.generatedAt,
+          );
           setIsUsingMock(false);
+          setTotal(paginated.total);
+          setTotalPages(paginated.totalPages);
 
           // Extract unique profiles from all items
           const profileMap = new Map<string, PersonProfile>();
@@ -153,6 +260,8 @@ export function usePersonnelNews(): UsePersonnelNewsResult {
           setItems([]);
           setProfiles([]);
           setIsUsingMock(true);
+          setTotal(0);
+          setTotalPages(1);
         }
 
         setIsLoading(false);
@@ -163,7 +272,17 @@ export function usePersonnelNews(): UsePersonnelNewsResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [params?.keyword, params?.category, page, pageSize, dateFrom, dateTo]);
 
-  return { items, profiles, isLoading, isUsingMock, generatedAt };
+  return {
+    items,
+    profiles,
+    isLoading,
+    isUsingMock,
+    generatedAt,
+    total,
+    page,
+    pageSize,
+    totalPages,
+  };
 }

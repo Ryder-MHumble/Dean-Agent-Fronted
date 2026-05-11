@@ -82,6 +82,8 @@ interface UseUniversityFeedResult {
 interface UseUniversityFeedParams {
   group?: PeerNewsGroup;
   sourceIds?: string[];
+  dateFrom?: string;
+  dateTo?: string;
   page?: number;
   pageSize?: number;
 }
@@ -112,6 +114,8 @@ export function useUniversityFeed(
         fetchUniversityFeed({
           group: params?.group,
           sourceIds: params?.sourceIds,
+          dateFrom: params?.dateFrom,
+          dateTo: params?.dateTo,
           page,
           pageSize,
         }),
@@ -163,7 +167,7 @@ export function useUniversityFeed(
     return () => {
       cancelled = true;
     };
-  }, [params?.group, sourceIdsKey, page, pageSize]);
+  }, [params?.group, sourceIdsKey, params?.dateFrom, params?.dateTo, page, pageSize]);
 
   return {
     items,

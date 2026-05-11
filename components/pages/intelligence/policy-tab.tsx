@@ -13,7 +13,6 @@ import {
   ChevronRight,
   FileText,
   WifiOff,
-  Loader2,
 } from "lucide-react";
 import {
   MotionNumber,
@@ -55,10 +54,7 @@ export default function PolicyTab() {
     items: policies,
     isLoading,
     isUsingMock,
-    hasMore,
-    loadMore,
-    isLoadingMore,
-  } = usePolicyFeed();
+  } = usePolicyFeed({ pageSize: 200 });
 
   const importantCount = policies.filter(
     (p) => p.importance === "紧急" || p.importance === "重要",
@@ -315,27 +311,6 @@ export default function PolicyTab() {
                       </StaggerItem>
                     ))}
                   </StaggerContainer>
-
-                  {hasMore && (
-                    <div className="flex justify-center py-3 border-t">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs text-muted-foreground"
-                        onClick={loadMore}
-                        disabled={isLoadingMore}
-                      >
-                        {isLoadingMore ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                            加载中...
-                          </>
-                        ) : (
-                          "加载更多"
-                        )}
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </ScrollArea>
             </CardContent>

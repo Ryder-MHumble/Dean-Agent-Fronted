@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { getPolicySourceId, getPolicySourceLabel } from "@/lib/policy-source-lab
 import PolicyFeed from "./policy-feed";
 import { usePolicyFeed } from "@/hooks/use-policy-opportunities";
 import { SkeletonPolicyIntel } from "@/components/shared/skeleton-states";
+import DateRangeFilter from "@/components/shared/date-range-filter";
 import type { PolicyFeedCategory } from "@/lib/types/policy-intel";
 
 const CATEGORIES: {
@@ -25,13 +26,9 @@ const CATEGORIES: {
   { label: "政策机会", value: "政策机会" },
 ];
 
+const PAGE_SIZE = 20;
+
 export default function PolicyIntelModule() {
-  const {
-    items: feedItems,
-    isLoading,
-    isUsingMock,
-    generatedAt,
-  } = usePolicyFeed();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<
     PolicyFeedCategory | "全部"
@@ -41,6 +38,30 @@ export default function PolicyIntelModule() {
   );
   const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [page, setPage] = useState(1);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const selectedSourceIds = useMemo(
+    () => Array.from(selectedSources).sort(),
+    [selectedSources],
+  );
+  const sourceIdsKey = selectedSourceIds.join(",");
+
+  const {
+    items: feedItems,
+    isLoading,
+    isUsingMock,
+    generatedAt,
+    total,
+    totalPages,
+  } = usePolicyFeed({
+    category: activeCategory === "全部" ? undefined : activeCategory,
+    keyword: searchQuery,
+    sourceIds: selectedSourceIds.length > 0 ? selectedSourceIds : undefined,
+    page,
+    pageSize: PAGE_SIZE,
+    dateRange: { from: dateFrom, to: dateTo },
+  });
 
   const openDropdown = useCallback(() => {
     if (closeTimerRef.current) {
@@ -58,14 +79,20 @@ export default function PolicyIntelModule() {
 
   const isSearching = searchQuery.trim().length > 0;
 
-  // Extract unique source channels with counts (computed from category-filtered items)
-  const sourcesWithCount = useMemo(() => {
-    let base = feedItems;
-    if (activeCategory !== "全部") {
-      base = base.filter((n) => n.category === activeCategory);
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, activeCategory, sourceIdsKey, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
     }
+  }, [page, totalPages]);
+
+  // Extract unique source channels with counts from the current backend page.
+  const sourcesWithCount = useMemo(() => {
     const map = new Map<string, { count: number; label: string }>();
-    for (const item of base) {
+    for (const item of feedItems) {
       const sourceId = getPolicySourceId(item);
       const current = map.get(sourceId);
       if (current) {
@@ -77,10 +104,15 @@ export default function PolicyIntelModule() {
         });
       }
     }
+    for (const sourceId of selectedSources) {
+      if (!map.has(sourceId)) {
+        map.set(sourceId, { count: 0, label: sourceId });
+      }
+    }
     return Array.from(map.entries())
       .sort((a, b) => b[1].count - a[1].count)
       .map(([id, value]) => ({ id, label: value.label, count: value.count }));
-  }, [feedItems, activeCategory]);
+  }, [feedItems, selectedSources]);
 
   // Reset source selection when category changes and selected sources are no longer available
   const availableSourceNames = useMemo(
@@ -95,8 +127,6 @@ export default function PolicyIntelModule() {
     }
     return filtered;
   }, [selectedSources, availableSourceNames]);
-
-  const isAllSourcesSelected = effectiveSources.size === 0;
 
   const sourceIdToLabel = useMemo(() => {
     const map = new Map<string, string>();
@@ -118,38 +148,7 @@ export default function PolicyIntelModule() {
     });
   };
 
-  const filteredFeed = useMemo(() => {
-    let items = feedItems;
-    if (activeCategory !== "全部") {
-      items = items.filter((n) => n.category === activeCategory);
-    }
-    if (!isAllSourcesSelected) {
-      items = items.filter((n) => effectiveSources.has(getPolicySourceId(n)));
-    }
-    if (isSearching) {
-      const q = searchQuery.trim().toLowerCase();
-      items = items.filter(
-        (n) =>
-          n.title.toLowerCase().includes(q) ||
-          n.summary.toLowerCase().includes(q) ||
-          n.source.toLowerCase().includes(q) ||
-          getPolicySourceId(n).toLowerCase().includes(q) ||
-          getPolicySourceLabel(n).toLowerCase().includes(q) ||
-          n.tags.some((t) => t.toLowerCase().includes(q)) ||
-          (n.leader && n.leader.toLowerCase().includes(q)),
-      );
-    }
-    return items;
-  }, [
-    feedItems,
-    activeCategory,
-    effectiveSources,
-    isAllSourcesSelected,
-    searchQuery,
-    isSearching,
-  ]);
-
-  const activeSourceCount = effectiveSources.size;
+  const activeSourceCount = selectedSources.size;
 
   if (isLoading) return <SkeletonPolicyIntel />;
 
@@ -159,8 +158,8 @@ export default function PolicyIntelModule() {
         <Card className="shadow-card">
           <CardContent className="p-4 space-y-3">
             {/* Row 1: Search + Source filter trigger */}
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative min-w-[16rem] flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="搜索政策、机构、关键词..."
@@ -178,6 +177,18 @@ export default function PolicyIntelModule() {
                   </button>
                 )}
               </div>
+
+              <DateRangeFilter
+                from={dateFrom}
+                to={dateTo}
+                onFromChange={setDateFrom}
+                onToChange={setDateTo}
+                onClear={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                className="shrink-0"
+              />
 
               {/* Source filter dropdown (hover) */}
               {sourcesWithCount.length > 0 && (
@@ -340,7 +351,18 @@ export default function PolicyIntelModule() {
       </MotionCard>
 
       <MotionCard delay={0.1} className="flex-1 min-h-0 overflow-hidden">
-        <PolicyFeed key={activeCategory + searchQuery} items={filteredFeed} />
+        <PolicyFeed
+          key={`${activeCategory}-${searchQuery}-${dateFrom}-${dateTo}`}
+          items={feedItems}
+          pagination={{
+            page,
+            pageSize: PAGE_SIZE,
+            total,
+            totalPages,
+            isLoading,
+            onPageChange: setPage,
+          }}
+        />
       </MotionCard>
     </div>
   );
