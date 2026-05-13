@@ -31,6 +31,8 @@ interface MasterDetailViewProps {
   listWidth?: number;
   /** Container className */
   className?: string;
+  /** Class for the desktop list content wrapper */
+  listContentClassName?: string;
 }
 
 export default function MasterDetailView({
@@ -42,6 +44,7 @@ export default function MasterDetailView({
   detailFooter,
   listWidth = 50,
   className,
+  listContentClassName,
 }: MasterDetailViewProps) {
   const breakpoint = useBreakpoint();
 
@@ -132,9 +135,11 @@ export default function MasterDetailView({
       <motion.div
         animate={{ width: isOpen ? `${listWidth}%` : "100%" }}
         transition={{ duration: 0.28, ease: EASE }}
-        className="shrink-0 flex flex-col overflow-x-hidden overscroll-y-contain"
+        className="min-h-0 shrink-0 flex flex-col overflow-hidden overscroll-y-contain"
       >
-        <div className="flex-1 overflow-y-auto">{children}</div>
+        <div className={cn("min-h-0 flex-1 overflow-y-auto", listContentClassName)}>
+          {children}
+        </div>
       </motion.div>
 
       {/* Detail pane */}

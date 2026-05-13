@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import MasterDetailView from "@/components/shared/master-detail-view";
@@ -78,10 +79,23 @@ interface PolicyFeedProps {
 
 export default function PolicyFeed({ items, pagination }: PolicyFeedProps) {
   const { selectedItem, open, close, isOpen } = useDetailView<PolicyFeedItem>();
+  const listRef = useRef<HTMLDivElement>(null);
+  const onPaginationPageChange = pagination?.onPageChange;
+  const handlePageChange = useCallback(
+    (nextPage: number) => {
+      close();
+      onPaginationPageChange?.(nextPage);
+      requestAnimationFrame(() => {
+        listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    },
+    [close, onPaginationPageChange],
+  );
 
   return (
     <MasterDetailView
       className="h-full"
+      listContentClassName="min-h-0 overflow-hidden"
       isOpen={isOpen}
       onClose={close}
       detailHeader={
@@ -180,104 +194,116 @@ export default function PolicyFeed({ items, pagination }: PolicyFeedProps) {
       }
     >
       {/* List content */}
-      <div className="flex flex-col gap-3 pb-2">
-        <DateGroupedList
-          items={items}
-          className="max-h-[calc(100vh-280px)]"
-          emptyMessage="暂无匹配的政策信息"
-          renderItem={(item) => (
-            <DataItemCard
-              isSelected={selectedItem?.id === item.id}
-              onClick={() => open(item)}
-              accentColor="blue"
-            >
-              {/* Row 1: Title with optional importance dot + Chevron */}
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  {(item.importance === "紧急" || item.importance === "重要") && (
-                    <span
+      <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3">
+        <div
+          ref={listRef}
+          aria-busy={pagination?.isLoading}
+          className={cn(
+            "min-h-0 overflow-y-auto overscroll-contain pr-1 transition-opacity",
+            pagination?.isLoading && "opacity-60",
+          )}
+        >
+          <DateGroupedList
+            items={items}
+            emptyMessage="暂无匹配的政策信息"
+            renderItem={(item) => (
+              <DataItemCard
+                isSelected={selectedItem?.id === item.id}
+                onClick={() => open(item)}
+                accentColor="blue"
+              >
+                {/* Row 1: Title with optional importance dot + Chevron */}
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {(item.importance === "紧急" ||
+                      item.importance === "重要") && (
+                      <span
+                        className={cn(
+                          "h-2 w-2 rounded-full shrink-0",
+                          importanceConfig[item.importance]?.dot,
+                          item.importance === "紧急" && "animate-pulse-subtle",
+                        )}
+                      />
+                    )}
+                    <h4
                       className={cn(
-                        "h-2 w-2 rounded-full shrink-0",
-                        importanceConfig[item.importance]?.dot,
-                        item.importance === "紧急" && "animate-pulse-subtle",
+                        "text-sm font-semibold leading-snug flex-1 transition-colors line-clamp-1",
+                        accentConfig.blue.title,
                       )}
-                    />
-                  )}
-                  <h4
-                    className={cn(
-                      "text-sm font-semibold leading-snug flex-1 transition-colors line-clamp-1",
-                      accentConfig.blue.title,
-                    )}
-                  >
-                    {item.title}
-                  </h4>
+                    >
+                      {item.title}
+                    </h4>
+                  </div>
+                  <ItemChevron accentColor="blue" />
                 </div>
-                <ItemChevron accentColor="blue" />
-              </div>
-              {/* Row 2: Summary */}
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
-                {item.summary}
-              </p>
-              {/* Row 3: Footer - all metadata */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[11px] font-medium",
-                      categoryConfig[item.category]?.bg,
-                      categoryConfig[item.category]?.color,
-                    )}
-                  >
-                    {item.category}
-                  </Badge>
-                  <span className="text-[11px] text-muted-foreground">
-                    {getPolicySourceLabel(item)}
-                  </span>
-                  {item.matchScore !== undefined && (
-                    <MatchBar score={item.matchScore} />
-                  )}
-                  {item.daysLeft != null && item.daysLeft > 0 && (
+                {/* Row 2: Summary */}
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-2.5 leading-relaxed">
+                  {item.summary}
+                </p>
+                {/* Row 3: Footer - all metadata */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <Badge
                       variant="outline"
                       className={cn(
-                        "text-[9px] px-1.5 py-0 gap-0.5",
-                        item.daysLeft <= 7
-                          ? "border-red-200 bg-red-50 text-red-600 font-semibold"
-                          : item.daysLeft <= 30
-                            ? "border-amber-200 bg-amber-50 text-amber-600"
-                            : "text-muted-foreground",
+                        "text-[11px] font-medium",
+                        categoryConfig[item.category]?.bg,
+                        categoryConfig[item.category]?.color,
                       )}
                     >
-                      <Clock className="h-2.5 w-2.5" />
-                      {item.daysLeft}天
+                      {item.category}
                     </Badge>
-                  )}
-                  {item.funding && (
-                    <Badge
-                      variant="secondary"
-                      className="text-[9px] px-1.5 py-0"
-                    >
-                      {item.funding}
-                    </Badge>
-                  )}
+                    <span className="text-[11px] text-muted-foreground">
+                      {getPolicySourceLabel(item)}
+                    </span>
+                    {item.matchScore !== undefined && (
+                      <MatchBar score={item.matchScore} />
+                    )}
+                    {item.daysLeft != null && item.daysLeft > 0 && (
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[9px] px-1.5 py-0 gap-0.5",
+                          item.daysLeft <= 7
+                            ? "border-red-200 bg-red-50 text-red-600 font-semibold"
+                            : item.daysLeft <= 30
+                              ? "border-amber-200 bg-amber-50 text-amber-600"
+                              : "text-muted-foreground",
+                        )}
+                      >
+                        <Clock className="h-2.5 w-2.5" />
+                        {item.daysLeft}天
+                      </Badge>
+                    )}
+                    {item.funding && (
+                      <Badge
+                        variant="secondary"
+                        className="text-[9px] px-1.5 py-0"
+                      >
+                        {item.funding}
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="text-[11px] text-muted-foreground shrink-0">
+                    {item.date}
+                  </span>
                 </div>
-                <span className="text-[11px] text-muted-foreground shrink-0">
-                  {item.date}
-                </span>
-              </div>
-            </DataItemCard>
-          )}
-        />
-        {pagination && (
-          <FeedPagination
-            page={pagination.page}
-            pageSize={pagination.pageSize}
-            total={pagination.total}
-            totalPages={pagination.totalPages}
-            isLoading={pagination.isLoading}
-            onPageChange={pagination.onPageChange}
+              </DataItemCard>
+            )}
           />
+        </div>
+        {pagination && (
+          <div className="border-t border-border/60 bg-background pt-3">
+            <FeedPagination
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              totalPages={pagination.totalPages}
+              isLoading={pagination.isLoading}
+              onPageChange={handlePageChange}
+              className="w-full"
+            />
+          </div>
         )}
       </div>
     </MasterDetailView>

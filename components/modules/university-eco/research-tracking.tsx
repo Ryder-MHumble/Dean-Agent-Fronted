@@ -135,6 +135,7 @@ export default function ResearchTracking() {
     images?: { src: string; alt: string | null }[];
   }>({});
   const [contentLoading, setContentLoading] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const handleOpen = useCallback(
     async (output: ResearchOutput) => {
@@ -282,6 +283,18 @@ export default function ResearchTracking() {
     });
   }, []);
 
+  const handlePageChange = useCallback(
+    (nextPage: number) => {
+      close();
+      setArticleContent({});
+      setPage(nextPage);
+      requestAnimationFrame(() => {
+        listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    },
+    [close],
+  );
+
   useEffect(() => {
     if (page > totalPages) {
       setPage(totalPages);
@@ -310,7 +323,7 @@ export default function ResearchTracking() {
             setDateFrom("");
             setDateTo("");
           }}
-          className="shrink-0"
+          className="w-full min-w-0 md:w-auto md:shrink-0"
         />
         {sourcesWithCount.length > 0 && (
           <div
@@ -564,11 +577,19 @@ export default function ResearchTracking() {
             )
           }
         >
-          <div className="flex flex-col gap-3 pb-2">
-            <DateGroupedList
-              items={filteredOutputs}
-              emptyMessage="暂无科研成果"
-              renderItem={(output) => (
+          <div className="flex h-full min-h-0 flex-col gap-3">
+            <div
+              ref={listRef}
+              aria-busy={isLoading}
+              className={cn(
+                "min-h-0 flex-1 overflow-y-auto pr-1 transition-opacity",
+                isLoading && "opacity-60",
+              )}
+            >
+              <DateGroupedList
+                items={filteredOutputs}
+                emptyMessage="暂无科研成果"
+                renderItem={(output) => (
                 <DataItemCard
                   isSelected={selectedOutput?.id === output.id}
                   onClick={() => handleOpen(output)}
@@ -617,9 +638,10 @@ export default function ResearchTracking() {
                       </div>
                     </div>
                   </div>
-                </DataItemCard>
-              )}
-            />
+                  </DataItemCard>
+                )}
+              />
+            </div>
 
             <FeedPagination
               page={page}
@@ -627,7 +649,8 @@ export default function ResearchTracking() {
               total={itemCount}
               totalPages={totalPages}
               isLoading={isLoading}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
+              className="shrink-0"
             />
           </div>
         </MasterDetailView>

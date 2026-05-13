@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 
 import {
   filterItemsByDateRange,
+  getPaginationItems,
   hasActiveDateRange,
   paginateItems,
+  sanitizePageInput,
 } from "../lib/feed-list-utils.ts";
 
 test("hasActiveDateRange detects user-provided range values", () => {
@@ -50,4 +52,25 @@ test("paginateItems returns a clamped page from an already-filtered list", () =>
     total: 12,
     totalPages: 3,
   });
+});
+
+test("getPaginationItems keeps page controls compact around the current page", () => {
+  assert.deepEqual(getPaginationItems(1, 49), [1, 2, "ellipsis", 49]);
+  assert.deepEqual(getPaginationItems(24, 49), [
+    1,
+    "ellipsis",
+    23,
+    24,
+    25,
+    "ellipsis",
+    49,
+  ]);
+  assert.deepEqual(getPaginationItems(49, 49), [1, "ellipsis", 48, 49]);
+});
+
+test("sanitizePageInput clamps typed pagination jumps", () => {
+  assert.equal(sanitizePageInput("12", 49), 12);
+  assert.equal(sanitizePageInput("0", 49), 1);
+  assert.equal(sanitizePageInput("99", 49), 49);
+  assert.equal(sanitizePageInput("abc", 49), null);
 });

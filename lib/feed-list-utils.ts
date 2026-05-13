@@ -11,6 +11,8 @@ export interface PaginatedItems<T> {
   totalPages: number;
 }
 
+export type PaginationItem = number | "ellipsis";
+
 function normalizeDate(value?: string | null): string | null {
   const date = value?.trim().slice(0, 10);
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
@@ -56,4 +58,35 @@ export function paginateItems<T>(
     total,
     totalPages,
   };
+}
+
+export function getPaginationItems(
+  page: number,
+  totalPages: number,
+): PaginationItem[] {
+  const safeTotalPages = Math.max(1, totalPages);
+  const safePage = Math.min(Math.max(1, page), safeTotalPages);
+  const pages = new Set([1, safeTotalPages, safePage - 1, safePage, safePage + 1]);
+  const sortedPages = Array.from(pages)
+    .filter((value) => value >= 1 && value <= safeTotalPages)
+    .sort((a, b) => a - b);
+
+  return sortedPages.flatMap((value, index) => {
+    const previous = sortedPages[index - 1];
+    if (previous !== undefined && value - previous > 1) {
+      return ["ellipsis" as const, value];
+    }
+    return [value];
+  });
+}
+
+export function sanitizePageInput(
+  value: string,
+  totalPages: number,
+): number | null {
+  const page = Number.parseInt(value.trim(), 10);
+  if (!Number.isFinite(page)) return null;
+
+  const safeTotalPages = Math.max(1, totalPages);
+  return Math.min(Math.max(1, page), safeTotalPages);
 }

@@ -156,6 +156,7 @@ export default function PeerDynamics() {
     images?: { src: string; alt: string | null }[];
   }>({});
   const [contentLoading, setContentLoading] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
   const [coverImageMap, setCoverImageMap] = useState<Record<string, string>>({});
   const coverLoadingIdsRef = useRef<Set<string>>(new Set());
 
@@ -346,6 +347,18 @@ export default function PeerDynamics() {
     return counts;
   }, [overview, total, sortedNews]);
 
+  const handlePageChange = useCallback(
+    (nextPage: number) => {
+      close();
+      setArticleContent({});
+      setPage(nextPage);
+      requestAnimationFrame(() => {
+        listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    },
+    [close],
+  );
+
   useEffect(() => {
     setPage(1);
     setSelectedSources(new Set());
@@ -416,7 +429,7 @@ export default function PeerDynamics() {
                 setDateFrom("");
                 setDateTo("");
               }}
-              className="shrink-0"
+              className="w-full min-w-0 md:w-auto md:shrink-0"
             />
             {sourcesWithCount.length > 0 && (
               <div
@@ -619,11 +632,19 @@ export default function PeerDynamics() {
             )
           }
         >
-          <div className="flex flex-col gap-3 pb-2">
-            <DateGroupedList
-              items={filteredBySourceNews}
-              emptyMessage="暂无同行动态"
-              renderItem={(news) => (
+          <div className="flex h-full min-h-0 flex-col gap-3">
+            <div
+              ref={listRef}
+              aria-busy={isLoading}
+              className={cn(
+                "min-h-0 flex-1 overflow-y-auto pr-1 transition-opacity",
+                isLoading && "opacity-60",
+              )}
+            >
+              <DateGroupedList
+                items={filteredBySourceNews}
+                emptyMessage="暂无同行动态"
+                renderItem={(news) => (
                 <DataItemCard
                   isSelected={selectedNews?.id === news.id}
                   onClick={() => handleOpen(news)}
@@ -671,9 +692,10 @@ export default function PeerDynamics() {
                       </div>
                     </div>
                   </div>
-                </DataItemCard>
-              )}
-            />
+                  </DataItemCard>
+                )}
+              />
+            </div>
 
             <FeedPagination
               page={page}
@@ -681,7 +703,8 @@ export default function PeerDynamics() {
               total={total}
               totalPages={totalPages}
               isLoading={isLoading}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
+              className="shrink-0"
             />
           </div>
         </MasterDetailView>

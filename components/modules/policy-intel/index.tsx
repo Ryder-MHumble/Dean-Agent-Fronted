@@ -150,10 +150,10 @@ export default function PolicyIntelModule() {
 
   const activeSourceCount = selectedSources.size;
 
-  if (isLoading) return <SkeletonPolicyIntel />;
+  if (isLoading && feedItems.length === 0) return <SkeletonPolicyIntel />;
 
   return (
-    <div className="p-5 flex flex-col gap-4 h-[calc(100vh-4rem)] overflow-hidden">
+    <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 overflow-hidden px-5 pt-5 pb-20 md:pb-1">
       <MotionCard delay={0} className="shrink-0 relative z-10">
         <Card className="shadow-card">
           <CardContent className="p-4 space-y-3">
@@ -187,7 +187,7 @@ export default function PolicyIntelModule() {
                   setDateFrom("");
                   setDateTo("");
                 }}
-                className="shrink-0"
+                className="w-full min-w-0 md:w-auto md:shrink-0"
               />
 
               {/* Source filter dropdown (hover) */}
@@ -352,7 +352,7 @@ export default function PolicyIntelModule() {
 
       <MotionCard delay={0.1} className="flex-1 min-h-0 overflow-hidden">
         <PolicyFeed
-          key={`${activeCategory}-${searchQuery}-${dateFrom}-${dateTo}`}
+          key={`${activeCategory}-${searchQuery}-${sourceIdsKey}-${dateFrom}-${dateTo}`}
           items={feedItems}
           pagination={{
             page,

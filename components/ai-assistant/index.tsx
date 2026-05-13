@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
@@ -23,6 +23,48 @@ export default function FloatingAIAssistant() {
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [notifications, setNotifications] = useState(3);
+  const [triggerBottomOffset, setTriggerBottomOffset] = useState(
+    isMobile ? 76 : 24,
+  );
+
+  useEffect(() => {
+    const baseOffset = isMobile ? 76 : 24;
+    const gap = 32;
+
+    const updateTriggerOffset = () => {
+      const pagination = document.querySelector<HTMLElement>(
+        "[data-feed-pagination]",
+      );
+
+      if (!pagination) {
+        setTriggerBottomOffset(baseOffset);
+        return;
+      }
+
+      const rect = pagination.getBoundingClientRect();
+      const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+      const nextOffset = isVisible
+        ? Math.max(baseOffset, Math.ceil(window.innerHeight - rect.top + gap))
+        : baseOffset;
+
+      setTriggerBottomOffset(nextOffset);
+    };
+
+    updateTriggerOffset();
+    const mutationObserver = new MutationObserver(updateTriggerOffset);
+    const resizeObserver = new ResizeObserver(updateTriggerOffset);
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+    resizeObserver.observe(document.body);
+    window.addEventListener("resize", updateTriggerOffset);
+    window.addEventListener("scroll", updateTriggerOffset, true);
+
+    return () => {
+      mutationObserver.disconnect();
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateTriggerOffset);
+      window.removeEventListener("scroll", updateTriggerOffset, true);
+    };
+  }, [isMobile]);
 
   const sendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -60,9 +102,10 @@ export default function FloatingAIAssistant() {
             exit={{ scale: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             onClick={() => { setIsOpen(true); setNotifications(0); }}
+            style={{ bottom: triggerBottomOffset }}
             className={cn(
               "fixed z-50 h-14 w-14 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-shadow duration-300 flex items-center justify-center group",
-              isMobile ? "bottom-[76px] right-4" : "bottom-6 right-6",
+              isMobile ? "right-4" : "right-6",
             )}
           >
             <span className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping pointer-events-none" />

@@ -77,12 +77,12 @@ export default function TalentRadarModule() {
     ? new Date(generatedAt)
     : new Date(Date.now() - 1800000);
 
-  if (isLoading) {
+  if (isLoading && newsItems.length === 0) {
     return <SkeletonTalentRadar />;
   }
 
   return (
-    <div className="p-5 space-y-4">
+    <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 overflow-hidden px-5 pt-5 pb-20 md:pb-1">
       <MotionCard delay={0}>
         <Card className="shadow-card">
           <CardContent className="p-4">
@@ -137,7 +137,7 @@ export default function TalentRadarModule() {
                   setDateFrom("");
                   setDateTo("");
                 }}
-                className="shrink-0"
+                className="w-full min-w-0 md:w-auto md:shrink-0"
               />
               <div className="ml-auto flex items-center gap-2">
                 {isUsingMock && (
@@ -169,7 +169,10 @@ export default function TalentRadarModule() {
         </MotionCard>
       )}
 
-      <MotionCard delay={isSearching && matchedProfiles.length > 0 ? 0.2 : 0.1}>
+      <MotionCard
+        delay={isSearching && matchedProfiles.length > 0 ? 0.2 : 0.1}
+        className="flex-1 min-h-0 overflow-hidden"
+      >
         <NewsFeed
           key={`${activeCategory}-${searchQuery}-${dateFrom}-${dateTo}`}
           items={newsItems}
