@@ -2,6 +2,7 @@
  * Groups items by date into 今天 (Today), 本周 (This Week), 更早 (Earlier).
  * Items must have a `date` field as an ISO date string (YYYY-MM-DD).
  * "本周" uses a rolling 7-day window (past 7 days excluding today).
+ * Future dates are grouped separately so malformed crawler dates do not hide rows.
  * Missing dates are grouped into 未标注.
  */
 export function groupByDate<T extends { date?: string | null }>(
@@ -14,6 +15,10 @@ export function groupByDate<T extends { date?: string | null }>(
   const hasDate = (date?: string | null) => Boolean(date);
 
   return [
+    {
+      label: "未来",
+      items: items.filter((i) => hasDate(i.date) && i.date! > today),
+    },
     { label: "今天", items: items.filter((i) => i.date === today) },
     {
       label: "本周",

@@ -3,7 +3,13 @@ import type {
   PersonnelEnrichedFeedResponse,
   PersonnelEnrichedStatsResponse,
 } from "@/lib/types/personnel-intel";
-import { fetchWithTimeout } from "@/lib/fetch-timeout";
+import { fetchJsonWithRetry, fetchWithTimeout } from "@/lib/fetch-timeout";
+import type {
+  SocialPostBrief,
+  SocialPostDetail,
+  TechFrontierPostQuery,
+} from "@/lib/tech-frontier-feed";
+import { buildTechFrontierPostParams } from "@/lib/tech-frontier-feed";
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001"
@@ -22,6 +28,46 @@ function resolveAcademicApiBase(rawBase: string): string {
 }
 
 const ACADEMIC_API_BASE = resolveAcademicApiBase(API_BASE);
+
+// ── Tech Frontier Social Feed ────────────────────────────
+
+export interface SocialPostsResponse {
+  items: SocialPostBrief[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export async function fetchSocialPosts(
+  params: TechFrontierPostQuery = {},
+): Promise<SocialPostsResponse | null> {
+  try {
+    const sp = buildTechFrontierPostParams(params);
+    const res = await fetchWithTimeout(`${API_BASE}/api/social-posts?${sp}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as SocialPostsResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchSocialPostDetail(
+  postId: string,
+): Promise<SocialPostDetail | null> {
+  try {
+    const res = await fetchWithTimeout(
+      `${API_BASE}/api/social-posts/${encodeURIComponent(postId)}?top_replies_limit=5`,
+      { cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as SocialPostDetail;
+  } catch {
+    return null;
+  }
+}
 
 // ── Policy ────────────────────────────────────────────────
 
@@ -193,15 +239,10 @@ import type {
 } from "@/lib/types/university-eco";
 
 export async function fetchUniversityOverview(): Promise<UniversityOverviewResponse | null> {
-  try {
-    const res = await fetchWithTimeout(`${API_BASE}/api/intel/university/overview`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as UniversityOverviewResponse;
-  } catch {
-    return null;
-  }
+  return fetchJsonWithRetry<UniversityOverviewResponse>(
+    `${API_BASE}/api/intel/university/overview`,
+    { cache: "no-store", timeoutMs: 12000 },
+  );
 }
 
 export async function fetchUniversityFeed(params?: {
@@ -213,60 +254,41 @@ export async function fetchUniversityFeed(params?: {
   page?: number;
   pageSize?: number;
 }): Promise<UniversityFeedResponse | null> {
-  try {
-    const sp = new URLSearchParams();
-    if (params?.group) sp.set("group", params.group);
-    if (params?.keyword) sp.set("keyword", params.keyword);
-    if (params?.sourceIds?.length) {
-      sp.set("source_ids", params.sourceIds.join(","));
-    }
-    if (params?.dateFrom) sp.set("date_from", params.dateFrom);
-    if (params?.dateTo) sp.set("date_to", params.dateTo);
-    sp.set("page", String(params?.page ?? 1));
-    sp.set("page_size", String(params?.pageSize ?? 20));
-    const res = await fetchWithTimeout(`${API_BASE}/api/intel/university/feed?${sp}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as UniversityFeedResponse;
-  } catch {
-    return null;
+  const sp = new URLSearchParams();
+  if (params?.group) sp.set("group", params.group);
+  if (params?.keyword) sp.set("keyword", params.keyword);
+  if (params?.sourceIds?.length) {
+    sp.set("source_ids", params.sourceIds.join(","));
   }
+  if (params?.dateFrom) sp.set("date_from", params.dateFrom);
+  if (params?.dateTo) sp.set("date_to", params.dateTo);
+  sp.set("page", String(params?.page ?? 1));
+  sp.set("page_size", String(params?.pageSize ?? 20));
+  return fetchJsonWithRetry<UniversityFeedResponse>(
+    `${API_BASE}/api/intel/university/feed?${sp}`,
+    { cache: "no-store", timeoutMs: 12000 },
+  );
 }
 
 export async function fetchUniversitySources(params?: {
   group?: string;
 }): Promise<UniversitySourcesResponse | null> {
-  try {
-    const sp = new URLSearchParams();
-    if (params?.group) sp.set("group", params.group);
-    const suffix = sp.toString();
-    const res = await fetchWithTimeout(
-      `${API_BASE}/api/intel/university/sources${suffix ? `?${suffix}` : ""}`,
-      {
-        cache: "no-store",
-      },
-    );
-    if (!res.ok) return null;
-    return (await res.json()) as UniversitySourcesResponse;
-  } catch {
-    return null;
-  }
+  const sp = new URLSearchParams();
+  if (params?.group) sp.set("group", params.group);
+  const suffix = sp.toString();
+  return fetchJsonWithRetry<UniversitySourcesResponse>(
+    `${API_BASE}/api/intel/university/sources${suffix ? `?${suffix}` : ""}`,
+    { cache: "no-store", timeoutMs: 12000 },
+  );
 }
 
 export async function fetchUniversityArticle(
   urlHash: string,
 ): Promise<UniversityArticleDetailResponse | null> {
-  try {
-    const res = await fetchWithTimeout(
-      `${API_BASE}/api/intel/university/article/${urlHash}`,
-      { cache: "no-store" },
-    );
-    if (!res.ok) return null;
-    return (await res.json()) as UniversityArticleDetailResponse;
-  } catch {
-    return null;
-  }
+  return fetchJsonWithRetry<UniversityArticleDetailResponse>(
+    `${API_BASE}/api/intel/university/article/${urlHash}`,
+    { cache: "no-store", timeoutMs: 12000 },
+  );
 }
 
 export async function fetchUniversityResearch(params?: {
@@ -275,21 +297,15 @@ export async function fetchUniversityResearch(params?: {
   page?: number;
   pageSize?: number;
 }): Promise<ResearchOutputsResponse | null> {
-  try {
-    const sp = new URLSearchParams();
-    if (params?.type) sp.set("type", params.type);
-    if (params?.influence) sp.set("influence", params.influence);
-    sp.set("page", String(params?.page ?? 1));
-    sp.set("page_size", String(params?.pageSize ?? 20));
-    const res = await fetchWithTimeout(
-      `${API_BASE}/api/intel/university/research?${sp}`,
-      { cache: "no-store" },
-    );
-    if (!res.ok) return null;
-    return (await res.json()) as ResearchOutputsResponse;
-  } catch {
-    return null;
-  }
+  const sp = new URLSearchParams();
+  if (params?.type) sp.set("type", params.type);
+  if (params?.influence) sp.set("influence", params.influence);
+  sp.set("page", String(params?.page ?? 1));
+  sp.set("page_size", String(params?.pageSize ?? 20));
+  return fetchJsonWithRetry<ResearchOutputsResponse>(
+    `${API_BASE}/api/intel/university/research?${sp}`,
+    { cache: "no-store", timeoutMs: 12000 },
+  );
 }
 
 // ── Sentiment Monitoring ─────────────────────────────────

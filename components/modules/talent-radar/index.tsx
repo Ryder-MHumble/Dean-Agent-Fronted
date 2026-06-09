@@ -3,10 +3,10 @@
 import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Search, X, WifiOff } from "lucide-react";
+import { WifiOff } from "lucide-react";
 import { MotionCard } from "@/components/motion";
 import DataFreshness from "@/components/shared/data-freshness";
+import { SearchInput } from "@/components/shared/forms/SearchInput";
 import { SkeletonTalentRadar } from "@/components/shared/skeleton-states";
 import { cn } from "@/lib/utils";
 import NewsFeed from "./news-feed";
@@ -25,6 +25,7 @@ const CATEGORIES: { label: string; value: PersonnelNewsCategory | "全部" }[] =
 const PAGE_SIZE = 20;
 
 export default function TalentRadarModule() {
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<
     PersonnelNewsCategory | "全部"
@@ -86,24 +87,14 @@ export default function TalentRadarModule() {
       <MotionCard delay={0}>
         <Card className="shadow-card">
           <CardContent className="p-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="搜索人物、机构... 例如「大学校长」「基金委」「发改委」"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-9 h-11 text-sm rounded-xl bg-muted/30 border-border/50 focus:bg-white transition-colors"
-              />
-              {isSearching && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+            <SearchInput
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={setSearchQuery}
+              placeholder="搜索人物、机构... 例如「大学校长」「基金委」「发改委」"
+              inputClassName="h-11 text-sm rounded-xl bg-muted/30 border-border/50 focus:bg-white transition-colors"
+              buttonClassName="h-11 rounded-xl"
+            />
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <div className="flex flex-wrap items-center gap-2">
                 {CATEGORIES.map((cat) => (

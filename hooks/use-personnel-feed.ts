@@ -9,6 +9,7 @@ import {
   fetchPersonnelEnrichedFeed,
   fetchPersonnelEnrichedStats,
 } from "@/lib/api";
+import { buildPersonnelNewsFeedQuery } from "@/lib/personnel-news-feed";
 
 interface UsePersonnelFeedResult {
   items: PersonnelChangeItem[];
@@ -38,7 +39,7 @@ export function usePersonnelFeed(): UsePersonnelFeedResult {
       setIsLoading(true);
 
       const [feedData, statsData] = await Promise.all([
-        fetchPersonnelEnrichedFeed(),
+        fetchPersonnelEnrichedFeed(buildPersonnelNewsFeedQuery()),
         fetchPersonnelEnrichedStats(),
       ]);
 

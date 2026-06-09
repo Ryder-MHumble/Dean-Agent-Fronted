@@ -1,17 +1,19 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
-  onSearch?: (value: string) => void;
+  onSearch: (value: string) => void;
   placeholder?: string;
-  debounceMs?: number;
   className?: string;
+  inputClassName?: string;
+  buttonClassName?: string;
+  searchLabel?: string;
 }
 
 export function SearchInput({
@@ -19,43 +21,52 @@ export function SearchInput({
   onChange,
   onSearch,
   placeholder = "搜索...",
-  debounceMs = 400,
   className,
+  inputClassName,
+  buttonClassName,
+  searchLabel = "搜索",
 }: SearchInputProps) {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const val = e.target.value;
-    onChange(val);
-    if (onSearch) {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => onSearch(val), debounceMs);
-    }
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onSearch(value.trim());
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" && onSearch) {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      onSearch(value);
-    }
+  function handleClear() {
+    onChange("");
+    onSearch("");
   }
 
   return (
-    <div className={cn("relative", className)}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-      <Input
-        value={value}
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        placeholder={placeholder}
-        className="pl-9"
-      />
-    </div>
+    <form
+      className={cn("flex min-w-0 items-center gap-2", className)}
+      onSubmit={handleSubmit}
+    >
+      <div className="relative min-w-0 flex-1">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className={cn("pl-9 pr-9", inputClassName)}
+        />
+        {value.trim().length > 0 && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+      <Button
+        type="submit"
+        variant="outline"
+        className={cn("shrink-0", buttonClassName)}
+      >
+        <Search className="h-3.5 w-3.5" />
+        {searchLabel}
+      </Button>
+    </form>
   );
 }

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Search, Building2, Users, ChevronRight, ChevronDown } from "lucide-react";
+import { Building2, Users, ChevronRight, ChevronDown } from "lucide-react";
+import { SearchInput } from "@/components/shared/forms/SearchInput";
 import {
   fetchInstitutions,
   fetchInstitutionTaxonomy,
@@ -24,6 +24,7 @@ export default function ScholarsPage() {
   );
   const [organizations, setOrganizations] = useState<OrganizationWithDepartments[]>([]);
   const [loading, setLoading] = useState(true);
+  const [keywordInput, setKeywordInput] = useState("");
   const [keyword, setKeyword] = useState("");
   const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set());
 
@@ -94,15 +95,14 @@ export default function ScholarsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="搜索机构..."
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
+              <SearchInput
+                value={keywordInput}
+                onChange={setKeywordInput}
+                onSearch={setKeyword}
+                placeholder="搜索机构..."
+                inputClassName="h-9 text-sm"
+                buttonClassName="h-9 px-2.5"
+              />
 
               {/* Region Filter */}
               <div>

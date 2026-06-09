@@ -17,9 +17,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import DataFreshness from "@/components/shared/data-freshness";
+import { SearchInput } from "@/components/shared/forms/SearchInput";
 import {
   GraduationCap,
-  Search,
   RefreshCcw,
   Plus,
   Pencil,
@@ -124,6 +124,7 @@ export default function StudentMgmt() {
   });
 
   const [keyword, setKeyword] = useState("");
+  const [keywordInput, setKeywordInput] = useState("");
   const [students, setStudents] = useState<AcademicStudentSummary[]>([]);
   const [studentsTotal, setStudentsTotal] = useState(0);
   const [studentPage, setStudentPage] = useState(1);
@@ -181,16 +182,16 @@ export default function StudentMgmt() {
   };
 
   useEffect(() => {
-    setStudentPage(1);
-    const timer = setTimeout(() => {
-      void loadStudents(keyword, 1);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [keyword]);
-
-  useEffect(() => {
     void loadStudents(keyword, studentPage);
-  }, [studentPage]);
+  }, [keyword, studentPage]);
+
+  const commitStudentSearch = (value: string) => {
+    setKeyword(value);
+    setStudentPage(1);
+    if (value === keyword && studentPage === 1) {
+      void loadStudents(value, 1);
+    }
+  };
 
   useEffect(() => {
     if (!selectedStudent) return;
@@ -473,15 +474,15 @@ export default function StudentMgmt() {
                   刷新
                 </Button>
               </div>
-              <div className="relative mt-2">
-                <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-2.5" />
-                <Input
-                  className="pl-9"
-                  placeholder="按学生姓名搜索"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                />
-              </div>
+              <SearchInput
+                value={keywordInput}
+                onChange={setKeywordInput}
+                onSearch={commitStudentSearch}
+                placeholder="按学生姓名搜索"
+                className="mt-2"
+                inputClassName="h-9"
+                buttonClassName="h-9"
+              />
             </CardHeader>
             <CardContent className="pt-0">
               {studentsLoading ? (

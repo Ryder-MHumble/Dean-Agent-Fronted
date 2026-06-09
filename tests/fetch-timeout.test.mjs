@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { fetchWithTimeout } from "../lib/fetch-timeout.ts";
+import { fetchJsonWithRetry, fetchWithTimeout } from "../lib/fetch-timeout.ts";
 
 test("fetchWithTimeout aborts a request that does not resolve before timeout", async () => {
   let aborted = false;
@@ -33,4 +33,27 @@ test("fetchWithTimeout forwards successful responses", async () => {
   });
 
   assert.equal(result, response);
+});
+
+test("fetchJsonWithRetry retries once after a failed fetch", async () => {
+  let attempts = 0;
+  const data = await fetchJsonWithRetry(
+    "http://example.test/feed",
+    {
+      retryDelayMs: 0,
+      fetcher: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          throw new TypeError("empty response");
+        }
+        return new Response(JSON.stringify({ total: 20 }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      },
+    },
+  );
+
+  assert.equal(attempts, 2);
+  assert.deepEqual(data, { total: 20 });
 });

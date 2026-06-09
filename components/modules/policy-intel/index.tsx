@@ -2,11 +2,11 @@
 
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, X, SlidersHorizontal, Check } from "lucide-react";
+import { X, SlidersHorizontal, Check } from "lucide-react";
 import { MotionCard } from "@/components/motion";
 import DataFreshness from "@/components/shared/data-freshness";
+import { SearchInput } from "@/components/shared/forms/SearchInput";
 import { cn } from "@/lib/utils";
 import { getPolicySourceId, getPolicySourceLabel } from "@/lib/policy-source-label";
 import PolicyFeed from "./policy-feed";
@@ -29,6 +29,7 @@ const CATEGORIES: {
 const PAGE_SIZE = 20;
 
 export default function PolicyIntelModule() {
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<
     PolicyFeedCategory | "全部"
@@ -76,8 +77,6 @@ export default function PolicyIntelModule() {
       setSourceDropdownOpen(false);
     }, 150);
   }, []);
-
-  const isSearching = searchQuery.trim().length > 0;
 
   useEffect(() => {
     setPage(1);
@@ -159,24 +158,15 @@ export default function PolicyIntelModule() {
           <CardContent className="p-4 space-y-3">
             {/* Row 1: Search + Source filter trigger */}
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative min-w-[16rem] flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="搜索政策、机构、关键词..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-9 h-9 text-sm rounded-lg bg-muted/30 border-border/50 focus:bg-white transition-colors"
-                />
-                {isSearching && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
+              <SearchInput
+                value={searchInput}
+                onChange={setSearchInput}
+                onSearch={setSearchQuery}
+                placeholder="搜索政策、机构、关键词..."
+                className="min-w-[16rem] flex-1"
+                inputClassName="h-9 text-sm rounded-lg bg-muted/30 border-border/50 focus:bg-white transition-colors"
+                buttonClassName="h-9 rounded-lg"
+              />
 
               <DateRangeFilter
                 from={dateFrom}

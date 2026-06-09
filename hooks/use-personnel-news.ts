@@ -10,6 +10,7 @@ import type {
 } from "@/lib/types/talent-radar";
 import { fetchPersonnelEnrichedFeed } from "@/lib/api";
 import type { PersonnelEnrichedFeedQuery } from "@/lib/api";
+import { buildPersonnelNewsFeedQuery } from "@/lib/personnel-news-feed";
 import {
   filterItemsByDateRange,
   hasActiveDateRange,
@@ -188,9 +189,9 @@ export function usePersonnelNews(
 
     async function load() {
       setIsLoading(true);
-      const query = {
+      const query = buildPersonnelNewsFeedQuery({
         keyword: params?.keyword,
-      } satisfies Omit<PersonnelEnrichedFeedQuery, "limit" | "offset">;
+      });
       const shouldFilterByDate = hasActiveDateRange({
         from: dateFrom,
         to: dateTo,

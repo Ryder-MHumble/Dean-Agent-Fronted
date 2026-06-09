@@ -489,7 +489,7 @@ function NoContactWarning() {
 // ── Main Component ──────────────────────────────────────
 
 export default function NetworkIntelligenceView() {
-  const { items, stats, isLoading, isUsingMock, actionCount, watchCount } =
+  const { items, isLoading, isUsingMock, actionCount, watchCount } =
     usePersonnelFeed();
 
   if (isLoading) {
@@ -498,9 +498,7 @@ export default function NetworkIntelligenceView() {
 
   const actionGroup = items.filter((p) => p.group === "action");
   const watchGroup = items.filter((p) => p.group === "watch");
-  const highRelevance =
-    stats?.high_relevance_count ??
-    items.filter((p) => p.relevance >= 60).length;
+  const highRelevance = items.filter((p) => p.relevance >= 60).length;
 
   return (
     <StaggerContainer className="grid grid-cols-1 lg:grid-cols-12 gap-6">
