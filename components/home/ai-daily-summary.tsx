@@ -132,7 +132,9 @@ export default function AIDailySummary({
       <CardContent className="p-4">
         <div className="flex items-center gap-1.5 mb-2.5">
           <Sparkles className="h-3.5 w-3.5 text-blue-500" />
-          <span className="text-xs font-semibold text-foreground">AI 早报</span>
+          <span className="text-xs font-semibold text-foreground">
+            AI 情报摘要
+          </span>
           {timeStr && (
             <span className="text-[10px] text-muted-foreground ml-auto">
               {timeStr} 生成

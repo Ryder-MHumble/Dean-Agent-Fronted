@@ -15,15 +15,10 @@ import {
   Cpu,
   Globe,
   GraduationCap,
-  Building,
-  Users,
-  Calendar,
   LayoutDashboard,
   AlertTriangle,
   TrendingUp,
   UserCheck,
-  DollarSign,
-  Clock,
   Search,
 } from "lucide-react";
 import { rawAlerts } from "@/lib/mock-data/home-briefing";
@@ -37,9 +32,9 @@ interface CommandPaletteProps {
 const moduleItems = [
   {
     id: "home",
-    label: "院长早报",
+    label: "情报总览",
     icon: LayoutDashboard,
-    keywords: "首页 早报 home briefing",
+    keywords: "首页 总览 情报 home briefing",
   },
   {
     id: "policy-intel",
@@ -55,9 +50,9 @@ const moduleItems = [
   },
   {
     id: "talent-radar",
-    label: "人事动态",
+    label: "领导画像",
     icon: Globe,
-    keywords: "人事 动态 人才 领导 变动 高校 政府 personnel",
+    keywords: "领导 画像 人事 履历 高校 政府 personnel",
   },
   {
     id: "university-eco",
@@ -65,50 +60,20 @@ const moduleItems = [
     icon: GraduationCap,
     keywords: "高校 清华 北大 同行 university",
   },
-  {
-    id: "internal-mgmt",
-    label: "院内管理",
-    icon: Building,
-    keywords: "财务 项目 预算 管理 internal",
-  },
-  {
-    id: "network",
-    label: "人脉网络",
-    icon: Users,
-    keywords: "人脉 关系 联系人 network",
-  },
-  {
-    id: "smart-schedule",
-    label: "智能日程",
-    icon: Calendar,
-    keywords: "日程 会议 邀约 schedule",
-  },
 ];
 
 const quickActions = [
   {
     id: "action-report",
-    label: "生成今日工作报告",
+    label: "查看今日情报总览",
     icon: FileText,
-    keywords: "报告 report",
-  },
-  {
-    id: "action-schedule",
-    label: "查看今日日程",
-    icon: Clock,
-    keywords: "日程 今天 today",
-  },
-  {
-    id: "action-budget",
-    label: "查看预算执行情况",
-    icon: DollarSign,
-    keywords: "预算 财务 budget",
+    keywords: "总览 报告 report",
   },
   {
     id: "action-talent",
-    label: "查看最新人事动态",
+    label: "筛选领导画像",
     icon: UserCheck,
-    keywords: "人事 动态 人才 personnel",
+    keywords: "领导 人事 人才 personnel",
   },
   {
     id: "action-trends",
@@ -145,8 +110,6 @@ export default function CommandPalette({
         // Quick actions map to modules
         const actionMap: Record<string, string> = {
           "action-report": "home",
-          "action-schedule": "smart-schedule",
-          "action-budget": "internal-mgmt",
           "action-talent": "talent-radar",
           "action-trends": "tech-frontier",
         };

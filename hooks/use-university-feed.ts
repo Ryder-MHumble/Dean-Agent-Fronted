@@ -17,6 +17,10 @@ import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 // ── Transform API items to PeerNewsItem ──────────────────
 
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function normalizePublishedAt(publishedAt: string | null): {
   date: string;
   displayDate: string;
@@ -26,6 +30,10 @@ function normalizePublishedAt(publishedAt: string | null): {
   }
 
   const date = publishedAt.slice(0, 10);
+  if (date > todayIsoDate()) {
+    return { date, displayDate: "日期待核验" };
+  }
+
   const timeMatch = publishedAt.match(/[T ](\d{2}:\d{2})/);
   const hasMeaningfulTime = timeMatch && timeMatch[1] !== "00:00";
 

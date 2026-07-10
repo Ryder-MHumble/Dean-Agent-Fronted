@@ -3,7 +3,9 @@ import type {
   PersonnelEnrichedFeedResponse,
   PersonnelEnrichedStatsResponse,
 } from "@/lib/types/personnel-intel";
+import type { LeaderProfileListResponse } from "@/lib/types/leaders";
 import { fetchJsonWithRetry, fetchWithTimeout } from "@/lib/fetch-timeout";
+import { buildLeaderQueryParams, type LeaderQuery } from "@/lib/leader-query";
 import type {
   SocialPostBrief,
   SocialPostDetail,
@@ -223,6 +225,24 @@ export async function fetchPersonnelEnrichedStats(): Promise<PersonnelEnrichedSt
     );
     if (!res.ok) return null;
     return (await res.json()) as PersonnelEnrichedStatsResponse;
+  } catch {
+    return null;
+  }
+}
+
+// ── Leader Profiles ─────────────────────────────────────
+
+export async function fetchLeaderProfiles(
+  params: LeaderQuery = {},
+): Promise<LeaderProfileListResponse | null> {
+  try {
+    const sp = buildLeaderQueryParams(params);
+    const res = await fetchWithTimeout(`${API_BASE}/api/leaders?${sp}`, {
+      cache: "no-store",
+      timeoutMs: 12000,
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as LeaderProfileListResponse;
   } catch {
     return null;
   }

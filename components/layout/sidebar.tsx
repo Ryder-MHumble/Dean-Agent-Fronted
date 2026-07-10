@@ -11,7 +11,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
-import { AnimatedTitle } from "@/components/motion";
 import { navGroups } from "@/lib/mock-data/navigation";
 import { NavItem } from "./nav-item";
 
@@ -121,7 +120,7 @@ export default function Sidebar({
                   </span>
                 </div>
                 <p className="text-[11px] text-muted-foreground whitespace-nowrap">
-                  {"院长决策系统"}
+                  {"情报引擎"}
                 </p>
               </motion.div>
             )}

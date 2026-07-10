@@ -14,21 +14,21 @@ export const mockNotifications: NotificationItem[] = [
     module: "policy-intel",
   },
   {
-    title: "清华AI研究院院长换帅：张亚勤接任",
+    title: "领导画像库新增高校领导记录",
     time: "1小时前",
     type: "info",
     module: "talent-radar",
   },
   {
-    title: "量子计算中心预算超支预警",
+    title: "高校生态信源更新完成",
     time: "2小时前",
-    type: "warning",
-    module: "internal-mgmt",
+    type: "info",
+    module: "university-eco",
   },
   {
-    title: "李张任清华AI副院长",
+    title: "科技前沿社媒信号新增",
     time: "3小时前",
     type: "info",
-    module: "network",
+    module: "tech-frontier",
   },
 ];

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import AppShell, { TopBar } from "@/components/app-shell";
-import FloatingAIAssistant from "@/components/floating-ai-assistant";
 import MobileBottomNav from "@/components/shared/mobile-bottom-nav";
 import dynamic from "next/dynamic";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
@@ -32,22 +31,19 @@ const SentimentModule = dynamic(
   () => import("@/components/modules/internal-mgmt/sentiment"),
   { ssr: false, loading: () => <PageLoadingSkeleton /> },
 );
-const InternalMgmtModule = dynamic(
-  () => import("@/components/modules/internal-mgmt"),
-  { ssr: false, loading: () => <PageLoadingSkeleton /> },
-);
-const NetworkModule = dynamic(() => import("@/components/modules/network"), {
-  ssr: false,
-  loading: () => <PageLoadingSkeleton />,
-});
-const SmartScheduleModule = dynamic(
-  () => import("@/components/modules/smart-schedule"),
-  { ssr: false, loading: () => <PageLoadingSkeleton /> },
-);
 import CommandPalette from "@/components/shared/command-palette";
 import { MotionPage, PageLoadingSkeleton } from "@/components/motion";
 import { Toaster } from "sonner";
 import { pageMeta } from "@/lib/mock-data/navigation";
+
+const visiblePages = new Set([
+  "home",
+  "policy-intel",
+  "tech-frontier",
+  "talent-radar",
+  "university-eco",
+  "sentiment",
+]);
 
 export default function Page() {
   const [activePage, setActivePage] = useState("home");
@@ -57,6 +53,7 @@ export default function Page() {
   const meta = pageMeta[activePage] || pageMeta.home;
 
   const handleNavigate = (page: string) => {
+    if (!visiblePages.has(page)) return;
     setActivePage(page);
     setMobileOpen(false);
   };
@@ -109,13 +106,9 @@ export default function Page() {
             {activePage === "talent-radar" && <TalentRadarModule />}
             {activePage === "university-eco" && <UniversityEcoModule />}
             {activePage === "sentiment" && <SentimentModule />}
-            {activePage === "internal-mgmt" && <InternalMgmtModule />}
-            {activePage === "network" && <NetworkModule />}
-            {activePage === "smart-schedule" && <SmartScheduleModule />}
           </MotionPage>
         </div>
       </main>
-      <FloatingAIAssistant />
       <MobileBottomNav activePage={activePage} onNavigate={handleNavigate} />
       <Toaster position="top-right" richColors closeButton />
     </div>

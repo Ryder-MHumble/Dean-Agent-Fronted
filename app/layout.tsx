@@ -4,8 +4,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "智策云端 - 院长决策系统",
-  description: "面向研究院院长的全域情报中心与智能参谋助手",
+  title: "情报引擎",
+  description: "面向多维信息检索、筛选和每日情报查看的情报引擎",
   icons: {
     icon: "/Logo.png",
     apple: "/Logo.png",

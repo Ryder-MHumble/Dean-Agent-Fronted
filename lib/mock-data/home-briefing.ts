@@ -86,7 +86,7 @@ export const mockDailySummary: DailySummaryData = {
   generatedAt: new Date(),
   paragraphs: [
     [
-      "院长，今日有3件事项需要您优先关注。",
+      "今日情报总览有3类信息需要关注。",
       {
         text: "北京科委发布算力补贴政策",
         moduleId: "policy-intel",
@@ -106,16 +106,7 @@ export const mockDailySummary: DailySummaryData = {
           "科技部关于组织申报「新一代人工智能」重大项目2026年度课题的通知。本次征集方向包括：大模型基础理论、具身智能关键技术...",
         sourceName: "科技部",
       },
-      "，材料准备进度仅30%，需督促王教授加快进度。",
-    ],
-    [
-      "内部管理方面，",
-      {
-        text: "大模型基座项目采购审批延期15天",
-        moduleId: "internal-mgmt",
-        action: "查看详情",
-      },
-      "，卡在李某某（采购处）处，建议直接联系推动。另外Q1预算执行率仅12%（红线25%），多个项目采购流程受阻。",
+      "，材料准备进度仅30%，可继续在政策情报中跟踪。",
     ],
     [
       "外部动态方面，",
@@ -165,12 +156,12 @@ export const mockMetricCards: MetricCardData[] = [
   },
   {
     id: "talent-radar",
-    title: "人事动态",
+    title: "领导画像",
     icon: "talent",
     metrics: [
-      { label: "今日要闻", value: "3条", variant: "success" },
-      { label: "本周更新", value: "8条" },
-      { label: "重要事项", value: "2条" },
+      { label: "政府画像", value: "1564条", variant: "success" },
+      { label: "高校画像", value: "494条" },
+      { label: "可筛选", value: "姓名/机构" },
     ],
   },
   {
@@ -180,37 +171,7 @@ export const mockMetricCards: MetricCardData[] = [
     metrics: [
       { label: "同行动态", value: "5条" },
       { label: "新成果", value: "3项", variant: "success" },
-      { label: "人事变动", value: "2条", variant: "warning" },
-    ],
-  },
-  {
-    id: "internal-mgmt",
-    title: "院内管理",
-    icon: "building",
-    metrics: [
-      { label: "异常事项", value: "2项", variant: "warning" },
-      { label: "预算执行", value: "42%", variant: "danger" },
-      { label: "重点项目", value: "8个" },
-    ],
-  },
-  {
-    id: "network",
-    title: "人脉网络",
-    icon: "users",
-    metrics: [
-      { label: "待恭喜", value: "5人", variant: "warning" },
-      { label: "新变动", value: "3条" },
-      { label: "半年未联系", value: "2人" },
-    ],
-  },
-  {
-    id: "smart-schedule",
-    title: "智能日程",
-    icon: "calendar",
-    metrics: [
-      { label: "今日ROI", value: "85", variant: "success" },
-      { label: "日程冲突", value: "1个", variant: "warning" },
-      { label: "待准备", value: "2个" },
+      { label: "信源更新", value: "2类", variant: "warning" },
     ],
   },
 ];

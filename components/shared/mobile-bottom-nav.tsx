@@ -4,13 +4,10 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   FileText,
-  Building,
-  Calendar,
   MoreHorizontal,
   Cpu,
   Globe,
   GraduationCap,
-  Users,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,29 +20,21 @@ interface MobileBottomNavProps {
 
 const primaryTabs = [
   { id: "home", label: "首页", icon: LayoutDashboard },
-  { id: "policy-intel", label: "情报", icon: FileText },
-  { id: "internal-mgmt", label: "管理", icon: Building },
-  { id: "smart-schedule", label: "日程", icon: Calendar },
+  { id: "policy-intel", label: "政策", icon: FileText },
+  { id: "tech-frontier", label: "科技", icon: Cpu },
+  { id: "talent-radar", label: "领导", icon: Globe },
   { id: "_more", label: "更多", icon: MoreHorizontal },
 ];
 
 const moreTabs = [
-  { id: "tech-frontier", label: "科技前沿", icon: Cpu },
-  { id: "talent-radar", label: "人事动态", icon: Globe },
   { id: "university-eco", label: "高校生态", icon: GraduationCap },
-  { id: "network", label: "人脉网络", icon: Users },
+  { id: "sentiment", label: "两院舆情", icon: FileText },
 ];
-
-// Pages that should highlight the "情报" tab
-const intelPages = new Set(["policy-intel", "tech-frontier", "talent-radar", "university-eco"]);
 
 export default function MobileBottomNav({ activePage, onNavigate }: MobileBottomNavProps) {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const getActiveTab = (tabId: string) => {
-    if (tabId === "policy-intel") {
-      return intelPages.has(activePage);
-    }
     if (tabId === "_more") {
       return moreTabs.some((t) => t.id === activePage);
     }
