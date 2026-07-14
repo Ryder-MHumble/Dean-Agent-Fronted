@@ -17,7 +17,7 @@ test("normalizeBriefingParagraphs removes old dean-oriented wording", () => {
   assert.deepEqual(paragraphs, [
     [
       "状态信息需要负责人介入，本机构与本机构均需关注。",
-      { text: "领导画像", moduleId: "talent-radar" },
+      { text: "外部领导", moduleId: "talent-radar" },
     ],
   ]);
 });
@@ -32,6 +32,6 @@ test("normalizeMetricCards renames personnel cards for the leader profile UI", (
     },
   ]);
 
-  assert.equal(cards[0].title, "领导画像");
+  assert.equal(cards[0].title, "外部领导");
   assert.equal(cards[0].metrics[0].label, "领导记录");
 });

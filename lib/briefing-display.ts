@@ -8,7 +8,7 @@ const textReplacements: [RegExp, string][] = [
   [/我院/g, "本机构"],
   [/研究院/g, "本机构"],
   [/提示/g, "信息"],
-  [/人事动态/g, "领导画像"],
+  [/人事动态/g, "外部领导"],
   [/人事变动/g, "领导记录"],
 ];
 
@@ -46,7 +46,7 @@ export function normalizeMetricCards(cards: MetricCardData[]): MetricCardData[] 
 
     return {
       ...card,
-      title: "领导画像",
+      title: "外部领导",
       metrics: card.metrics.map((metric) => ({
         ...metric,
         label: normalizeText(metric.label),

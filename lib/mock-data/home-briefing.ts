@@ -146,7 +146,7 @@ export const mockMetricCards: MetricCardData[] = [
   },
   {
     id: "tech-frontier",
-    title: "科技前沿",
+    title: "社媒情报",
     icon: "tech",
     metrics: [
       { label: "技术突破", value: "2项", variant: "success" },
@@ -156,11 +156,11 @@ export const mockMetricCards: MetricCardData[] = [
   },
   {
     id: "talent-radar",
-    title: "领导画像",
+    title: "外部领导",
     icon: "talent",
     metrics: [
-      { label: "政府画像", value: "1564条", variant: "success" },
-      { label: "高校画像", value: "494条" },
+      { label: "政府领导", value: "1564条", variant: "success" },
+      { label: "高校领导", value: "494条" },
       { label: "可筛选", value: "姓名/机构" },
     ],
   },
