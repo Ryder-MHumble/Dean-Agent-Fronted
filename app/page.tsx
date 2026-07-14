@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import AppShell, { TopBar } from "@/components/app-shell";
 import MobileBottomNav from "@/components/shared/mobile-bottom-nav";
-import PlaceholderPage from "@/components/shared/placeholder-page";
 import dynamic from "next/dynamic";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { cn } from "@/lib/utils";
@@ -30,6 +29,19 @@ const UniversityEcoModule = dynamic(
 );
 const SentimentModule = dynamic(
   () => import("@/components/modules/internal-mgmt/sentiment"),
+  { ssr: false, loading: () => <PageLoadingSkeleton /> },
+);
+const PapersModule = dynamic(() => import("@/components/modules/papers"), {
+  ssr: false,
+  loading: () => <PageLoadingSkeleton />,
+});
+const AcademicAchievementsModule = dynamic(
+  () =>
+    import("@/components/modules/internal-shared/academic-achievements"),
+  { ssr: false, loading: () => <PageLoadingSkeleton /> },
+);
+const InternalExpertsModule = dynamic(
+  () => import("@/components/modules/internal-shared/internal-experts"),
   { ssr: false, loading: () => <PageLoadingSkeleton /> },
 );
 import { MotionPage, PageLoadingSkeleton } from "@/components/motion";
@@ -90,37 +102,27 @@ export default function Page() {
           onMenuClick={() => setMobileOpen(true)}
         />
         <div className="min-h-[calc(100vh-64px)]">
-          <MotionPage pageKey={activePage}>
-            {activePage === "home" && (
-              <HomeModule onNavigate={handleNavigate} />
-            )}
-            {activePage === "policy-intel" && <PolicyIntelModule />}
-            {activePage === "tech-frontier" && <TechFrontierModule />}
-            {activePage === "papers" && (
-              <PlaceholderPage
-                moduleName="外部情报资讯"
-                pageName="前沿论文"
-                description="顶刊、顶会与预印本数据接入中"
-              />
-            )}
-            {activePage === "talent-radar" && <TalentRadarModule />}
-            {activePage === "university-eco" && <UniversityEcoModule />}
-            {activePage === "sentiment" && <SentimentModule />}
-            {activePage === "academic-achievements" && (
-              <PlaceholderPage
-                moduleName="内部共享资讯"
-                pageName="两院学术成果"
-                description="两院论文成果数据接入中"
-              />
-            )}
-            {activePage === "internal-experts" && (
-              <PlaceholderPage
-                moduleName="内部共享资讯"
-                pageName="两院专家库"
-                description="专家脱敏数据接入中"
-              />
-            )}
-          </MotionPage>
+          {activePage === "papers" && <PapersModule />}
+          {activePage === "academic-achievements" && (
+            <AcademicAchievementsModule />
+          )}
+          {activePage === "internal-experts" && <InternalExpertsModule />}
+          {![
+            "papers",
+            "academic-achievements",
+            "internal-experts",
+          ].includes(activePage) && (
+            <MotionPage pageKey={activePage}>
+              {activePage === "home" && (
+                <HomeModule onNavigate={handleNavigate} />
+              )}
+              {activePage === "policy-intel" && <PolicyIntelModule />}
+              {activePage === "tech-frontier" && <TechFrontierModule />}
+              {activePage === "talent-radar" && <TalentRadarModule />}
+              {activePage === "university-eco" && <UniversityEcoModule />}
+              {activePage === "sentiment" && <SentimentModule />}
+            </MotionPage>
+          )}
         </div>
       </main>
       <MobileBottomNav activePage={activePage} onNavigate={handleNavigate} />

@@ -36,13 +36,8 @@ test("paper metadata uses Chinese preprint copy", () => {
   assert.doesNotMatch(pageMeta.papers.subtitle, /ArXiv/i);
 });
 
-test("new navigation pages render nonblank placeholder branches", () => {
-  for (const pageId of ["papers", "academic-achievements", "internal-experts"]) {
-    assert.match(
-      pageSource,
-      new RegExp(`activePage === ["']${pageId}["'][\\s\\S]{0,160}<PlaceholderPage`),
-    );
-  }
+test("intelligence data pages no longer render placeholder branches", () => {
+  assert.doesNotMatch(pageSource, /<PlaceholderPage/);
 });
 
 test("source-pool control remains accessible on narrow screens", () => {
