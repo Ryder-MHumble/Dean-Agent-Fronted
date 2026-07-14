@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import AppShell, { TopBar } from "@/components/app-shell";
 import MobileBottomNav from "@/components/shared/mobile-bottom-nav";
+import PlaceholderPage from "@/components/shared/placeholder-page";
 import dynamic from "next/dynamic";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { cn } from "@/lib/utils";
@@ -95,9 +96,30 @@ export default function Page() {
             )}
             {activePage === "policy-intel" && <PolicyIntelModule />}
             {activePage === "tech-frontier" && <TechFrontierModule />}
+            {activePage === "papers" && (
+              <PlaceholderPage
+                moduleName="外部情报资讯"
+                pageName="前沿论文"
+                description="顶刊、顶会与预印本数据接入中"
+              />
+            )}
             {activePage === "talent-radar" && <TalentRadarModule />}
             {activePage === "university-eco" && <UniversityEcoModule />}
             {activePage === "sentiment" && <SentimentModule />}
+            {activePage === "academic-achievements" && (
+              <PlaceholderPage
+                moduleName="内部共享资讯"
+                pageName="两院学术成果"
+                description="两院论文成果数据接入中"
+              />
+            )}
+            {activePage === "internal-experts" && (
+              <PlaceholderPage
+                moduleName="内部共享资讯"
+                pageName="两院专家库"
+                description="专家脱敏数据接入中"
+              />
+            )}
           </MotionPage>
         </div>
       </main>

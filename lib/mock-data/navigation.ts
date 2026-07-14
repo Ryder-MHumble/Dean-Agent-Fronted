@@ -51,7 +51,7 @@ export const pageMeta: Record<string, PageMeta> = {
   },
   papers: {
     title: "前沿论文",
-    subtitle: "顶刊顶会 · ArXiv · 前沿研究",
+    subtitle: "顶刊顶会 · 预印本 · 前沿研究",
   },
   "talent-radar": {
     title: "外部领导",

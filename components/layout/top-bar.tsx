@@ -20,7 +20,7 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/40 bg-white/70 px-4 sm:px-6 backdrop-blur-md shadow-sm">
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         <button
           type="button"
           onClick={onMenuClick}
@@ -28,7 +28,9 @@ export function TopBar({
         >
           <Menu className="h-5 w-5" />
         </button>
-        <AnimatedTitle title={title} subtitle={subtitle} />
+        <div className="min-w-0 overflow-hidden">
+          <AnimatedTitle title={title} subtitle={subtitle} />
+        </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
@@ -37,9 +39,10 @@ export function TopBar({
             href={INTELLIGENCE_SOURCE_POOL_URL}
             target="_blank"
             rel="noreferrer"
+            aria-label="情报引擎信源池"
           >
             <Database className="h-4 w-4" />
-            情报引擎信源池
+            <span className="hidden sm:inline">情报引擎信源池</span>
           </a>
         </Button>
       </div>
