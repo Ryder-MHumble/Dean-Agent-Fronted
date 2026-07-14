@@ -41,8 +41,13 @@ import FeedPagination from "@/components/shared/feed-pagination";
 import DataFreshness from "@/components/shared/data-freshness";
 import { MotionCard } from "@/components/motion";
 import { useLeaders } from "@/hooks/use-leaders";
+import generatedAvatarMapping from "@/lib/generated/leader-avatars.json";
+import {
+  getLeaderSummary,
+  resolveLeaderAvatar,
+} from "@/lib/leader-display";
 import type { LeaderDomain, LeaderStatus } from "@/lib/leader-query";
-import type { LeaderProfile } from "@/lib/types/leaders";
+import type { LeaderAvatarRecord, LeaderProfile } from "@/lib/types/leaders";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
@@ -55,23 +60,10 @@ const domainLabels: Record<string, string> = {
   mixed: "混合",
 };
 
-function getDetailText(leader: LeaderProfile) {
-  const details = leader.leader_details;
-  if (!details || typeof details !== "object") return "";
-  const text = details.text;
-  const summary = details.summary;
-  if (typeof text === "string" && text.trim()) return text.trim();
-  if (typeof summary === "string" && summary.trim()) return summary.trim();
-  return "";
-}
-
-function getAvatarUrl(leader: LeaderProfile): string | null {
-  const details = leader.leader_details;
-  if (!details || typeof details !== "object") return null;
-  const media = details.media as { avatar_url?: string } | undefined;
-  const url = media?.avatar_url;
-  return typeof url === "string" && url.trim() ? url.trim() : null;
-}
+const avatarMapping = generatedAvatarMapping as Record<
+  string,
+  LeaderAvatarRecord
+>;
 
 function getQualityNeedsReview(leader: LeaderProfile) {
   const details = leader.leader_details;
@@ -176,7 +168,7 @@ function LeaderAvatar({
   size?: number;
 }) {
   const [imgError, setImgError] = useState(false);
-  const avatarUrl = getAvatarUrl(leader);
+  const avatarUrl = resolveLeaderAvatar(leader, avatarMapping);
 
   if (avatarUrl && !imgError) {
     return (
@@ -212,7 +204,7 @@ function LeaderMobileCard({
   leader: LeaderProfile;
   onClick: () => void;
 }) {
-  const detailText = getDetailText(leader);
+  const detailText = getLeaderSummary(leader);
   const latestSource = leader.latest_source_url;
 
   return (
@@ -267,7 +259,7 @@ function LeaderMobileCard({
 
 /** Detail sheet content: timeline, events, bio, sources */
 function LeaderDetailContent({ leader }: { leader: LeaderProfile }) {
-  const detailText = getDetailText(leader);
+  const detailText = getLeaderSummary(leader);
   const experiences = useMemo(
     () =>
       [...(leader.experiences || [])].sort((a, b) => {
@@ -539,31 +531,7 @@ export default function TalentRadarModule() {
     <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 overflow-hidden px-5 pt-5 pb-20 md:pb-2">
       <MotionCard delay={0}>
         <div className="grid gap-3 rounded-lg border border-border/70 bg-background p-4 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold">领导画像库</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                直接查询政府领导与高校领导画像，支持姓名、机构和全文关键词筛选。
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              <Badge variant="secondary" className="text-xs">
-                共 {total} 条
-              </Badge>
-              {needsReviewCount > 0 && (
-                <Badge
-                  variant="outline"
-                  className="border-amber-200 bg-amber-50 text-xs text-amber-700"
-                >
-                  {needsReviewCount} 条待核验
-                </Badge>
-              )}
-              <DataFreshness updatedAt={latestUpdatedAt} />
-            </div>
-          </div>
-
-          <div className="grid gap-2 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)_minmax(0,0.9fr)_140px_120px_auto_auto] lg:items-end">
+          <div className="grid gap-2 lg:grid-cols-4 lg:items-end xl:grid-cols-[minmax(150px,1.1fr)_minmax(120px,0.8fr)_minmax(150px,1fr)_120px_110px_auto_auto_minmax(220px,auto)]">
             <label className="grid gap-1.5">
               <span className="text-xs font-medium text-muted-foreground">
                 关键词
@@ -653,6 +621,21 @@ export default function TalentRadarModule() {
             <Button type="button" variant="outline" onClick={clearFilters}>
               重置
             </Button>
+            <div className="flex min-h-10 flex-wrap items-center gap-2 lg:justify-end">
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              <Badge variant="secondary" className="text-xs">
+                共 {total} 条
+              </Badge>
+              {needsReviewCount > 0 && (
+                <Badge
+                  variant="outline"
+                  className="border-amber-200 bg-amber-50 text-xs text-amber-700"
+                >
+                  {needsReviewCount} 条待核验
+                </Badge>
+              )}
+              <DataFreshness updatedAt={latestUpdatedAt} />
+            </div>
           </div>
         </div>
       </MotionCard>
@@ -666,6 +649,7 @@ export default function TalentRadarModule() {
                   <TableHead className="w-[180px]">姓名</TableHead>
                   <TableHead>当前职务</TableHead>
                   <TableHead>所属机构</TableHead>
+                  <TableHead className="max-w-[200px]">简介</TableHead>
                   <TableHead className="w-[120px]">领域</TableHead>
                   <TableHead className="w-[130px]">最近事件</TableHead>
                   <TableHead className="w-[90px] text-right">来源</TableHead>
@@ -673,7 +657,6 @@ export default function TalentRadarModule() {
               </TableHeader>
               <TableBody>
                 {items.map((leader) => {
-                  const detailText = getDetailText(leader);
                   return (
                     <TableRow
                       key={leader.id}
@@ -694,18 +677,24 @@ export default function TalentRadarModule() {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[260px]">
-                        <div className="line-clamp-2 font-medium">
+                        <div
+                          className="truncate font-medium"
+                          title={getDisplayPositions(leader)}
+                        >
                           {getDisplayPositions(leader)}
                         </div>
-                        {detailText && (
-                          <div className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                            {detailText}
-                          </div>
-                        )}
                       </TableCell>
                       <TableCell className="max-w-[280px]">
                         <div className="line-clamp-2">
                           {getDisplayOrgs(leader)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <div
+                          className="truncate text-sm text-muted-foreground"
+                          title={getLeaderSummary(leader)}
+                        >
+                          {getLeaderSummary(leader) || "—"}
                         </div>
                       </TableCell>
                       <TableCell>
