@@ -1,27 +1,10 @@
 import type {
-  PaperAuthor,
+  PaperApiRecord,
   PaperCategory,
+  PaperListResponse,
   PaperQuery,
   PaperRecord,
-  PaperSource,
 } from "./types/papers.ts";
-
-interface PaperInput {
-  paper_id?: string | null;
-  id?: string | null;
-  title?: string | null;
-  abstract?: string | null;
-  authors?: Array<string | PaperAuthor> | null;
-  venue?: string | null;
-  publication_date?: string | null;
-  year?: number | string | null;
-  url?: string | null;
-  source_url?: string | null;
-  doi?: string | null;
-  arxiv_id?: string | null;
-  source?: PaperSource | null;
-  source_type?: string | null;
-}
 
 const CATEGORY_SOURCE_IDS: Partial<Record<PaperCategory, string>> = {
   "top-conference": "icml",
@@ -53,6 +36,15 @@ function normalizeLabel(value: string | null | undefined): string {
   return value?.trim().toLowerCase() ?? "";
 }
 
+export function getPaperTotalPages(
+  response: Pick<PaperListResponse, "total" | "page_size">,
+): number {
+  return Math.max(
+    1,
+    Math.ceil(response.total / Math.max(1, response.page_size)),
+  );
+}
+
 export function buildPaperQueryParams(
   query: PaperQuery = {},
 ): URLSearchParams {
@@ -66,7 +58,7 @@ export function buildPaperQueryParams(
   }
 
   const keyword = query.keyword?.trim();
-  if (keyword) params.set("keyword", keyword);
+  if (keyword) params.set("q", keyword);
 
   params.set("page", String(Math.max(1, query.page ?? 1)));
   params.set(
@@ -78,10 +70,10 @@ export function buildPaperQueryParams(
   return params;
 }
 
-export function classifyPaper(paper: PaperInput): PaperCategory {
+export function classifyPaper(paper: PaperApiRecord): PaperCategory {
   const sourceId = normalizeLabel(paper.source?.source_id);
   const sourceType = normalizeLabel(
-    paper.source?.source_type ?? paper.source_type,
+    paper.source?.type ?? paper.source?.source_type ?? paper.source_type,
   );
   const venue = normalizeLabel(paper.venue);
 
@@ -96,12 +88,14 @@ export function classifyPaper(paper: PaperInput): PaperCategory {
   return "all";
 }
 
-function formatAuthor(author: string | PaperAuthor): string {
+function formatAuthor(
+  author: NonNullable<PaperApiRecord["authors"]>[number],
+): string {
   if (typeof author === "string") return author.trim();
   return author.name?.trim() || author.author_name?.trim() || "";
 }
 
-export function normalizePaper(paper: PaperInput): PaperRecord {
+export function normalizePaper(paper: PaperApiRecord): PaperRecord {
   const authors = paper.authors ?? [];
   const authorsText = authors.map(formatAuthor).filter(Boolean).join("、");
   const venueText =
@@ -116,6 +110,14 @@ export function normalizePaper(paper: PaperInput): PaperRecord {
     title: paper.title?.trim() || "未命名论文",
     authors,
     source: paper.source ?? {},
+    year: paper.venue_year ?? paper.year,
+    sourceUrl:
+      paper.detail_url ??
+      paper.source_url ??
+      paper.url ??
+      paper.source?.url ??
+      null,
+    pdfUrl: paper.pdf_url ?? null,
     category: classifyPaper(paper),
     authorsText: authorsText || "作者信息待补充",
     venueText,

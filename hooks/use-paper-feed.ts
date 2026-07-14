@@ -2,7 +2,7 @@
 
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { fetchPapers } from "@/lib/api";
-import { normalizePaper } from "@/lib/paper-feed";
+import { getPaperTotalPages, normalizePaper } from "@/lib/paper-feed";
 import type {
   PaperCategory,
   PaperQuery,
@@ -67,7 +67,7 @@ export function usePaperFeed(
         if (data) {
           setItems(data.items.map(normalizePaper));
           setTotal(data.total);
-          setTotalPages(data.total_pages);
+          setTotalPages(getPaperTotalPages(data));
           setIsDisconnected(false);
         } else {
           setItems([]);
