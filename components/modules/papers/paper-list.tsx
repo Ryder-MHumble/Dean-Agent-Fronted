@@ -10,10 +10,10 @@ import type { PaperCategory, PaperRecord } from "@/lib/types/papers";
 const PAGE_SIZE = 20;
 
 const categoryTabs: Array<{ value: PaperCategory; label: string }> = [
-  { value: "all", label: "全部" },
-  { value: "top-journal", label: "顶刊" },
   { value: "top-conference", label: "顶会" },
+  { value: "top-journal", label: "顶刊" },
   { value: "arxiv", label: "预印本" },
+  { value: "all", label: "全部" },
 ];
 
 const categoryLabels: Record<PaperCategory, string> = {
@@ -85,7 +85,7 @@ export default function PaperList({
   groupByPublicationDate = false,
 }: PaperListProps) {
   const [selectedCategory, setSelectedCategory] =
-    useState<PaperCategory>(category ?? "all");
+    useState<PaperCategory>(category ?? "top-conference");
   const [page, setPage] = useState(1);
   const effectiveCategory = category ?? selectedCategory;
   const feed = usePaperFeed({

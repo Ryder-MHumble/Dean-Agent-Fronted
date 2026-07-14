@@ -51,6 +51,16 @@ test("application content can shrink around horizontally scrollable report table
   assert.match(pageSource, /"min-w-0 flex-1/);
 });
 
+test("external leader mobile cards are not trapped in a fixed-height scroll region", () => {
+  const leaderSource = readSource("../components/modules/talent-radar/index.tsx");
+  assert.match(leaderSource, /md:h-\[calc\(100vh-4rem\)\]/);
+  assert.match(leaderSource, /<div className="space-y-3 p-3 md:hidden">/);
+  assert.doesNotMatch(
+    leaderSource,
+    /min-h-0 flex-1 space-y-3 overflow-y-auto p-3 md:hidden/,
+  );
+});
+
 test("paper and internal pages expose the required data links", () => {
   const papersSource = readSource("../components/modules/papers/index.tsx");
   const achievementsSource = readSource(

@@ -104,7 +104,7 @@ export default function InternalExpertsModule() {
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs font-medium text-[#1a3a5c] underline-offset-4 hover:underline"
           >
-            更多学者数据请访问
+            更多学者数据请访问 10.1.132.21:5174
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           </a>
           <SkillAccessNote

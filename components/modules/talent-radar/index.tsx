@@ -527,7 +527,7 @@ export default function TalentRadarModule() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 overflow-hidden px-5 pt-5 pb-20 md:pb-2">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-4 px-4 pb-20 pt-4 md:h-[calc(100vh-4rem)] md:overflow-hidden md:px-5 md:pb-2 md:pt-5">
       <div>
         <div className="grid gap-3 rounded-lg border border-border/70 bg-background p-4 shadow-sm">
           <div className="grid gap-2 lg:grid-cols-4 lg:items-end xl:grid-cols-[minmax(150px,1.1fr)_minmax(120px,0.8fr)_minmax(150px,1fr)_120px_110px_auto_auto_minmax(220px,auto)]">
@@ -639,8 +639,8 @@ export default function TalentRadarModule() {
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-background shadow-sm">
+      <div className="md:min-h-0 md:flex-1 md:overflow-hidden">
+        <div className="flex flex-col rounded-lg border border-border/70 bg-background shadow-sm md:h-full md:min-h-0 md:overflow-hidden">
           <div className="hidden min-h-0 flex-1 overflow-auto md:block">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-muted">
@@ -739,7 +739,7 @@ export default function TalentRadarModule() {
             )}
           </div>
 
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 md:hidden">
+          <div className="space-y-3 p-3 md:hidden">
             {items.map((leader) => (
               <LeaderMobileCard
                 key={leader.id}
