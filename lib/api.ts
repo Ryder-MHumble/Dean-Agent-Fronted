@@ -12,6 +12,8 @@ import type {
   TechFrontierPostQuery,
 } from "@/lib/tech-frontier-feed";
 import { buildTechFrontierPostParams } from "@/lib/tech-frontier-feed";
+import { buildPaperQueryParams } from "@/lib/paper-feed";
+import type { PaperListResponse, PaperQuery } from "@/lib/types/papers";
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001"
@@ -30,6 +32,22 @@ function resolveAcademicApiBase(rawBase: string): string {
 }
 
 const ACADEMIC_API_BASE = resolveAcademicApiBase(API_BASE);
+
+export async function fetchPapers(
+  query: PaperQuery = {},
+): Promise<PaperListResponse | null> {
+  try {
+    const params = buildPaperQueryParams(query);
+    const res = await fetchWithTimeout(`${API_BASE}/api/papers?${params}`, {
+      cache: "no-store",
+      timeoutMs: 12000,
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as PaperListResponse;
+  } catch {
+    return null;
+  }
+}
 
 // ── Tech Frontier Social Feed ────────────────────────────
 
