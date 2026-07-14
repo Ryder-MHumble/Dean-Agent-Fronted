@@ -10,6 +10,8 @@ export interface PaperSource {
   type?: string | null;
   source_type?: string | null;
   name?: string | null;
+  detail_url?: string | null;
+  pdf_url?: string | null;
   url?: string | null;
 }
 

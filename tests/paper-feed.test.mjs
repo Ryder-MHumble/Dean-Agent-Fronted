@@ -85,3 +85,18 @@ test("keyword query uses the papers API q parameter", () => {
     "q=agent&page=1&page_size=30&sort_by=publication_date&order=desc",
   );
 });
+
+test("normalizePaper falls back to nested source links", () => {
+  const paper = normalizePaper({
+    paper_id: "p3",
+    title: "Nested links",
+    source: {
+      source_id: "jmlr",
+      detail_url: "https://example.test/source/p3",
+      pdf_url: "https://example.test/source/p3.pdf",
+    },
+  });
+
+  assert.equal(paper.sourceUrl, "https://example.test/source/p3");
+  assert.equal(paper.pdfUrl, "https://example.test/source/p3.pdf");
+});

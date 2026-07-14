@@ -113,11 +113,12 @@ export function normalizePaper(paper: PaperApiRecord): PaperRecord {
     year: paper.venue_year ?? paper.year,
     sourceUrl:
       paper.detail_url ??
+      paper.source?.detail_url ??
       paper.source_url ??
       paper.url ??
       paper.source?.url ??
       null,
-    pdfUrl: paper.pdf_url ?? null,
+    pdfUrl: paper.pdf_url ?? paper.source?.pdf_url ?? null,
     category: classifyPaper(paper),
     authorsText: authorsText || "作者信息待补充",
     venueText,
