@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   sanitizeExpertRecord,
@@ -62,4 +63,40 @@ test("sanitizeExpertRecords maps approved DWS fields and single-select names", (
     },
   ]);
   assert.doesNotMatch(JSON.stringify(experts), /private|@/);
+});
+
+test("generated expert artifact has the expected count and no private markers", () => {
+  const artifactText = readFileSync(
+    new URL("../lib/generated/two-academies-experts.json", import.meta.url),
+    "utf8",
+  );
+  const snapshot = JSON.parse(artifactText);
+
+  assert.equal(snapshot.items.length, 667);
+  assert.doesNotMatch(
+    artifactText,
+    /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|@|1[3-9]\d{9}|电子邮箱|手机号|电话|学号|recordId|fieldId/i,
+  );
+});
+
+test("validateRawExport rejects incomplete paginated exports", async () => {
+  const { validateRawExport } = await import(
+    "../scripts/build-internal-experts-snapshot.mjs"
+  );
+
+  assert.throws(
+    () => validateRawExport({ hasMore: true, records: [] }),
+    /hasMore must be false/,
+  );
+});
+
+test("validateRawExport rejects an expected-count mismatch", async () => {
+  const { validateRawExport } = await import(
+    "../scripts/build-internal-experts-snapshot.mjs"
+  );
+
+  assert.throws(
+    () => validateRawExport({ hasMore: false, records: [{}] }, 667),
+    /Expected 667 records, received 1/,
+  );
 });
