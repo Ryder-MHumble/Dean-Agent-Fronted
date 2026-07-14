@@ -117,10 +117,26 @@ test("paper category labels use Chinese preprint wording", () => {
   assert.doesNotMatch(paperListSource, /label: "ArXiv"/);
 });
 
-test("generated expert snapshot starts empty for the later sync task", () => {
+test("generated expert snapshot contains only approved public fields", () => {
   const snapshot = JSON.parse(
     readSource("../lib/generated/two-academies-experts.json"),
   );
+  const approvedKeys = [
+    "name",
+    "organization",
+    "department",
+    "title",
+    "role",
+    "region",
+    "researchAreas",
+    "discipline",
+    "updatedAt",
+  ];
 
-  assert.deepEqual(snapshot, { syncedAt: "", items: [] });
+  assert.ok(!Number.isNaN(Date.parse(snapshot.syncedAt)));
+  assert.ok(snapshot.items.length > 0);
+  for (const expert of snapshot.items) {
+    assert.deepEqual(Object.keys(expert), approvedKeys);
+  }
+  assert.doesNotMatch(JSON.stringify(snapshot), /电子邮箱|手机号|电话|@/);
 });
