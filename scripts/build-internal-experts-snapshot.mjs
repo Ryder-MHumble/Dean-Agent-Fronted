@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 import { sanitizeExpertRecords } from "../lib/internal-experts.ts";
 
-export function validateRawExport(raw, expectedCount) {
+export const EXPECTED_EXPERT_COUNT = 667;
+
+export function validateRawExport(raw) {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     throw new Error("Raw expert export must be an object");
   }
@@ -17,9 +19,9 @@ export function validateRawExport(raw, expectedCount) {
     throw new Error("Raw expert export must contain a records array");
   }
 
-  if (expectedCount !== undefined && raw.records.length !== expectedCount) {
+  if (raw.records.length !== EXPECTED_EXPERT_COUNT) {
     throw new Error(
-      `Expected ${expectedCount} records, received ${raw.records.length}`,
+      `Expected ${EXPECTED_EXPERT_COUNT} records, received ${raw.records.length}`,
     );
   }
 }
@@ -27,34 +29,18 @@ export function validateRawExport(raw, expectedCount) {
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const outputPath = resolve(scriptDirectory, "../lib/generated/two-academies-experts.json");
 
-function parseExpectedCount(args) {
-  const flagIndex = args.indexOf("--expected-count");
-
-  if (flagIndex === -1) {
-    return undefined;
-  }
-
-  const expectedCount = Number(args[flagIndex + 1]);
-  if (!Number.isInteger(expectedCount) || expectedCount < 0) {
-    throw new Error("--expected-count must be a non-negative integer");
-  }
-
-  return expectedCount;
-}
-
 async function main() {
   const args = process.argv.slice(2);
   const rawPath = args[0];
 
-  if (!rawPath) {
+  if (!rawPath || args.length !== 1) {
     throw new Error(
-      "Usage: node scripts/build-internal-experts-snapshot.mjs <raw-json-path> [--expected-count <count>]",
+      "Usage: node scripts/build-internal-experts-snapshot.mjs <raw-json-path>",
     );
   }
 
-  const expectedCount = parseExpectedCount(args);
   const raw = JSON.parse(await readFile(resolve(rawPath), "utf8"));
-  validateRawExport(raw, expectedCount);
+  validateRawExport(raw);
 
   const snapshot = {
     syncedAt: new Date().toISOString(),

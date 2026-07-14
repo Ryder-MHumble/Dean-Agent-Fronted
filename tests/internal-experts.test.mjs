@@ -90,13 +90,34 @@ test("validateRawExport rejects incomplete paginated exports", async () => {
   );
 });
 
-test("validateRawExport rejects an expected-count mismatch", async () => {
+test("expert snapshot expected count is fixed at 667", async () => {
+  const { EXPECTED_EXPERT_COUNT } = await import(
+    "../scripts/build-internal-experts-snapshot.mjs"
+  );
+
+  assert.equal(EXPECTED_EXPERT_COUNT, 667);
+});
+
+test("validateRawExport rejects an incomplete record count by default", async () => {
   const { validateRawExport } = await import(
     "../scripts/build-internal-experts-snapshot.mjs"
   );
 
   assert.throws(
-    () => validateRawExport({ hasMore: false, records: [{}] }, 667),
+    () => validateRawExport({ hasMore: false, records: [{}] }),
     /Expected 667 records, received 1/,
+  );
+});
+
+test("validateRawExport accepts a complete 667-record export", async () => {
+  const { validateRawExport } = await import(
+    "../scripts/build-internal-experts-snapshot.mjs"
+  );
+
+  assert.doesNotThrow(() =>
+    validateRawExport({
+      hasMore: false,
+      records: Array.from({ length: 667 }, () => ({})),
+    }),
   );
 });
