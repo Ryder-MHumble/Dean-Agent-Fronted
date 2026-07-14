@@ -47,6 +47,10 @@ test("data report pages render outside the entrance animation wrapper", () => {
   }
 });
 
+test("application content can shrink around horizontally scrollable report tables", () => {
+  assert.match(pageSource, /"min-w-0 flex-1/);
+});
+
 test("paper and internal pages expose the required data links", () => {
   const papersSource = readSource("../components/modules/papers/index.tsx");
   const achievementsSource = readSource(

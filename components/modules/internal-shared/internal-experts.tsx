@@ -75,7 +75,7 @@ export default function InternalExpertsModule() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#f7f8fa] p-4 md:p-6">
+    <div className="min-h-[calc(100vh-64px)] min-w-0 max-w-full bg-[#f7f8fa] p-4 md:p-6">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
         <div>
           <h2 className="text-lg font-semibold text-[#1a3a5c]">专家信息表</h2>

@@ -92,7 +92,7 @@ export default function Page() {
       />
       <main
         className={cn(
-          "flex-1 transition-[margin-left] duration-200 ease-out pb-20 md:pb-0",
+          "min-w-0 flex-1 pb-20 transition-[margin-left] duration-200 ease-out md:pb-0",
           sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[220px]",
         )}
       >
