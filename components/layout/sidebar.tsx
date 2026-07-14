@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -94,14 +93,6 @@ export default function Sidebar({
               : "flex-row items-center gap-2.5 px-5 py-5",
           )}
         >
-          <Image
-            src="/Logo.png"
-            alt="智策云端"
-            width={48}
-            height={48}
-            className="flex-shrink-0 rounded-xl"
-            priority
-          />
           <AnimatePresence>
             {showExpanded && (
               <motion.div
@@ -111,16 +102,11 @@ export default function Sidebar({
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="flex-1 min-w-0 overflow-hidden"
               >
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[15px] font-semibold text-foreground whitespace-nowrap">
-                    {"智策"}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-cyan-500">
-                      {"云端"}
-                    </span>
-                  </span>
-                </div>
+                <p className="text-[15px] font-semibold text-foreground whitespace-nowrap">
+                  情报引擎
+                </p>
                 <p className="text-[11px] text-muted-foreground whitespace-nowrap">
-                  {"情报引擎"}
+                  智能创新中心
                 </p>
               </motion.div>
             )}

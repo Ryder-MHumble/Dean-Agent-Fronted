@@ -31,7 +31,6 @@ const SentimentModule = dynamic(
   () => import("@/components/modules/internal-mgmt/sentiment"),
   { ssr: false, loading: () => <PageLoadingSkeleton /> },
 );
-import CommandPalette from "@/components/shared/command-palette";
 import { MotionPage, PageLoadingSkeleton } from "@/components/motion";
 import { Toaster } from "sonner";
 import { pageMeta } from "@/lib/mock-data/navigation";
@@ -40,16 +39,18 @@ const visiblePages = new Set([
   "home",
   "policy-intel",
   "tech-frontier",
+  "papers",
   "talent-radar",
   "university-eco",
   "sentiment",
+  "academic-achievements",
+  "internal-experts",
 ]);
 
 export default function Page() {
   const [activePage, setActivePage] = useState("home");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const meta = pageMeta[activePage] || pageMeta.home;
 
   const handleNavigate = (page: string) => {
@@ -85,16 +86,7 @@ export default function Page() {
         <TopBar
           title={meta.title}
           subtitle={meta.subtitle}
-          onNavigate={handleNavigate}
-          searchSlot={
-            <CommandPalette
-              onNavigate={handleNavigate}
-              open={searchOpen}
-              onOpenChange={setSearchOpen}
-            />
-          }
           onMenuClick={() => setMobileOpen(true)}
-          onSearchClick={() => setSearchOpen(true)}
         />
         <div className="min-h-[calc(100vh-64px)]">
           <MotionPage pageKey={activePage}>

@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import {
+  BookOpenText,
   LayoutDashboard,
   FileText,
+  Landmark,
   MoreHorizontal,
-  Cpu,
-  Globe,
   GraduationCap,
+  RadioTower,
+  ScrollText,
+  UsersRound,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,14 +24,17 @@ interface MobileBottomNavProps {
 const primaryTabs = [
   { id: "home", label: "首页", icon: LayoutDashboard },
   { id: "policy-intel", label: "政策", icon: FileText },
-  { id: "tech-frontier", label: "科技", icon: Cpu },
-  { id: "talent-radar", label: "领导", icon: Globe },
+  { id: "tech-frontier", label: "社媒", icon: RadioTower },
+  { id: "talent-radar", label: "领导", icon: Landmark },
   { id: "_more", label: "更多", icon: MoreHorizontal },
 ];
 
 const moreTabs = [
+  { id: "papers", label: "前沿论文", icon: BookOpenText },
   { id: "university-eco", label: "高校生态", icon: GraduationCap },
   { id: "sentiment", label: "两院舆情", icon: FileText },
+  { id: "academic-achievements", label: "两院学术成果", icon: ScrollText },
+  { id: "internal-experts", label: "两院专家库", icon: UsersRound },
 ];
 
 export default function MobileBottomNav({ activePage, onNavigate }: MobileBottomNavProps) {
