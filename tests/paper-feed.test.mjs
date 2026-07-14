@@ -37,13 +37,25 @@ test("academic achievement query stays paginated and scoped", () => {
 
 test("paper categories query multiple real sources instead of one representative source", () => {
   assert.deepEqual(getPaperCategorySourceQueries("top-conference"), [
-    { sourceId: "icml" },
-    { sourceId: "neurips" },
+    { sourceId: "aaai" },
+    { sourceId: "acl_long" },
+    { sourceId: "acl_short" },
+    { sourceId: "acm_ec" },
     { sourceId: "cvpr" },
+    { sourceId: "eccv" },
+    { sourceId: "emnlp_main" },
+    { sourceId: "iccv" },
+    { sourceId: "iclr" },
+    { sourceId: "icml" },
+    { sourceId: "ijcai" },
+    { sourceId: "kdd" },
+    { sourceId: "neurips" },
+    { sourceId: "pmlr" },
+    { sourceId: "rss" },
   ]);
   assert.deepEqual(getPaperCategorySourceQueries("top-journal"), [
-    { sourceId: "jmlr" },
     { sourceId: "jair" },
+    { sourceId: "jmlr" },
     { sourceId: "tmlr" },
   ]);
   assert.deepEqual(getPaperCategorySourceQueries("arxiv"), [

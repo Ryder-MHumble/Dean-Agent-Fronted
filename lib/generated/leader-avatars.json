@@ -8263,14 +8263,15 @@
   "leader-a8ccf4054a7e9b73": {
     "leaderId": "leader-a8ccf4054a7e9b73",
     "name": "李建成",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E6%9D%8E%E5%BB%BA%E6%88%90&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-55d41ba8d8b7d8f2": {
     "leaderId": "leader-55d41ba8d8b7d8f2",
@@ -22260,182 +22261,201 @@
   "leader-548c4a43a367cccb": {
     "leaderId": "leader-548c4a43a367cccb",
     "name": "何军",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
+    "avatarUrl": "http://info.ruc.edu.cn/images/2022-04/9f13b1fa60ac4489ac00c7bcb30e79f4.jpg",
+    "sourceUrl": "http://info.ruc.edu.cn/jsjkxyjsx1/js2/758fdda1a0354792847b9e69d1289f6f.htm",
     "status": "found",
-    "sourceType": "backend",
+    "sourceType": "scholar",
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E4%BD%95%E5%86%9B&page=1&page_size=20",
+      "http://info.ruc.edu.cn/jsjkxyjsx1/js2/758fdda1a0354792847b9e69d1289f6f.htm",
+      "http://info.ruc.edu.cn/images/2022-04/9f13b1fa60ac4489ac00c7bcb30e79f4.jpg"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-2dc2b2ab9dad2089": {
     "leaderId": "leader-2dc2b2ab9dad2089",
     "name": "何旭辉",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E4%BD%95%E6%97%AD%E8%BE%89&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-bbebdb81c17e9ca1": {
     "leaderId": "leader-bbebdb81c17e9ca1",
     "name": "吕奔",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E5%90%95%E5%A5%94&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-fd0bf4e05f950692": {
     "leaderId": "leader-fd0bf4e05f950692",
     "name": "焦勇",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E7%84%A6%E5%8B%87&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-bd9eb2546238b5a3": {
     "leaderId": "leader-bd9eb2546238b5a3",
     "name": "黎志宏",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E9%BB%8E%E5%BF%97%E5%AE%8F&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-7e753f9b843dedb7": {
     "leaderId": "leader-7e753f9b843dedb7",
     "name": "陈翔",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E9%99%88%E7%BF%94&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-e3c0415be10af922": {
     "leaderId": "leader-e3c0415be10af922",
     "name": "安实",
-    "avatarUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "sourceUrl": "https://www.csu.edu.cn/images/i-down1.png",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.csu.edu.cn/images/i-down1.png"
+      "https://www.csu.edu.cn/images/i-down1.png",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E5%AE%89%E5%AE%9E&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-98915dcb97873cb2": {
     "leaderId": "leader-98915dcb97873cb2",
     "name": "姜潮",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E5%A7%9C%E6%BD%AE&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-4cdda24281769247": {
     "leaderId": "leader-4cdda24281769247",
     "name": "张晓兵",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E5%BC%A0%E6%99%93%E5%85%B5&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-ef76f700cfc26248": {
     "leaderId": "leader-ef76f700cfc26248",
     "name": "李肯立",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+    "avatarUrl": "http://csee.hnu.edu.cn/Content/csee/image/back_img.jpg",
+    "sourceUrl": "http://csee.hnu.edu.cn/people/likenli",
     "status": "found",
-    "sourceType": "backend",
+    "sourceType": "scholar",
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E6%9D%8E%E8%82%AF%E7%AB%8B&page=1&page_size=20",
+      "http://csee.hnu.edu.cn/people/likenli",
+      "http://csee.hnu.edu.cn/Content/csee/image/back_img.jpg"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-d47fd4678ae1e1a8": {
     "leaderId": "leader-d47fd4678ae1e1a8",
     "name": "汪卫斌",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E6%B1%AA%E5%8D%AB%E6%96%8C&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-edafe96cf86727fc": {
     "leaderId": "leader-edafe96cf86727fc",
     "name": "蒋健晖",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E8%92%8B%E5%81%A5%E6%99%96&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-c2c7db61fe67aac5": {
     "leaderId": "leader-c2c7db61fe67aac5",
     "name": "陈仁朋",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E9%99%88%E4%BB%81%E6%9C%8B&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-cc24b98115d5f3dc": {
     "leaderId": "leader-cc24b98115d5f3dc",
     "name": "段献忠",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E6%AE%B5%E7%8C%AE%E5%BF%A0&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-5499737a3a508e04": {
     "leaderId": "leader-5499737a3a508e04",
     "name": "邓卫",
-    "avatarUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "sourceUrl": "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
-    "status": "found",
-    "sourceType": "backend",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"
+      "https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg",
+      "http://10.1.132.21:8001/api/scholars?keyword=%E9%82%93%E5%8D%AB&page=1&page_size=20"
     ],
-    "rejectedCandidates": 0
+    "rejectedCandidates": 1
   },
   "leader-d34f66b880cfbe89": {
     "leaderId": "leader-d34f66b880cfbe89",

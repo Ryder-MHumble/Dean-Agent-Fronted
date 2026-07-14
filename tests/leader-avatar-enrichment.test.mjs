@@ -85,6 +85,11 @@ test("withRetries recovers from a bounded transient failure", async () => {
 test("generic site artwork is rejected as a leader avatar", () => {
   assert.equal(isGenericImageUrl("https://www.gov.cn/images/150.jpg"), true);
   assert.equal(isGenericImageUrl("https://example.gov.cn/assets/site-logo.png"), true);
+  assert.equal(isGenericImageUrl("https://www.csu.edu.cn/images/i-down1.png"), true);
+  assert.equal(
+    isGenericImageUrl("https://www.hnu.edu.cn/images/zhuangshi/zs_zh.jpg"),
+    true,
+  );
   assert.equal(
     isGenericImageUrl("https://example.gov.cn/people/zhang-san.jpg"),
     false,
@@ -104,6 +109,18 @@ test("official records can be selectively retried without repeating all leaders"
       { status: "found", sourceType: "scholar" },
       { retryOfficial: true },
     ),
+    false,
+  );
+  assert.equal(
+    shouldEnrichAvatarRecord({
+      status: "found",
+      sourceType: "backend",
+      avatarUrl: "https://www.csu.edu.cn/images/i-down1.png",
+    }),
+    true,
+  );
+  assert.equal(
+    shouldEnrichAvatarRecord({ status: "not_found", avatarUrl: null }),
     false,
   );
 });

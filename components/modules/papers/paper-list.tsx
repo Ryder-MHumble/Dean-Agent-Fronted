@@ -119,7 +119,9 @@ export default function PaperList({
           <h2 className="text-lg font-semibold text-[#1a3a5c]">
             {groupByPublicationDate ? "成果时间线" : "论文列表"}
           </h2>
-          <p className="mt-0.5 text-xs text-slate-500">共 {feed.total} 条</p>
+          <p className="mt-0.5 text-xs text-slate-500">
+            {feed.isSampled ? "精选" : "共"} {feed.total} 条
+          </p>
         </div>
         {!category && (
           <Tabs value={selectedCategory} onValueChange={handleCategoryChange}>

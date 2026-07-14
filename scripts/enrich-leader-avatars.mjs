@@ -60,7 +60,7 @@ function uniqueHttpUrls(values) {
 
 export function isGenericImageUrl(value) {
   if (!isHttpUrl(value)) return true;
-  return /(?:logo|icon|default|qrcode|qr_code|wechat|share)[._/-]|\/images\/150\.jpg(?:\?|$)/i.test(
+  return /(?:logo|icon|default|qrcode|qr_code|wechat|share|zhuangshi)[._/-]|\/images\/(?:150\.jpg|i-down\d*\.png)(?:\?|$)/i.test(
     value,
   );
 }
@@ -71,6 +71,9 @@ export function shouldEnrichAvatarRecord(
 ) {
   return (
     !record ||
+    (record.status === "found" &&
+      Boolean(record.avatarUrl) &&
+      isGenericImageUrl(record.avatarUrl)) ||
     (retryErrors && record.status === "search_error") ||
     (retryOfficial && record.sourceType === "official")
   );

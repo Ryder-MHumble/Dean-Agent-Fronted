@@ -6,23 +6,7 @@ import type {
   PaperRecord,
 } from "./types/papers.ts";
 
-const CATEGORY_SOURCE_QUERIES: Partial<
-  Record<PaperCategory, Array<Pick<PaperQuery, "sourceId" | "sourceName">>>
-> = {
-  "top-conference": [
-    { sourceId: "icml" },
-    { sourceId: "neurips" },
-    { sourceId: "cvpr" },
-  ],
-  "top-journal": [
-    { sourceId: "jmlr" },
-    { sourceId: "jair" },
-    { sourceId: "tmlr" },
-  ],
-  arxiv: [{ sourceName: "arxiv" }],
-};
-
-const TOP_CONFERENCES = new Set([
+const TOP_CONFERENCE_SOURCE_IDS = [
   "aaai",
   "acl_long",
   "acl_short",
@@ -38,9 +22,20 @@ const TOP_CONFERENCES = new Set([
   "neurips",
   "pmlr",
   "rss",
-]);
+] as const;
 
-const TOP_JOURNALS = new Set(["jair", "jmlr", "tmlr"]);
+const TOP_JOURNAL_SOURCE_IDS = ["jair", "jmlr", "tmlr"] as const;
+
+const CATEGORY_SOURCE_QUERIES: Partial<
+  Record<PaperCategory, Array<Pick<PaperQuery, "sourceId" | "sourceName">>>
+> = {
+  "top-conference": TOP_CONFERENCE_SOURCE_IDS.map((sourceId) => ({ sourceId })),
+  "top-journal": TOP_JOURNAL_SOURCE_IDS.map((sourceId) => ({ sourceId })),
+  arxiv: [{ sourceName: "arxiv" }],
+};
+
+const TOP_CONFERENCES = new Set<string>(TOP_CONFERENCE_SOURCE_IDS);
+const TOP_JOURNALS = new Set<string>(TOP_JOURNAL_SOURCE_IDS);
 
 function normalizeLabel(value: string | null | undefined): string {
   return value?.trim().toLowerCase() ?? "";

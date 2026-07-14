@@ -30,9 +30,10 @@ interface UsePaperFeedResult {
   page: number;
   pageSize: number;
   totalPages: number;
+  isSampled: boolean;
 }
 
-const CATEGORY_SAMPLE_SIZE = 30;
+const CATEGORY_SAMPLE_SIZE = 10;
 
 async function fetchCategorySample(query: PaperQuery) {
   const sourceQueries = getPaperCategorySourceQueries(query.category ?? "all");
@@ -143,5 +144,9 @@ export function usePaperFeed(
     page,
     pageSize,
     totalPages: Math.max(1, totalPages),
+    isSampled:
+      !query.sourceId &&
+      !query.sourceName &&
+      getPaperCategorySourceQueries(query.category ?? "all").length > 0,
   };
 }
