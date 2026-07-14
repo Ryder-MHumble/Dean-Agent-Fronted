@@ -45,7 +45,7 @@ const columns = [
 export default function InternalExpertsModule() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#f7f8fa] p-4 md:p-6">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
         <div>
           <h2 className="text-lg font-semibold text-[#1a3a5c]">专家信息表</h2>
           <p className="mt-0.5 text-xs text-slate-500">
@@ -58,7 +58,7 @@ export default function InternalExpertsModule() {
             href="http://10.1.132.21:5174/?tab=scholars"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-[#1a3a5c] hover:bg-slate-50"
+            className="inline-flex items-center gap-1 text-xs font-medium text-[#1a3a5c] underline-offset-4 hover:underline"
           >
             更多学者数据
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -70,7 +70,7 @@ export default function InternalExpertsModule() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
         <Table>
           <TableHeader className="bg-slate-50">
             <TableRow>

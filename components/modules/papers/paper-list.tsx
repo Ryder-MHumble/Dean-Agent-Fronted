@@ -13,7 +13,7 @@ const categoryTabs: Array<{ value: PaperCategory; label: string }> = [
   { value: "all", label: "全部" },
   { value: "top-journal", label: "顶刊" },
   { value: "top-conference", label: "顶会" },
-  { value: "arxiv", label: "ArXiv" },
+  { value: "arxiv", label: "预印本" },
 ];
 
 const categoryLabels: Record<PaperCategory, string> = {
@@ -114,7 +114,7 @@ export default function PaperList({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
         <div>
           <h2 className="text-lg font-semibold text-[#1a3a5c]">
             {groupByPublicationDate ? "成果时间线" : "论文列表"}
@@ -139,7 +139,7 @@ export default function PaperList({
       </div>
 
       <div
-        className="overflow-hidden rounded-lg border border-slate-200 bg-white"
+        className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
         aria-busy={feed.isLoading}
       >
         {feed.isLoading ? (
@@ -185,7 +185,7 @@ export default function PaperList({
         totalPages={feed.totalPages}
         isLoading={feed.isLoading}
         onPageChange={setPage}
-        className="bg-white"
+        className="rounded-xl bg-white shadow-sm"
       />
     </div>
   );

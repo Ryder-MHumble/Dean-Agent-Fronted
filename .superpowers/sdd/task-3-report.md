@@ -39,3 +39,20 @@
 - `npx tsc --noEmit` 被仓库既有的 7 个类型错误阻塞：`components/motion/index.tsx` 6 处 easing 类型错误，`components/ui/calendar.tsx` 1 处 `IconLeft` API 类型错误。TypeScript 输出未包含 Task 3 文件。
 - 专家快照保持为空，按计划由 Task 4 生成脱敏实时数据。
 - 提交：`feat: add paper and internal data pages`（哈希见任务交接）。
+
+## 评审修复记录
+
+### RED
+
+- `node --test tests/intelligence-pages.test.mjs`：7 项中 3 项失败，分别命中缺少 `overflow-x-auto`、数据面板未使用 `rounded-xl + shadow-sm`、Skill/学者链接仍为带框控件、分类仍显示 `ArXiv`。
+- `npx tsc --noEmit --incremental false`：失败，复现 `components/motion/index.tsx` 6 处 easing 数组类型错误和 `components/ui/calendar.tsx` 的无效 `IconLeft` 自定义组件错误。
+- easing 元组修复后再次运行 TypeScript：失败，暴露 Framer Motion 12 不支持 `transition.exit` 的兼容错误。
+
+### GREEN
+
+- Node `v22.22.3`：`node --test tests/intelligence-pages.test.mjs tests/navigation-config.test.mjs` 12/12 通过，0 失败。
+- `npx tsc --noEmit --incremental false`：退出 0，无错误输出。
+- 专家表外层启用移动端横向滚动；Skill 与学者地址改为无边框元数据链接；报告数据面板统一为 12px 圆角与轻阴影；论文分类显示为“预印本”。
+- Framer Motion easing 使用四元 cubic-bezier 元组，react-day-picker `9.14.0` 使用 `Chevron({ orientation })` 自定义组件接口。
+- 本节结果取代上文关于 `ArXiv` 可见标签和 TypeScript 门禁阻塞的旧状态。
+- 提交：`fix: complete intelligence report surfaces`（哈希见任务交接）。

@@ -75,6 +75,48 @@ test("paper and internal pages expose the required data links", () => {
   );
 });
 
+test("report surfaces use compact report styling and mobile table scrolling", () => {
+  const paperListSource = readSource(
+    "../components/modules/papers/paper-list.tsx",
+  );
+  const expertsSource = readSource(
+    "../components/modules/internal-shared/internal-experts.tsx",
+  );
+
+  assert.ok((paperListSource.match(/rounded-xl[^"\n]*shadow-sm/g) ?? []).length >= 2);
+  assert.ok((expertsSource.match(/rounded-xl[^"\n]*shadow-sm/g) ?? []).length >= 2);
+  assert.match(
+    expertsSource,
+    /className="[^"]*overflow-x-auto[^"]*rounded-xl[^"]*shadow-sm[^"]*"/,
+  );
+});
+
+test("Skill access and scholar links remain unframed metadata links", () => {
+  const skillNoteSource = readSource(
+    "../components/shared/skill-access-note.tsx",
+  );
+  const expertsSource = readSource(
+    "../components/modules/internal-shared/internal-experts.tsx",
+  );
+
+  assert.doesNotMatch(skillNoteSource, /<Button|rounded-|border|bg-white/);
+  assert.match(skillNoteSource, /hover:underline/);
+  assert.match(expertsSource, /更多学者数据/);
+  assert.doesNotMatch(
+    expertsSource.match(/<a[\s\S]*?更多学者数据[\s\S]*?<\/a>/)?.[0] ?? "",
+    /rounded-|border|bg-white/,
+  );
+});
+
+test("paper category labels use Chinese preprint wording", () => {
+  const paperListSource = readSource(
+    "../components/modules/papers/paper-list.tsx",
+  );
+
+  assert.match(paperListSource, /value: "arxiv", label: "预印本"/);
+  assert.doesNotMatch(paperListSource, /label: "ArXiv"/);
+});
+
 test("generated expert snapshot starts empty for the later sync task", () => {
   const snapshot = JSON.parse(
     readSource("../lib/generated/two-academies-experts.json"),

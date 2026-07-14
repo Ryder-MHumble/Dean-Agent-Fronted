@@ -13,8 +13,10 @@ import { cn } from "@/lib/utils";
 
 // === Unified Animation Constants ===
 // Apple-inspired cubic-bezier for smooth, natural motion
-export const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
-export const EASE_IN_OUT = [0.65, 0, 0.35, 1] as const;
+type CubicBezier = [number, number, number, number];
+
+export const EASE_OUT_EXPO: CubicBezier = [0.16, 1, 0.3, 1];
+export const EASE_IN_OUT: CubicBezier = [0.65, 0, 0.35, 1];
 export const EASE_SPRING = {
   type: "spring" as const,
   stiffness: 300,
@@ -78,7 +80,7 @@ export function MotionCard({
       transition={{
         duration: DURATION.slow,
         delay,
-        ease: EASE_OUT_EXPO as unknown as number[],
+        ease: EASE_OUT_EXPO,
       }}
       className={className}
     >
@@ -139,7 +141,7 @@ export function StaggerItem({ children, className }: StaggerItemProps) {
           filter: "blur(0px)",
           transition: {
             duration: 0.4,
-            ease: EASE_OUT_EXPO as unknown as number[],
+            ease: EASE_OUT_EXPO,
           },
         },
       }}
@@ -165,14 +167,19 @@ export function MotionPage({ children, pageKey }: MotionPageProps) {
         key={pageKey}
         initial={{ opacity: 0, y: 16, filter: "blur(6px)", scale: 0.99 }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)", scale: 1 }}
-        exit={{ opacity: 0, y: -12, filter: "blur(6px)", scale: 0.99 }}
+        exit={{
+          opacity: 0,
+          y: -12,
+          filter: "blur(6px)",
+          scale: 0.99,
+          transition: {
+            duration: DURATION.fast,
+            ease: EASE_IN_OUT,
+          },
+        }}
         transition={{
           duration: DURATION.page,
-          ease: EASE_OUT_EXPO as unknown as number[],
-          exit: {
-            duration: DURATION.fast,
-            ease: EASE_IN_OUT as unknown as number[],
-          },
+          ease: EASE_OUT_EXPO,
         }}
       >
         {children}
@@ -247,7 +254,7 @@ export function ExpandableSection({
           exit={{ height: 0, opacity: 0 }}
           transition={{
             duration: DURATION.normal,
-            ease: EASE_OUT_EXPO as unknown as number[],
+            ease: EASE_OUT_EXPO,
           }}
           className={className}
           style={{ overflow: "hidden" }}
@@ -351,7 +358,7 @@ export function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
           exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
           transition={{
             duration: DURATION.fast,
-            ease: EASE_OUT_EXPO as unknown as number[],
+            ease: EASE_OUT_EXPO,
           }}
           className="text-lg font-semibold text-foreground"
         >
@@ -367,7 +374,7 @@ export function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
             exit={{ opacity: 0, x: 4 }}
             transition={{
               duration: DURATION.fast,
-              ease: EASE_OUT_EXPO as unknown as number[],
+              ease: EASE_OUT_EXPO,
               delay: 0.05,
             }}
             className="text-xs text-muted-foreground hidden sm:block"
