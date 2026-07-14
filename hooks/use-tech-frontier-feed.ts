@@ -3,15 +3,16 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { fetchSocialPostDetail, fetchSocialPosts } from "@/lib/api";
 import {
-  isTechFrontierFeedPost,
+  collectTechFrontierPostPages,
   normalizeTechFrontierPost,
+  summarizeTechFrontierPlatformFeed,
   type SocialPostDetail,
   type TechFrontierPlatformFilter,
   type TechFrontierPostItem,
 } from "@/lib/tech-frontier-feed";
 
-const MIXED_FEED_PAGE_SIZE = 100;
-const MIXED_FEED_BATCH_SIZE = 3;
+const FULL_FEED_PAGE_SIZE = 200;
+const MAX_FEED_OFFSET = 2000;
 
 interface UseTechFrontierFeedParams {
   platform: TechFrontierPlatformFilter;
@@ -41,99 +42,59 @@ function getLatestTimestamp(items: TechFrontierPostItem[]): string | null {
   return latest > 0 ? new Date(latest).toISOString() : null;
 }
 
-async function fetchPlatformWindow(
+async function fetchAllPlatformPosts(
   platform: Exclude<TechFrontierPlatformFilter, "all">,
   params: UseTechFrontierFeedParams,
 ) {
-  return fetchSocialPosts({
-    platform,
-    keyword: params.keyword,
-    dateFrom: params.dateFrom,
-    dateTo: params.dateTo,
-    page: 1,
-    pageSize: 1,
-  });
-}
-
-async function fetchPlatformTotals(params: UseTechFrontierFeedParams) {
-  const [xSummary, wechatSummary] = await Promise.all([
-    fetchPlatformWindow("x", params),
-    fetchPlatformWindow("wechat_mp", params),
-  ]);
-
-  if (!xSummary || !wechatSummary) return null;
-  const combinedTotal = xSummary.total + wechatSummary.total;
-  return {
-    all: combinedTotal,
-    x: xSummary.total,
-    wechat_mp: wechatSummary.total,
-  };
-}
-
-async function fetchMixedPlatformPage(params: UseTechFrontierFeedParams) {
-  const safePageSize = Math.max(1, params.pageSize);
-  const [platformTotals, firstPage] = await Promise.all([
-    fetchPlatformTotals(params),
-    fetchSocialPosts({
-      platform: "all",
-      keyword: params.keyword,
-      dateFrom: params.dateFrom,
-      dateTo: params.dateTo,
-      page: 1,
-      pageSize: MIXED_FEED_PAGE_SIZE,
-    }),
-  ]);
-
-  if (!platformTotals || !firstPage) return null;
-
-  const combinedTotal = platformTotals.all;
-  const totalPages = Math.max(1, Math.ceil(combinedTotal / safePageSize));
-  const effectivePage = Math.min(Math.max(1, params.page), totalPages);
-  const desiredCount = effectivePage * safePageSize;
-  const collected = firstPage.items.filter(isTechFrontierFeedPost);
-  const backendTotalPages = Math.max(
-    1,
-    firstPage.total_pages ||
-      Math.ceil((firstPage.total || 0) / MIXED_FEED_PAGE_SIZE),
+  return collectTechFrontierPostPages(
+    (page) =>
+      fetchSocialPosts({
+        platform,
+        keyword: params.keyword,
+        dateFrom: params.dateFrom,
+        dateTo: params.dateTo,
+        page,
+        pageSize: FULL_FEED_PAGE_SIZE,
+      }),
+    FULL_FEED_PAGE_SIZE,
+    MAX_FEED_OFFSET,
   );
-  let nextPage = 2;
+}
 
-  while (collected.length < desiredCount && nextPage <= backendTotalPages) {
-    const batchSize = Math.min(
-      MIXED_FEED_BATCH_SIZE,
-      backendTotalPages - nextPage + 1,
-    );
-    const pages = Array.from(
-      { length: batchSize },
-      (_, index) => nextPage + index,
-    );
-    const responses = await Promise.all(
-      pages.map((backendPage) =>
-        fetchSocialPosts({
-          platform: "all",
-          keyword: params.keyword,
-          dateFrom: params.dateFrom,
-          dateTo: params.dateTo,
-          page: backendPage,
-          pageSize: MIXED_FEED_PAGE_SIZE,
-        }),
-      ),
-    );
-    if (responses.some((response) => response === null)) return null;
-    for (const response of responses) {
-      collected.push(...(response?.items ?? []).filter(isTechFrontierFeedPost));
-    }
-    nextPage += batchSize;
+async function fetchTechFrontierPage(params: UseTechFrontierFeedParams) {
+  const [xItems, wechatItems] = await Promise.all([
+    fetchAllPlatformPosts("x", params),
+    fetchAllPlatformPosts("wechat_mp", params),
+  ]);
+
+  if (!xItems || !wechatItems) return null;
+
+  const allSummary = summarizeTechFrontierPlatformFeed(
+    xItems,
+    wechatItems,
+    params.page,
+    params.pageSize,
+  );
+
+  if (params.platform === "all") {
+    return {
+      ...allSummary,
+      generatedAt: getLatestTimestamp([...xItems, ...wechatItems]),
+    };
   }
 
-  const normalizedItems = collected.map(normalizeTechFrontierPost);
-  const start = (effectivePage - 1) * safePageSize;
+  const selectedItems = params.platform === "x" ? xItems : wechatItems;
+  const selectedPage = summarizeTechFrontierPlatformFeed(
+    params.platform === "x" ? xItems : [],
+    params.platform === "wechat_mp" ? wechatItems : [],
+    params.page,
+    params.pageSize,
+  );
+
   return {
-    items: normalizedItems.slice(start, start + safePageSize),
-    total: combinedTotal,
-    totalPages,
-    platformTotals,
-    generatedAt: getLatestTimestamp(normalizedItems),
+    ...selectedPage,
+    platformTotals: allSummary.platformTotals,
+    generatedAt: getLatestTimestamp(selectedItems),
   };
 }
 
@@ -168,43 +129,19 @@ export function useTechFrontierFeed(
 
     async function load() {
       setIsLoading(true);
-      const safePageSize = Math.max(1, pageSize);
-
-      if (platform === "all") {
-        const currentParams = { platform, keyword, dateFrom, dateTo, page, pageSize };
-        const mixedPage = await fetchMixedPlatformPage(currentParams);
-        if (cancelled) return;
-
-        startTransition(() => {
-          if (!mixedPage) {
-            setItems([]);
-            setTotal(0);
-            setTotalPages(1);
-            setPlatformTotals({ all: 0, x: 0, wechat_mp: 0 });
-            setGeneratedAt(null);
-            setIsDisconnected(true);
-          } else {
-            setItems(mixedPage.items);
-            setTotal(mixedPage.total);
-            setTotalPages(mixedPage.totalPages);
-            setPlatformTotals(mixedPage.platformTotals);
-            setGeneratedAt(mixedPage.generatedAt);
-            setIsDisconnected(false);
-          }
-          setIsLoading(false);
-        });
-        return;
-      }
-
-      const currentParams = { platform, keyword, dateFrom, dateTo, page, pageSize };
-      const [data, nextPlatformTotals] = await Promise.all([
-        fetchSocialPosts(currentParams),
-        fetchPlatformTotals(currentParams),
-      ]);
+      const currentParams = {
+        platform,
+        keyword,
+        dateFrom,
+        dateTo,
+        page,
+        pageSize,
+      };
+      const data = await fetchTechFrontierPage(currentParams);
       if (cancelled) return;
 
       startTransition(() => {
-        if (!data || !nextPlatformTotals) {
+        if (!data) {
           setItems([]);
           setTotal(0);
           setTotalPages(1);
@@ -212,12 +149,11 @@ export function useTechFrontierFeed(
           setGeneratedAt(null);
           setIsDisconnected(true);
         } else {
-          const normalizedItems = data.items.map(normalizeTechFrontierPost);
-          setItems(normalizedItems);
+          setItems(data.items);
           setTotal(data.total);
-          setTotalPages(Math.max(1, data.total_pages || 1));
-          setPlatformTotals(nextPlatformTotals);
-          setGeneratedAt(getLatestTimestamp(normalizedItems));
+          setTotalPages(data.totalPages);
+          setPlatformTotals(data.platformTotals);
+          setGeneratedAt(data.generatedAt);
           setIsDisconnected(false);
         }
         setIsLoading(false);
@@ -270,4 +206,62 @@ export function useTechFrontierPostDetail(postId?: string | null) {
   }, [postId]);
 
   return { detail, isLoading };
+}
+
+export function useTechFrontierAuthorAvatars(items: TechFrontierPostItem[]) {
+  const [avatarByPostId, setAvatarByPostId] = useState<Record<string, string>>(
+    {},
+  );
+  const itemKey = useMemo(
+    () =>
+      items
+        .filter((item) => item.platform === "x")
+        .map((item) => `${item.id}:${item.authorAvatarUrl ?? ""}`)
+        .join("|"),
+    [items],
+  );
+
+  useEffect(() => {
+    const missingItems = items.filter(
+      (item) =>
+        item.platform === "x" &&
+        !item.authorAvatarUrl &&
+        !avatarByPostId[item.id],
+    );
+
+    if (missingItems.length === 0) return;
+
+    let cancelled = false;
+
+    async function loadAvatars() {
+      const entries = await Promise.all(
+        missingItems.map(async (item) => {
+          const detail = await fetchSocialPostDetail(item.id);
+          if (!detail) return null;
+          const avatarUrl = normalizeTechFrontierPost(detail).authorAvatarUrl;
+          return avatarUrl ? [item.id, avatarUrl] : null;
+        }),
+      );
+
+      if (cancelled) return;
+
+      const nextEntries = entries.filter(
+        (entry): entry is [string, string] => entry !== null,
+      );
+      if (nextEntries.length === 0) return;
+
+      setAvatarByPostId((current) => ({
+        ...current,
+        ...Object.fromEntries(nextEntries),
+      }));
+    }
+
+    loadAvatars();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [itemKey, items, avatarByPostId]);
+
+  return avatarByPostId;
 }

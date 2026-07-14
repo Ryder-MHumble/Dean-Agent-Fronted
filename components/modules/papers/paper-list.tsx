@@ -153,7 +153,9 @@ export default function PaperList({
           </div>
         ) : feed.items.length === 0 ? (
           <div className="flex min-h-48 items-center justify-center px-4 text-sm text-slate-500">
-            暂无符合条件的论文
+            {effectiveCategory === "arxiv"
+              ? "当前论文数据表暂无预印本记录"
+              : "暂无符合条件的论文"}
           </div>
         ) : groupByPublicationDate ? (
           <div>

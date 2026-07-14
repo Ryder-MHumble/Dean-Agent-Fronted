@@ -34,6 +34,8 @@ export interface SocialPostBrief {
   forward_count?: number;
   comment_count?: number;
   top_replies_count?: number;
+  raw_payload?: Record<string, unknown>;
+  extra?: Record<string, unknown>;
 }
 
 export interface SocialPostDetail extends SocialPostBrief {
@@ -52,6 +54,7 @@ export interface TechFrontierPostItem {
   content: string;
   authorName: string;
   authorHandle: string;
+  authorAvatarUrl?: string | null;
   postType: string;
   postTypeLabel: string;
   sourceId: string;
@@ -126,6 +129,35 @@ function getPostDate(post: SocialPostBrief): string {
   return (post.published_at || post.crawled_at || "").slice(0, 10);
 }
 
+function getNestedString(value: unknown, path: string[]): string | null {
+  let current = value;
+  for (const key of path) {
+    if (!current || typeof current !== "object") return null;
+    current = (current as Record<string, unknown>)[key];
+  }
+  return typeof current === "string" && current.trim() ? current.trim() : null;
+}
+
+function getAuthorAvatarUrl(post: SocialPostBrief): string | null {
+  const candidates = [
+    getNestedString(post.raw_payload, ["author", "profilePicture"]),
+    getNestedString(post.raw_payload, ["author", "profile_image_url_https"]),
+    getNestedString(post.raw_payload, ["author", "profile_image_url"]),
+    getNestedString(post.raw_payload, ["user", "profilePicture"]),
+    getNestedString(post.raw_payload, [
+      "core",
+      "user_results",
+      "result",
+      "legacy",
+      "profile_image_url_https",
+    ]),
+    getNestedString(post.extra, ["author", "profilePicture"]),
+    getNestedString(post.extra, ["profilePicture"]),
+  ];
+
+  return candidates.find((candidate) => candidate !== null) ?? null;
+}
+
 export function toDateTimeBoundary(
   value: string,
   boundary: "start" | "end",
@@ -152,7 +184,10 @@ export function buildTechFrontierPostParams(
   params.set("sort_by", "published_at");
   params.set("order", "desc");
   params.set("page", String(Math.max(1, query.page ?? 1)));
-  params.set("page_size", String(Math.min(200, Math.max(1, query.pageSize ?? 20))));
+  params.set(
+    "page_size",
+    String(Math.min(200, Math.max(1, query.pageSize ?? 20))),
+  );
 
   if (query.platform === "x") {
     params.set("platform", "x");
@@ -169,7 +204,8 @@ export function buildTechFrontierPostParams(
 export function isTechFrontierFeedPost(post: SocialPostBrief): boolean {
   return (
     post.platform === "x" ||
-    (post.platform === "wechat_mp" && post.source_category?.trim() === "前沿认知")
+    (post.platform === "wechat_mp" &&
+      post.source_category?.trim() === "前沿认知")
   );
 }
 
@@ -202,6 +238,7 @@ export function normalizeTechFrontierPost(
     content: content || getPostTitle(post),
     authorName: post.author_display_name?.trim() || post.author_username,
     authorHandle: post.author_username,
+    authorAvatarUrl: getAuthorAvatarUrl(post),
     postType: post.post_type,
     postTypeLabel: POST_TYPE_LABELS[post.post_type] ?? post.post_type,
     sourceId: post.source_id,
@@ -209,7 +246,7 @@ export function normalizeTechFrontierPost(
     categoryLabel:
       platform === "wechat_mp"
         ? post.source_category || "前沿认知"
-        : post.source_category || "科技前沿",
+        : post.source_category || "社媒情报",
     sourceUrl: post.post_url,
     date: getPostDate(post),
     publishedAt: post.published_at,
@@ -230,7 +267,42 @@ export function normalizeTechFrontierPost(
   };
 }
 
-function getSortTime(item: Pick<TechFrontierPostItem, "publishedAt" | "crawledAt">) {
+export async function collectTechFrontierPostPages(
+  fetchPage: (page: number) => Promise<{ items: SocialPostBrief[] } | null>,
+  pageSize: number,
+  maxOffset = Number.POSITIVE_INFINITY,
+): Promise<TechFrontierPostItem[] | null> {
+  const collected: TechFrontierPostItem[] = [];
+  const seenIds = new Set<string>();
+  const seenPages = new Set<string>();
+  let page = 1;
+
+  while (true) {
+    const data = await fetchPage(page);
+    if (!data) return page === 1 ? null : collected;
+    if (data.items.length === 0) break;
+
+    const pageIdentity = `${data.items[0]?.id ?? ""}|${data.items.at(-1)?.id ?? ""}`;
+    if (seenPages.has(pageIdentity)) break;
+    seenPages.add(pageIdentity);
+
+    for (const post of data.items) {
+      if (!isTechFrontierFeedPost(post) || seenIds.has(post.id)) continue;
+      seenIds.add(post.id);
+      collected.push(normalizeTechFrontierPost(post));
+    }
+
+    if (data.items.length < pageSize) break;
+    if (page * pageSize > maxOffset) break;
+    page += 1;
+  }
+
+  return collected;
+}
+
+function getSortTime(
+  item: Pick<TechFrontierPostItem, "publishedAt" | "crawledAt">,
+) {
   return new Date(item.publishedAt || item.crawledAt || 0).getTime();
 }
 
@@ -255,5 +327,28 @@ export function mergeTechFrontierPostPages(
     pageSize: safePageSize,
     total,
     totalPages,
+  };
+}
+
+export function summarizeTechFrontierPlatformFeed(
+  xItems: TechFrontierPostItem[],
+  wechatItems: TechFrontierPostItem[],
+  page: number,
+  pageSize: number,
+) {
+  const pageData = mergeTechFrontierPostPages(
+    xItems,
+    wechatItems,
+    page,
+    pageSize,
+  );
+
+  return {
+    ...pageData,
+    platformTotals: {
+      all: xItems.length + wechatItems.length,
+      x: xItems.length,
+      wechat_mp: wechatItems.length,
+    } satisfies Record<TechFrontierPlatformFilter, number>,
   };
 }

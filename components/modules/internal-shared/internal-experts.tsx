@@ -60,11 +60,11 @@ export default function InternalExpertsModule() {
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs font-medium text-[#1a3a5c] underline-offset-4 hover:underline"
           >
-            更多学者数据
+            更多学者数据请访问
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           </a>
           <SkillAccessNote
-            label="专家推荐 Skill"
+            label="配置专家推荐 skill"
             href="https://skills.zgci.org/space/global/liangyuan-expert-recommender"
           />
         </div>

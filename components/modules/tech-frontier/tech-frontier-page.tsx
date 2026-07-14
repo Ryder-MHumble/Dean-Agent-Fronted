@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   Eye,
@@ -30,6 +30,7 @@ import DataItemCard, {
 import { SkeletonPolicyIntel } from "@/components/shared/skeleton-states";
 import { useDetailView } from "@/hooks/use-detail-view";
 import {
+  useTechFrontierAuthorAvatars,
   useTechFrontierFeed,
   useTechFrontierPostDetail,
 } from "@/hooks/use-tech-frontier-feed";
@@ -69,7 +70,9 @@ const postTypeClass: Record<string, string> = {
 function getDetailImages(detail: SocialPostDetail | null) {
   const payload = detail?.raw_payload as
     | {
-        extendedEntities?: { media?: { media_url_https?: string; display_url?: string }[] };
+        extendedEntities?: {
+          media?: { media_url_https?: string; display_url?: string }[];
+        };
         retweeted_tweet?: {
           extendedEntities?: {
             media?: { media_url_https?: string; display_url?: string }[];
@@ -112,17 +115,60 @@ function PlatformBadge({ item }: { item: TechFrontierPostItem }) {
   return (
     <Badge
       variant="outline"
-      className={cn("text-[11px] font-semibold", platformBadgeClass[item.platform])}
+      className={cn(
+        "text-[11px] font-semibold",
+        platformBadgeClass[item.platform],
+      )}
     >
       {item.platformLabel}
     </Badge>
   );
 }
 
+function getAuthorInitial(item: TechFrontierPostItem) {
+  const name = item.authorName || item.authorHandle || "X";
+  return name.trim().slice(0, 1).toUpperCase();
+}
+
+function PostSourceMark({
+  item,
+  size = "sm",
+}: {
+  item: TechFrontierPostItem;
+  size?: "sm" | "md";
+}) {
+  if (item.platform !== "x") return <PlatformBadge item={item} />;
+
+  const sizeClass = size === "md" ? "h-8 w-8" : "h-7 w-7";
+
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-slate-900 text-[11px] font-semibold text-white",
+        sizeClass,
+      )}
+      title={item.authorName}
+    >
+      {item.authorAvatarUrl ? (
+        <img
+          src={item.authorAvatarUrl}
+          alt={`${item.authorName} 头像`}
+          loading="lazy"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        getAuthorInitial(item)
+      )}
+    </div>
+  );
+}
+
 function TechFrontierPostDetail({ item }: { item: TechFrontierPostItem }) {
   const { detail, isLoading } = useTechFrontierPostDetail(item.id);
   const activeDetail = detail?.id === item.id ? detail : null;
-  const detailItem = activeDetail ? normalizeTechFrontierPost(activeDetail) : item;
+  const detailItem = activeDetail
+    ? normalizeTechFrontierPost(activeDetail)
+    : item;
   const images = getDetailImages(activeDetail);
   const topReplies = activeDetail?.top_replies ?? [];
 
@@ -139,7 +185,7 @@ function TechFrontierPostDetail({ item }: { item: TechFrontierPostItem }) {
       extraMeta={
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <PlatformBadge item={detailItem} />
+            <PostSourceMark item={detailItem} size="md" />
             <Badge
               variant="outline"
               className={cn(
@@ -161,8 +207,16 @@ function TechFrontierPostDetail({ item }: { item: TechFrontierPostItem }) {
             )}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <MetricChip icon={Eye} label="浏览" value={detailItem.metrics.views} />
-            <MetricChip icon={Heart} label="喜欢" value={detailItem.metrics.likes} />
+            <MetricChip
+              icon={Eye}
+              label="浏览"
+              value={detailItem.metrics.views}
+            />
+            <MetricChip
+              icon={Heart}
+              label="喜欢"
+              value={detailItem.metrics.likes}
+            />
             <MetricChip
               icon={MessageSquare}
               label="回复"
@@ -178,7 +232,11 @@ function TechFrontierPostDetail({ item }: { item: TechFrontierPostItem }) {
               label="收藏"
               value={detailItem.metrics.bookmarks || detailItem.metrics.wows}
             />
-            <MetricChip icon={Eye} label="阅读" value={detailItem.metrics.reads} />
+            <MetricChip
+              icon={Eye}
+              label="阅读"
+              value={detailItem.metrics.reads}
+            />
           </div>
         </div>
       }
@@ -225,7 +283,7 @@ function TechFrontierCard({
     >
       <div className="mb-2 flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <PlatformBadge item={item} />
+          <PostSourceMark item={item} />
           <h4
             className={cn(
               "min-w-0 flex-1 truncate text-sm font-semibold leading-snug transition-colors",
@@ -299,6 +357,15 @@ export default function TechFrontierPage() {
     page,
     pageSize: PAGE_SIZE,
   });
+  const authorAvatars = useTechFrontierAuthorAvatars(items);
+  const visibleItems = useMemo(
+    () =>
+      items.map((item) => {
+        const avatarUrl = authorAvatars[item.id];
+        return avatarUrl ? { ...item, authorAvatarUrl: avatarUrl } : item;
+      }),
+    [items, authorAvatars],
+  );
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -422,7 +489,9 @@ export default function TechFrontierPage() {
                     后端未连接
                   </span>
                 )}
-                {generatedAt && <DataFreshness updatedAt={new Date(generatedAt)} />}
+                {generatedAt && (
+                  <DataFreshness updatedAt={new Date(generatedAt)} />
+                )}
               </div>
             </div>
           </CardContent>
@@ -445,14 +514,16 @@ export default function TechFrontierPage() {
                   ),
                   subtitle: (
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                      <PlatformBadge item={selectedItem} />
+                      <PostSourceMark item={selectedItem} />
                       <span>{selectedItem.authorName}</span>
                       <span>&middot;</span>
                       <span>{selectedItem.date || "未知日期"}</span>
                       {selectedItem.engagementTotal > 0 && (
                         <>
                           <span>&middot;</span>
-                          <span>热度 {formatNumber(selectedItem.engagementTotal)}</span>
+                          <span>
+                            热度 {formatNumber(selectedItem.engagementTotal)}
+                          </span>
                         </>
                       )}
                     </div>
@@ -475,8 +546,8 @@ export default function TechFrontierPage() {
               )}
             >
               <DateGroupedList
-                items={items}
-                emptyMessage="暂无匹配的科技前沿动态"
+                items={visibleItems}
+                emptyMessage="暂无匹配的社媒情报"
                 renderItem={(item) => (
                   <TechFrontierCard
                     item={item}

@@ -39,7 +39,6 @@ import {
 } from "@/components/ui/table";
 import FeedPagination from "@/components/shared/feed-pagination";
 import DataFreshness from "@/components/shared/data-freshness";
-import { MotionCard } from "@/components/motion";
 import { useLeaders } from "@/hooks/use-leaders";
 import generatedAvatarMapping from "@/lib/generated/leader-avatars.json";
 import {
@@ -529,7 +528,7 @@ export default function TalentRadarModule() {
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 overflow-hidden px-5 pt-5 pb-20 md:pb-2">
-      <MotionCard delay={0}>
+      <div>
         <div className="grid gap-3 rounded-lg border border-border/70 bg-background p-4 shadow-sm">
           <div className="grid gap-2 lg:grid-cols-4 lg:items-end xl:grid-cols-[minmax(150px,1.1fr)_minmax(120px,0.8fr)_minmax(150px,1fr)_120px_110px_auto_auto_minmax(220px,auto)]">
             <label className="grid gap-1.5">
@@ -638,13 +637,13 @@ export default function TalentRadarModule() {
             </div>
           </div>
         </div>
-      </MotionCard>
+      </div>
 
-      <MotionCard delay={0.1} className="min-h-0 flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-background shadow-sm">
           <div className="hidden min-h-0 flex-1 overflow-auto md:block">
             <Table>
-              <TableHeader className="sticky top-0 z-10 bg-muted/60 backdrop-blur">
+              <TableHeader className="sticky top-0 z-10 bg-muted">
                 <TableRow>
                   <TableHead className="w-[180px]">姓名</TableHead>
                   <TableHead>当前职务</TableHead>
@@ -735,7 +734,7 @@ export default function TalentRadarModule() {
             </Table>
             {!isLoading && items.length === 0 && (
               <div className="py-12 text-center text-sm text-muted-foreground">
-                暂无匹配的领导画像
+                暂无匹配的外部领导
               </div>
             )}
           </div>
@@ -750,7 +749,7 @@ export default function TalentRadarModule() {
             ))}
             {!isLoading && items.length === 0 && (
               <div className="py-12 text-center text-sm text-muted-foreground">
-                暂无匹配的领导画像
+                暂无匹配的外部领导
               </div>
             )}
           </div>
@@ -767,7 +766,7 @@ export default function TalentRadarModule() {
             />
           </div>
         </div>
-      </MotionCard>
+      </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent

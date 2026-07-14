@@ -2,12 +2,91 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  collectTechFrontierPostPages,
   buildTechFrontierPostParams,
   isTechFrontierFeedPost,
   mergeTechFrontierPostPages,
   normalizeTechFrontierPost,
+  summarizeTechFrontierPlatformFeed,
   toDateTimeBoundary,
 } from "../lib/tech-frontier-feed.ts";
+
+test("collectTechFrontierPostPages keeps loaded rows when the backend rejects the terminal page", async () => {
+  const pages = [
+    {
+      items: [
+        {
+          id: "x-1",
+          platform: "x",
+          post_type: "tweet",
+          source_id: "x",
+          author_username: "author",
+          content_text: "first",
+        },
+        {
+          id: "x-2",
+          platform: "x",
+          post_type: "tweet",
+          source_id: "x",
+          author_username: "author",
+          content_text: "second",
+        },
+      ],
+    },
+    null,
+  ];
+
+  const result = await collectTechFrontierPostPages(
+    async (page) => pages[page - 1] ?? null,
+    2,
+  );
+
+  assert.deepEqual(
+    result?.map((item) => item.id),
+    ["x-1", "x-2"],
+  );
+});
+
+test("collectTechFrontierPostPages reports an unavailable first page", async () => {
+  const result = await collectTechFrontierPostPages(async () => null, 200);
+
+  assert.equal(result, null);
+});
+
+test("collectTechFrontierPostPages stops before the backend maximum offset", async () => {
+  const requestedPages = [];
+  const result = await collectTechFrontierPostPages(
+    async (page) => {
+      requestedPages.push(page);
+      if (page > 2) return null;
+      return {
+        items: [
+          {
+            id: `x-${page}-1`,
+            platform: "x",
+            post_type: "tweet",
+            source_id: "x",
+            author_username: "author",
+            content_text: "first",
+          },
+          {
+            id: `x-${page}-2`,
+            platform: "x",
+            post_type: "tweet",
+            source_id: "x",
+            author_username: "author",
+            content_text: "second",
+          },
+        ],
+      };
+    },
+    2,
+    2,
+  );
+
+  assert.deepEqual(requestedPages, [1, 2]);
+  assert.equal(result?.length, 4);
+});
 
 test("normalizeTechFrontierPost maps X posts into card-ready items", () => {
   const item = normalizeTechFrontierPost({
@@ -35,12 +114,22 @@ test("normalizeTechFrontierPost maps X posts into card-ready items", () => {
     forward_count: 0,
     comment_count: 0,
     top_replies_count: 2,
+    raw_payload: {
+      author: {
+        profilePicture:
+          "https://pbs.twimg.com/profile_images/1816185267037859840/Fd18CH0v_normal.jpg",
+      },
+    },
   });
 
   assert.equal(item.platform, "x");
   assert.equal(item.platformLabel, "X");
   assert.equal(item.title, "The Codex goal feature will take shortcuts.");
   assert.equal(item.authorName, "Francois Chollet");
+  assert.equal(
+    item.authorAvatarUrl,
+    "https://pbs.twimg.com/profile_images/1816185267037859840/Fd18CH0v_normal.jpg",
+  );
   assert.equal(item.date, "2026-05-20");
   assert.equal(item.engagementTotal, 1396);
 });
@@ -142,7 +231,10 @@ test("isTechFrontierFeedPost keeps X and frontier cognition WeChat posts only", 
 });
 
 test("toDateTimeBoundary expands date-only values for backend filtering", () => {
-  assert.equal(toDateTimeBoundary("2026-05-20", "start"), "2026-05-20T00:00:00Z");
+  assert.equal(
+    toDateTimeBoundary("2026-05-20", "start"),
+    "2026-05-20T00:00:00Z",
+  );
   assert.equal(toDateTimeBoundary("2026-05-20", "end"), "2026-05-20T23:59:59Z");
   assert.equal(toDateTimeBoundary("", "start"), "");
 });
@@ -178,4 +270,28 @@ test("mergeTechFrontierPostPages sorts mixed platform results and paginates", ()
   );
   assert.equal(merged.total, 3);
   assert.equal(merged.totalPages, 2);
+});
+
+test("summarizeTechFrontierPlatformFeed counts loaded platform rows instead of backend estimates", () => {
+  const xItems = Array.from({ length: 21 }, (_, index) => ({
+    id: `x-${index}`,
+    platform: "x",
+    publishedAt: `2026-05-${String(20 - Math.floor(index / 2)).padStart(2, "0")}T08:00:00Z`,
+  }));
+  const wechatItems = Array.from({ length: 23 }, (_, index) => ({
+    id: `wechat-${index}`,
+    platform: "wechat_mp",
+    publishedAt: `2026-05-${String(20 - Math.floor(index / 2)).padStart(2, "0")}T06:00:00Z`,
+  }));
+
+  const summary = summarizeTechFrontierPlatformFeed(xItems, wechatItems, 2, 20);
+
+  assert.deepEqual(summary.platformTotals, {
+    all: 44,
+    x: 21,
+    wechat_mp: 23,
+  });
+  assert.equal(summary.total, 44);
+  assert.equal(summary.totalPages, 3);
+  assert.equal(summary.items.length, 20);
 });

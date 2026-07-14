@@ -8,7 +8,7 @@ export default function PapersModule() {
     <div className="min-h-[calc(100vh-64px)] bg-[#f7f8fa] p-4 md:p-6">
       <div className="mb-3 flex justify-end">
         <SkillAccessNote
-          label="接入情报引擎 Skill"
+          label="接入情报引擎 skill"
           href="https://skills.zgci.org/space/global/intelligence-engine-api"
         />
       </div>

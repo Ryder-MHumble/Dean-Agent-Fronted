@@ -44,13 +44,13 @@ const moduleItems = [
   },
   {
     id: "tech-frontier",
-    label: "科技前沿",
+    label: "社媒情报",
     icon: Cpu,
     keywords: "技术 科技 AI 前沿 趋势 tech",
   },
   {
     id: "talent-radar",
-    label: "领导画像",
+    label: "外部领导",
     icon: Globe,
     keywords: "领导 画像 人事 履历 高校 政府 personnel",
   },
@@ -71,7 +71,7 @@ const quickActions = [
   },
   {
     id: "action-talent",
-    label: "筛选领导画像",
+    label: "筛选外部领导",
     icon: UserCheck,
     keywords: "领导 人事 人才 personnel",
   },
@@ -130,7 +130,7 @@ export default function CommandPalette({
         className="hidden sm:flex h-9 w-72 items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground transition-all duration-200 hover:bg-white hover:shadow-sm hover:border-blue-200"
       >
         <Search className="h-4 w-4" />
-        <span className="flex-1 text-left">全局搜索</span>
+        <span className="flex-1 text-left">搜索情报模块</span>
         <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
           <span className="text-xs">⌘</span>K
         </kbd>

@@ -29,7 +29,7 @@ export default function AIBriefingBar({
         >
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-purple-500" />
-            <span className="text-sm font-semibold">AI 科技前沿周报</span>
+            <span className="text-sm font-semibold">AI 社媒情报周报</span>
             <DataFreshness updatedAt={briefing.generatedAt} />
           </div>
           {collapsed ? (

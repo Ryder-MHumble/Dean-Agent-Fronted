@@ -115,6 +115,7 @@ test("paper category labels use Chinese preprint wording", () => {
 
   assert.match(paperListSource, /value: "arxiv", label: "预印本"/);
   assert.doesNotMatch(paperListSource, /label: "ArXiv"/);
+  assert.match(paperListSource, /当前论文数据表暂无预印本记录/);
 });
 
 test("generated expert snapshot contains only approved public fields", () => {

@@ -82,7 +82,7 @@ export default function Sidebar({
           x: isMobile && !mobileOpen ? "-100%" : "0%",
         }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed left-0 top-0 z-40 flex h-screen flex-col bg-white/80 backdrop-blur-xl border-r border-border/40 overflow-x-hidden"
+        className="fixed left-0 top-0 z-40 flex h-screen flex-col overflow-x-hidden border-r border-border/40 bg-white"
       >
         {/* Logo + Toggle */}
         <div
@@ -146,7 +146,7 @@ export default function Sidebar({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60"
+                    className="px-3 pb-1 pt-2 text-[10px] font-semibold text-muted-foreground/60"
                   >
                     {group.label}
                   </motion.p>

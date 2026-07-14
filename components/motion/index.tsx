@@ -350,38 +350,11 @@ interface AnimatedTitleProps {
 export function AnimatedTitle({ title, subtitle }: AnimatedTitleProps) {
   return (
     <div>
-      <AnimatePresence mode="wait">
-        <motion.h1
-          key={title}
-          initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
-          transition={{
-            duration: DURATION.fast,
-            ease: EASE_OUT_EXPO,
-          }}
-          className="text-lg font-semibold text-foreground"
-        >
-          {title}
-        </motion.h1>
-      </AnimatePresence>
+      <h1 className="text-lg font-semibold text-foreground">{title}</h1>
       {subtitle && (
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={subtitle}
-            initial={{ opacity: 0, x: -4 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 4 }}
-            transition={{
-              duration: DURATION.fast,
-              ease: EASE_OUT_EXPO,
-              delay: 0.05,
-            }}
-            className="text-xs text-muted-foreground hidden sm:block"
-          >
-            {subtitle}
-          </motion.p>
-        </AnimatePresence>
+        <p className="hidden text-xs text-muted-foreground sm:block">
+          {subtitle}
+        </p>
       )}
     </div>
   );
