@@ -2,7 +2,12 @@
 
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { fetchPapers } from "@/lib/api";
-import { getPaperTotalPages, normalizePaper } from "@/lib/paper-feed";
+import {
+  getPaperCategorySourceQueries,
+  getPaperTotalPages,
+  mergePaperSampleResponses,
+  normalizePaper,
+} from "@/lib/paper-feed";
 import type {
   PaperCategory,
   PaperQuery,
@@ -25,6 +30,39 @@ interface UsePaperFeedResult {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+const CATEGORY_SAMPLE_SIZE = 30;
+
+async function fetchCategorySample(query: PaperQuery) {
+  const sourceQueries = getPaperCategorySourceQueries(query.category ?? "all");
+  if (sourceQueries.length === 0) return null;
+
+  const responses = await Promise.all(
+    sourceQueries.map((sourceQuery) =>
+      fetchPapers({
+        ...sourceQuery,
+        keyword: query.keyword,
+        page: 1,
+        pageSize: CATEGORY_SAMPLE_SIZE,
+      }),
+    ),
+  );
+  const availableResponses = responses.filter(
+    (response): response is NonNullable<typeof response> => response !== null,
+  );
+  if (availableResponses.length === 0) return null;
+
+  const merged = mergePaperSampleResponses(availableResponses);
+  const pageSize = query.pageSize ?? 20;
+  const totalPages = Math.max(1, Math.ceil(merged.length / pageSize));
+  const page = Math.min(Math.max(1, query.page ?? 1), totalPages);
+  const offset = (page - 1) * pageSize;
+  return {
+    items: merged.slice(offset, offset + pageSize),
+    total: merged.length,
+    totalPages,
+  };
 }
 
 export function usePaperFeed(
@@ -60,11 +98,23 @@ export function usePaperFeed(
 
     async function load() {
       setIsLoading(true);
-      const data = await fetchPapers(query);
+      const usesCategorySample =
+        !query.sourceId &&
+        !query.sourceName &&
+        getPaperCategorySourceQueries(query.category ?? "all").length > 0;
+      const categorySample = usesCategorySample
+        ? await fetchCategorySample(query)
+        : null;
+      const data = usesCategorySample ? null : await fetchPapers(query);
       if (cancelled) return;
 
       startTransition(() => {
-        if (data) {
+        if (categorySample) {
+          setItems(categorySample.items.map(normalizePaper));
+          setTotal(categorySample.total);
+          setTotalPages(categorySample.totalPages);
+          setIsDisconnected(false);
+        } else if (data) {
           setItems(data.items.map(normalizePaper));
           setTotal(data.total);
           setTotalPages(getPaperTotalPages(data));

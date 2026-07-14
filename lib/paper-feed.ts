@@ -6,10 +6,20 @@ import type {
   PaperRecord,
 } from "./types/papers.ts";
 
-const CATEGORY_SOURCE_IDS: Partial<Record<PaperCategory, string>> = {
-  "top-conference": "icml",
-  "top-journal": "jmlr",
-  arxiv: "arxiv",
+const CATEGORY_SOURCE_QUERIES: Partial<
+  Record<PaperCategory, Array<Pick<PaperQuery, "sourceId" | "sourceName">>>
+> = {
+  "top-conference": [
+    { sourceId: "icml" },
+    { sourceId: "neurips" },
+    { sourceId: "cvpr" },
+  ],
+  "top-journal": [
+    { sourceId: "jmlr" },
+    { sourceId: "jair" },
+    { sourceId: "tmlr" },
+  ],
+  arxiv: [{ sourceName: "arxiv" }],
 };
 
 const TOP_CONFERENCES = new Set([
@@ -52,9 +62,10 @@ export function buildPaperQueryParams(
   if (query.category === "achievements") {
     params.set("source_type", "academy_weekly_signature_achievements");
   } else {
-    const sourceId =
-      query.sourceId?.trim() || CATEGORY_SOURCE_IDS[query.category ?? "all"];
+    const sourceId = query.sourceId?.trim();
     if (sourceId) params.set("source_id", sourceId);
+    const sourceName = query.sourceName?.trim();
+    if (sourceName) params.set("source_name", sourceName);
   }
 
   const keyword = query.keyword?.trim();
@@ -68,6 +79,38 @@ export function buildPaperQueryParams(
   params.set("sort_by", "publication_date");
   params.set("order", "desc");
   return params;
+}
+
+export function getPaperCategorySourceQueries(
+  category: PaperCategory,
+): Array<Pick<PaperQuery, "sourceId" | "sourceName">> {
+  return CATEGORY_SOURCE_QUERIES[category] ?? [];
+}
+
+function getPaperSortTime(paper: PaperApiRecord): number {
+  const value =
+    paper.publication_date || (paper.year ? `${paper.year}-01-01` : "");
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+export function mergePaperSampleResponses(
+  responses: PaperListResponse[],
+): PaperApiRecord[] {
+  const byId = new Map<string, PaperApiRecord>();
+  for (const response of responses) {
+    for (const paper of response.items) {
+      const key =
+        paper.paper_id?.trim() ||
+        paper.id?.trim() ||
+        paper.doi?.trim() ||
+        paper.title?.trim();
+      if (key && !byId.has(key)) byId.set(key, paper);
+    }
+  }
+  return [...byId.values()].sort(
+    (left, right) => getPaperSortTime(right) - getPaperSortTime(left),
+  );
 }
 
 export function classifyPaper(paper: PaperApiRecord): PaperCategory {

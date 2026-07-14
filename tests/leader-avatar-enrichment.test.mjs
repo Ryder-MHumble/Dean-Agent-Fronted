@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   extractExaCandidateUrls,
+  isGenericImageUrl,
   readConcurrency,
+  shouldEnrichAvatarRecord,
   summarizeAvatarRecords,
   withRetries,
 } from "../scripts/enrich-leader-avatars.mjs";
@@ -78,4 +80,30 @@ test("withRetries recovers from a bounded transient failure", async () => {
 
   assert.equal(result, "ok");
   assert.equal(attempts, 2);
+});
+
+test("generic site artwork is rejected as a leader avatar", () => {
+  assert.equal(isGenericImageUrl("https://www.gov.cn/images/150.jpg"), true);
+  assert.equal(isGenericImageUrl("https://example.gov.cn/assets/site-logo.png"), true);
+  assert.equal(
+    isGenericImageUrl("https://example.gov.cn/people/zhang-san.jpg"),
+    false,
+  );
+});
+
+test("official records can be selectively retried without repeating all leaders", () => {
+  assert.equal(
+    shouldEnrichAvatarRecord(
+      { status: "found", sourceType: "official" },
+      { retryOfficial: true },
+    ),
+    true,
+  );
+  assert.equal(
+    shouldEnrichAvatarRecord(
+      { status: "found", sourceType: "scholar" },
+      { retryOfficial: true },
+    ),
+    false,
+  );
 });

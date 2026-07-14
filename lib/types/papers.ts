@@ -61,6 +61,7 @@ export interface PaperListResponse {
 export interface PaperQuery {
   category?: PaperCategory;
   sourceId?: string;
+  sourceName?: string;
   keyword?: string;
   page?: number;
   pageSize?: number;

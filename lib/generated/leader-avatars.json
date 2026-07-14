@@ -71,18 +71,14 @@
   "leader-ac0914cbeab683a9": {
     "leaderId": "leader-ac0914cbeab683a9",
     "name": "刘苏社",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "http://big5.www.gov.cn/gate/big5/www.gov.cn/yaowen/liebiao/202606/content_7071218.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E5%88%98%E8%8B%8F%E7%A4%BE&page=1&page_size=20",
-      "https://www.mct.gov.cn/?pc=1",
-      "http://big5.www.gov.cn/gate/big5/www.gov.cn/yaowen/liebiao/202606/content_7071218.htm",
-      "https://www.news.cn/politics/20260605/b2ca6f4243254789841f0feeec27fc79/c.html",
-      "http://big5.www.gov.cn/gate/big5/www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E5%88%98%E8%8B%8F%E7%A4%BE&page=1&page_size=20"
     ],
-    "rejectedCandidates": 1
+    "rejectedCandidates": 0
   },
   "leader-99cd0cab7f70ed1d": {
     "leaderId": "leader-99cd0cab7f70ed1d",
@@ -195,16 +191,12 @@
   "leader-70ad17284678e0ad": {
     "leaderId": "leader-70ad17284678e0ad",
     "name": "黄果",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "https://www.gov.cn/xinwen/xctp/202406/content_6957386.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E9%BB%84%E6%9E%9C&page=1&page_size=20",
-      "https://www.gov.cn/xinwen/xctp/202406/content_6957386.htm",
-      "https://baike.baidu.com/item/%E9%BB%84%E6%9E%9C/22025201",
-      "http://mpa.gd.gov.cn/xwdt/zjdt/content/post_4885986.html",
-      "https://www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E9%BB%84%E6%9E%9C&page=1&page_size=20"
     ],
     "rejectedCandidates": 0
   },
@@ -1399,18 +1391,14 @@
   "leader-a6cd2c222a72aacf": {
     "leaderId": "leader-a6cd2c222a72aacf",
     "name": "王海腾",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "https://www.gov.cn/yaowen/liebiao/202511/content_7049175.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E7%8E%8B%E6%B5%B7%E8%85%BE&page=1&page_size=20",
-      "https://www.chinamine-safety.gov.cn/jg/ldxx_01/",
-      "https://www.gov.cn/yaowen/liebiao/202511/content_7049175.htm",
-      "http://paper.people.com.cn/rmrb/pc/content/202511/22/content_30116334.html",
-      "https://www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E7%8E%8B%E6%B5%B7%E8%85%BE&page=1&page_size=20"
     ],
-    "rejectedCandidates": 1
+    "rejectedCandidates": 0
   },
   "leader-24c2d71b245e33cb": {
     "leaderId": "leader-24c2d71b245e33cb",
@@ -1844,18 +1832,14 @@
   "leader-6e611a31b9c015aa": {
     "leaderId": "leader-6e611a31b9c015aa",
     "name": "蔡伟",
-    "avatarUrl": "https://www.fmprc.gov.cn/eng/wjb/zygy/202509/W020250930355798625577.jpg",
-    "sourceUrl": "https://www.fmprc.gov.cn/eng/wjb/zygy/202509/t20250930_11720478.html",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E8%94%A1%E4%BC%9F&page=1&page_size=20",
-      "https://www.mfa.gov.cn/wjb_673085/zygy_673101/CW_145362/",
-      "https://www.mfa.gov.cn/web/ziliao_674904/wjrw_674925/xrfbzjbzzl_674929/202509/t20250926_11717740.shtml",
-      "https://www.fmprc.gov.cn/eng/wjb/zygy/202509/t20250930_11720478.html",
-      "https://www.fmprc.gov.cn/eng/wjb/zygy/202509/W020250930355798625577.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E8%94%A1%E4%BC%9F&page=1&page_size=20"
     ],
-    "rejectedCandidates": 2
+    "rejectedCandidates": 0
   },
   "leader-838fa8531a0759ac": {
     "leaderId": "leader-838fa8531a0759ac",
@@ -2382,16 +2366,12 @@
   "leader-0bb247b542a91e5e": {
     "leaderId": "leader-0bb247b542a91e5e",
     "name": "王振江",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "https://www.gov.cn/xinwen/xctp/202405/content_6953001.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E7%8E%8B%E6%8C%AF%E6%B1%9F&page=1&page_size=20",
-      "https://www.gov.cn/xinwen/xctp/202405/content_6953001.htm",
-      "https://www.gov.cn/xinwen/xctp/202403/content_6942414.htm",
-      "https://www.moj.gov.cn/pub/sfbgw/gwxw/xwyw/202411/t20241111_509354.html",
-      "https://www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E7%8E%8B%E6%8C%AF%E6%B1%9F&page=1&page_size=20"
     ],
     "rejectedCandidates": 0
   },
@@ -3078,18 +3058,14 @@
   "leader-e8b37236f9c92eab": {
     "leaderId": "leader-e8b37236f9c92eab",
     "name": "王崧",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "https://www.gov.cn/xinwen/xctp/202310/content_6912354.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E7%8E%8B%E5%B4%A7&page=1&page_size=20",
-      "https://www.cac.gov.cn/2024-07/04/c_1721773828126046.htm",
-      "https://www.gov.cn/xinwen/xctp/202310/content_6912354.htm",
-      "https://www.cac.gov.cn/2024-07/19/c_1723070332511928.htm",
-      "https://www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E7%8E%8B%E5%B4%A7&page=1&page_size=20"
     ],
-    "rejectedCandidates": 1
+    "rejectedCandidates": 0
   },
   "leader-be3f7ec99b1cffc1": {
     "leaderId": "leader-be3f7ec99b1cffc1",
@@ -3253,18 +3229,14 @@
   "leader-b48d8188a1b7b9c6": {
     "leaderId": "leader-b48d8188a1b7b9c6",
     "name": "赵英民",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "https://www.gov.cn/xinwen/xctp/202402/content_6934247.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E8%B5%B5%E8%8B%B1%E6%B0%91&page=1&page_size=20",
-      "https://english.mee.gov.cn/About_MEE/leaders_of_mee/zhao_yingmin/",
-      "https://www.gov.cn/xinwen/xctp/202402/content_6934247.htm",
-      "https://english.mee.gov.cn/About_MEE/Leadership/zhao_yingmin/",
-      "https://www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E8%B5%B5%E8%8B%B1%E6%B0%91&page=1&page_size=20"
     ],
-    "rejectedCandidates": 1
+    "rejectedCandidates": 0
   },
   "leader-7ed3c342b43e6b93": {
     "leaderId": "leader-7ed3c342b43e6b93",
@@ -3831,18 +3803,14 @@
   "leader-3baf84305cc923a5": {
     "leaderId": "leader-3baf84305cc923a5",
     "name": "张志成",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "https://www.gov.cn/xinwen/xctp/202312/content_6922610.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E5%BC%A0%E5%BF%97%E6%88%90&page=1&page_size=20",
-      "https://www.cnipa.gov.cn/col/col3477/index.html",
-      "https://www.gov.cn/xinwen/xctp/202312/content_6922610.htm",
-      "https://www.cnipa.gov.cn/art/2024/6/25/art_3419_193338.html",
-      "https://www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E5%BC%A0%E5%BF%97%E6%88%90&page=1&page_size=20"
     ],
-    "rejectedCandidates": 1
+    "rejectedCandidates": 0
   },
   "leader-e77e0a6b216fed7d": {
     "leaderId": "leader-e77e0a6b216fed7d",
@@ -4271,16 +4239,12 @@
   "leader-491f92aea59516c0": {
     "leaderId": "leader-491f92aea59516c0",
     "name": "马有祥",
-    "avatarUrl": "https://www.gov.cn/images/150.jpg",
-    "sourceUrl": "https://www.gov.cn/xinwen/xctp/202404/content_6943271.htm",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E9%A9%AC%E6%9C%89%E7%A5%A5&page=1&page_size=20",
-      "https://www.gov.cn/xinwen/xctp/202404/content_6943271.htm",
-      "https://zh.wikipedia.org/wiki/%E9%A9%AC%E6%9C%89%E7%A5%A5",
-      "http://www.moa.gov.cn/jg/leaders/lingdhd/202309/t20230906_6435960.htm",
-      "https://www.gov.cn/images/150.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E9%A9%AC%E6%9C%89%E7%A5%A5&page=1&page_size=20"
     ],
     "rejectedCandidates": 0
   },
@@ -4627,18 +4591,14 @@
   "leader-cd566576f4d49114": {
     "leaderId": "leader-cd566576f4d49114",
     "name": "刘彬",
-    "avatarUrl": "https://www.fmprc.gov.cn/eng/wjb/zygy/202409/W020240911554080937605.jpg",
-    "sourceUrl": "https://www.mfa.gov.cn/eng/wjb/zygy/202409/t20240911_11488824.html",
-    "status": "found",
-    "sourceType": "official",
+    "avatarUrl": null,
+    "sourceUrl": null,
+    "status": "not_found",
+    "sourceType": null,
     "attemptedSourceUrls": [
-      "http://10.1.132.21:8001/api/scholars?keyword=%E5%88%98%E5%BD%AC&page=1&page_size=20",
-      "https://www.mfa.gov.cn/web/wjb_673085/zygy_673101/lb/",
-      "https://www.mfa.gov.cn/web/ziliao_674904/wjrw_674925/xrfbzjbzzl_674929/202409/t20240905_11485891.shtml",
-      "https://www.mfa.gov.cn/eng/wjb/zygy/202409/t20240911_11488824.html",
-      "https://www.fmprc.gov.cn/eng/wjb/zygy/202409/W020240911554080937605.jpg"
+      "http://10.1.132.21:8001/api/scholars?keyword=%E5%88%98%E5%BD%AC&page=1&page_size=20"
     ],
-    "rejectedCandidates": 2
+    "rejectedCandidates": 0
   },
   "leader-dc86e23b57a49572": {
     "leaderId": "leader-dc86e23b57a49572",

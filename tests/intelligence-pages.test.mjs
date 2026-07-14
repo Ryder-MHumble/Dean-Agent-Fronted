@@ -85,10 +85,13 @@ test("report surfaces use compact report styling and mobile table scrolling", ()
 
   assert.ok((paperListSource.match(/rounded-xl[^"\n]*shadow-sm/g) ?? []).length >= 2);
   assert.ok((expertsSource.match(/rounded-xl[^"\n]*shadow-sm/g) ?? []).length >= 2);
+  assert.match(expertsSource, /className="overflow-x-auto"/);
   assert.match(
     expertsSource,
-    /className="[^"]*overflow-x-auto[^"]*rounded-xl[^"]*shadow-sm[^"]*"/,
+    /className="[^"]*rounded-xl[^"]*shadow-sm[^"]*"/,
   );
+  assert.match(expertsSource, /placeholder="搜索姓名、单位、研究方向"/);
+  assert.match(expertsSource, /<FeedPagination/);
 });
 
 test("Skill access and scholar links remain unframed metadata links", () => {

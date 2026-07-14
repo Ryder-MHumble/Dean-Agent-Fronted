@@ -58,6 +58,24 @@ function uniqueHttpUrls(values) {
   return [...new Set(values.filter(isHttpUrl))];
 }
 
+export function isGenericImageUrl(value) {
+  if (!isHttpUrl(value)) return true;
+  return /(?:logo|icon|default|qrcode|qr_code|wechat|share)[._/-]|\/images\/150\.jpg(?:\?|$)/i.test(
+    value,
+  );
+}
+
+export function shouldEnrichAvatarRecord(
+  record,
+  { retryErrors = false, retryOfficial = false } = {},
+) {
+  return (
+    !record ||
+    (retryErrors && record.status === "search_error") ||
+    (retryOfficial && record.sourceType === "official")
+  );
+}
+
 export function extractExaCandidateUrls(payload) {
   const text = Array.isArray(payload?.content)
     ? payload.content
@@ -181,7 +199,7 @@ async function writeRecords(leaders, records) {
 }
 
 async function validateImageUrl(url) {
-  if (!isHttpUrl(url)) return null;
+  if (!isHttpUrl(url) || isGenericImageUrl(url)) return null;
   const request = async (method) => {
     const response = await fetchResponse(
       url,
@@ -333,14 +351,14 @@ function extractOpenGraphImage(html, pageUrl) {
     const content = htmlAttribute(tag, "content");
     if (!content) continue;
     const resolved = new URL(content, pageUrl).toString();
-    if (!/(?:logo|icon|default|qrcode|qr_code|wechat|share)[._/-]/i.test(resolved)) {
+    if (!isGenericImageUrl(resolved)) {
       return resolved;
     }
   }
   return null;
 }
 
-async function getOfficialPageImage(pageUrl) {
+async function getOfficialPageImage(pageUrl, leaderName) {
   const response = await fetchResponse(
     pageUrl,
     { redirect: "follow", headers: { "User-Agent": USER_AGENT } },
@@ -352,6 +370,7 @@ async function getOfficialPageImage(pageUrl) {
     return null;
   }
   const html = await readLimitedHtml(response);
+  if (!html.includes(leaderName)) return null;
   return extractOpenGraphImage(html, response.url || pageUrl);
 }
 
@@ -426,7 +445,7 @@ async function enrichLeader(leader) {
         imageUrl = await getWikimediaImage(pageUrl);
         sourceType = "wikimedia";
       } else if (isOfficialPage(pageUrl)) {
-        imageUrl = await getOfficialPageImage(pageUrl);
+        imageUrl = await getOfficialPageImage(pageUrl, leader.name);
         sourceType = "official";
       }
       if (!imageUrl) {
@@ -459,10 +478,13 @@ async function main() {
   const records = await loadRecords();
   const concurrency = readConcurrency();
   const retryErrors = process.argv.includes("--retry-errors");
-  const unresolved = leaders.filter((leader) => {
-    const record = records[leader.id];
-    return !record || (retryErrors && record.status === "search_error");
-  });
+  const retryOfficial = process.argv.includes("--retry-official");
+  const unresolved = leaders.filter((leader) =>
+    shouldEnrichAvatarRecord(records[leader.id], {
+      retryErrors,
+      retryOfficial,
+    }),
+  );
   console.error(
     `Fetched ${leaders.length} leaders; ${unresolved.length} require enrichment at concurrency ${concurrency}.`,
   );

@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import {
   buildPaperQueryParams,
   classifyPaper,
+  getPaperCategorySourceQueries,
   getPaperTotalPages,
+  mergePaperSampleResponses,
   normalizePaper,
 } from "../lib/paper-feed.ts";
 
@@ -31,6 +33,51 @@ test("academic achievement query stays paginated and scoped", () => {
     }).toString(),
     "source_type=academy_weekly_signature_achievements&page=2&page_size=20&sort_by=publication_date&order=desc",
   );
+});
+
+test("paper categories query multiple real sources instead of one representative source", () => {
+  assert.deepEqual(getPaperCategorySourceQueries("top-conference"), [
+    { sourceId: "icml" },
+    { sourceId: "neurips" },
+    { sourceId: "cvpr" },
+  ]);
+  assert.deepEqual(getPaperCategorySourceQueries("top-journal"), [
+    { sourceId: "jmlr" },
+    { sourceId: "jair" },
+    { sourceId: "tmlr" },
+  ]);
+  assert.deepEqual(getPaperCategorySourceQueries("arxiv"), [
+    { sourceName: "arxiv" },
+  ]);
+  assert.equal(
+    buildPaperQueryParams({ sourceName: "arxiv", page: 1, pageSize: 20 }).toString(),
+    "source_name=arxiv&page=1&page_size=20&sort_by=publication_date&order=desc",
+  );
+});
+
+test("mergePaperSampleResponses deduplicates and sorts category samples", () => {
+  const items = mergePaperSampleResponses([
+    {
+      items: [
+        { paper_id: "a", title: "A", publication_date: "2026-01-01" },
+        { paper_id: "shared", title: "Shared", publication_date: "2025-01-01" },
+      ],
+      total: 2,
+      page: 1,
+      page_size: 30,
+    },
+    {
+      items: [
+        { paper_id: "b", title: "B", publication_date: "2027-01-01" },
+        { paper_id: "shared", title: "Shared", publication_date: "2025-01-01" },
+      ],
+      total: 2,
+      page: 1,
+      page_size: 30,
+    },
+  ]);
+
+  assert.deepEqual(items.map((paper) => paper.paper_id), ["b", "a", "shared"]);
 });
 
 test("normalizePaper provides display-safe fallback values", () => {
