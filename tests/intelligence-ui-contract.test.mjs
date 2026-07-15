@@ -72,7 +72,7 @@ test("shared detail restores focus only for user-initiated closes", () => {
   );
   assert.match(
     masterDetail,
-    /if \(event\.key === "Escape"\)[\s\S]{0,100}shouldRestoreFocusRef\.current = true;/,
+    /const handleEscape = \(event: KeyboardEvent\) => \{[\s\S]{0,120}if \(event\.key === "Escape"\) \{[\s\S]{0,80}closeDetail\(\);/,
   );
   assert.match(
     masterDetail,

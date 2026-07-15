@@ -124,7 +124,7 @@ export default function MasterDetailView({
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        shouldRestoreFocusRef.current = true;
+        closeDetail();
       }
     };
 
