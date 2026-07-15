@@ -1,5 +1,7 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRef } from "react";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import {
   Select,
   SelectContent,
@@ -100,24 +102,25 @@ export default function PolicyPreviewList({
 
   return (
     <aside className={styles.listPanel} aria-label="政策列表">
-      <div className={styles.listHeader}>
-        <div className={styles.listHeading}>
-          <h2>政策动态</h2>
-          <span>共 {total.toLocaleString("zh-CN")} 条</span>
-        </div>
-        <div className={styles.sortTabs} aria-label="政策排序">
-          {SORTS.map((option) => (
-            <button
-              type="button"
-              key={option.value}
-              className={sort === option.value ? styles.activeSort : undefined}
-              aria-pressed={sort === option.value}
-              onClick={() => onSortChange(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+      <IntelligenceToolbar
+        title="政策动态"
+        total={total}
+        actions={
+          <div className={styles.sortTabs} aria-label="政策排序">
+            {SORTS.map((option) => (
+              <button
+                type="button"
+                key={option.value}
+                className={sort === option.value ? styles.activeSort : undefined}
+                aria-pressed={sort === option.value}
+                onClick={() => onSortChange(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        }
+      >
         <div className={styles.filterRow}>
           <label className={styles.searchField}>
             <Search aria-hidden="true" />
@@ -230,7 +233,7 @@ export default function PolicyPreviewList({
             清除筛选
           </button>
         </div>
-      </div>
+      </IntelligenceToolbar>
 
       <div className={styles.itemScroller} aria-busy={isLoading}>
         {isLoading && items.length === 0 ? (
@@ -264,10 +267,9 @@ export default function PolicyPreviewList({
                   <span className={styles.timelineAxis} aria-hidden="true">
                     <i />
                   </span>
-                  <button
-                    type="button"
-                    className={`${styles.policyItem} ${selectedId === item.id ? styles.selectedItem : ""}`}
-                    aria-current={selectedId === item.id ? "true" : undefined}
+                  <IntelligenceListItem
+                    className={styles.policyItem}
+                    selected={selectedId === item.id}
                     disabled={isLoading}
                     onClick={(event) => onSelect(item, event.currentTarget)}
                   >
@@ -300,7 +302,7 @@ export default function PolicyPreviewList({
                         )}
                       </span>
                     </span>
-                  </button>
+                  </IntelligenceListItem>
                 </li>
               );
             })}

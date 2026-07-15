@@ -54,3 +54,24 @@ test("shared intelligence primitives expose stable QA selectors", () => {
     assert.match(read(path), new RegExp(selector));
   }
 });
+
+test("policy and social intelligence use the unified shell", () => {
+  const policy = read("../components/policy-intel-preview/policy-intel-preview.tsx");
+  const policyList = read("../components/policy-intel-preview/policy-preview-list.tsx");
+  const policyDetail = read("../components/policy-intel-preview/policy-preview-detail.tsx");
+  const social = read("../components/modules/tech-frontier/tech-frontier-page.tsx");
+
+  for (const source of [policy, social]) {
+    assert.match(source, /<IntelligencePageShell/);
+    assert.match(source, /<IntelligenceWorkspace/);
+  }
+  assert.match(policyList, /<IntelligenceToolbar/);
+  assert.match(policyList, /<IntelligenceListItem/);
+  assert.match(policyDetail, /<IntelligenceDetailHeader/);
+  assert.match(policyDetail, /<IntelligenceSection/);
+  assert.match(social, /<IntelligenceToolbar/);
+  assert.match(social, /<IntelligenceListItem/);
+  assert.doesNotMatch(social, /hover:-translate-y/);
+  assert.doesNotMatch(social, /YouTube|youtube/);
+  assert.doesNotMatch(social, /\/logos\/(?:x|wechat)\.svg/);
+});

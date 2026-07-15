@@ -1,4 +1,8 @@
-import { ChevronLeft, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import {
+  IntelligenceDetailHeader,
+  IntelligenceSection,
+} from "@/components/shared/intelligence-detail";
 import {
   getPolicyPreviewDetailSections,
   getPolicyPreviewScore,
@@ -9,80 +13,76 @@ import styles from "./policy-intel-preview.module.css";
 
 interface PolicyPreviewDetailProps {
   item: PolicyFeedItem | null;
-  onBack: () => void;
 }
 
-export default function PolicyPreviewDetail({
-  item,
-  onBack,
-}: PolicyPreviewDetailProps) {
-  if (!item) {
-    return (
-      <div className={styles.detailEmptyState}>
-        <button type="button" className={styles.mobileBack} onClick={onBack}>
-          <ChevronLeft aria-hidden="true" />
-          返回政策列表
-        </button>
-        <p>暂无可展示的政策详情</p>
-      </div>
-    );
-  }
-
-  const source =
+function getPolicySource(item: PolicyFeedItem) {
+  return (
     item.sourceName?.trim() ||
     item.source_name?.trim() ||
     item.source.trim() ||
-    "--";
-  const funding = item.funding?.trim() || null;
-  const leader = item.leader?.trim() || null;
+    "--"
+  );
+}
+
+export function PolicyPreviewDetailHeader({ item }: { item: PolicyFeedItem }) {
+  const source = getPolicySource(item);
   const sourceUrl = normalizeExternalPolicyUrl(item.sourceUrl);
-  const detailSections = getPolicyPreviewDetailSections(item);
   const hasScore = item.matchScore != null || item.relevance != null;
   const score = getPolicyPreviewScore(item);
   const scoreLabel = item.matchScore != null ? "政策匹配度" : "政策相关度";
 
   return (
+    <IntelligenceDetailHeader
+      badges={
+        <div className={styles.detailChips}>
+          <span>{item.category}</span>
+          <span>{item.importance}</span>
+        </div>
+      }
+      title={item.title}
+      meta={
+        <div className={styles.detailMeta}>
+          <span>{source}</span>
+          <time dateTime={item.date}>{item.date}</time>
+          {hasScore ? (
+            <span>
+              {scoreLabel} {score}
+            </span>
+          ) : null}
+          {sourceUrl ? (
+            <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+              查看政策原文
+              <ExternalLink aria-hidden="true" />
+            </a>
+          ) : null}
+        </div>
+      }
+    />
+  );
+}
+
+export default function PolicyPreviewDetail({ item }: PolicyPreviewDetailProps) {
+  if (!item) {
+    return (
+      <div className={styles.detailEmptyState}>
+        <p>暂无可展示的政策详情</p>
+      </div>
+    );
+  }
+
+  const source = getPolicySource(item);
+  const funding = item.funding?.trim() || null;
+  const leader = item.leader?.trim() || null;
+  const detailSections = getPolicyPreviewDetailSections(item);
+
+  return (
     <div className={styles.detail}>
       <div className={styles.detailBody}>
-        <button type="button" className={styles.mobileBack} onClick={onBack}>
-          <ChevronLeft aria-hidden="true" />
-          返回政策列表
-        </button>
-
-        <header className={styles.detailHeader}>
-          <div className={styles.detailChips}>
-            <span>{item.category}</span>
-            <span>{item.importance}</span>
-          </div>
-          <h2>{item.title}</h2>
-          <div className={styles.detailMeta}>
-            <span>{source}</span>
-            <time dateTime={item.date}>{item.date}</time>
-            {hasScore ? (
-              <span>
-                {scoreLabel} {score}
-              </span>
-            ) : null}
-            {sourceUrl ? (
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                查看政策原文
-                <ExternalLink aria-hidden="true" />
-              </a>
-            ) : null}
-          </div>
-        </header>
-
-        <section className={styles.detailSection}>
-          <h3>AI 摘要</h3>
+        <IntelligenceSection title="AI 摘要">
           <p>{detailSections.aiSummary || "暂无政策摘要"}</p>
-        </section>
+        </IntelligenceSection>
 
-        <section className={styles.detailSection}>
-          <h3>政策要点</h3>
+        <IntelligenceSection title="政策要点">
           {item.signals && item.signals.length > 0 ? (
             <ul>
               {item.signals.map((signal) => (
@@ -92,22 +92,19 @@ export default function PolicyPreviewDetail({
           ) : (
             <p className={styles.detailEmptyCopy}>暂无结构化政策要点</p>
           )}
-        </section>
+        </IntelligenceSection>
 
-        <section className={styles.detailSection}>
-          <h3>政策解读</h3>
+        <IntelligenceSection title="政策解读">
           <p>{detailSections.interpretation || "暂无政策解读"}</p>
-        </section>
+        </IntelligenceSection>
 
-        <section className={styles.detailSection}>
-          <h3>政策原文</h3>
+        <IntelligenceSection title="政策原文">
           <p>
             {detailSections.originalContent || "暂无可展示的政策正文"}
           </p>
-        </section>
+        </IntelligenceSection>
 
-        <section className={styles.detailSection}>
-          <h3>标签</h3>
+        <IntelligenceSection title="标签">
           {item.tags.length > 0 ? (
             <div className={styles.detailTags} aria-label="政策标签">
               {item.tags.map((tag) => (
@@ -117,12 +114,11 @@ export default function PolicyPreviewDetail({
           ) : (
             <p className={styles.detailEmptyCopy}>暂无政策标签</p>
           )}
-        </section>
+        </IntelligenceSection>
       </div>
 
       <aside className={styles.infoRail} aria-label="政策信息侧栏">
-        <section className={styles.infoSection}>
-          <h3>政策信息</h3>
+        <IntelligenceSection title="政策信息" className={styles.infoSection}>
           <dl>
             <div>
               <dt>发布来源</dt>
@@ -155,10 +151,9 @@ export default function PolicyPreviewDetail({
               <dd>{item.daysLeft != null ? `${item.daysLeft} 天` : "--"}</dd>
             </div>
           </dl>
-        </section>
+        </IntelligenceSection>
 
-        <section className={styles.infoSection}>
-          <h3>影响范围</h3>
+        <IntelligenceSection title="影响范围" className={styles.infoSection}>
           <dl className={styles.impactList}>
             {item.matchScore != null ? (
               <div>
@@ -209,12 +204,11 @@ export default function PolicyPreviewDetail({
               <dd>{item.importance}</dd>
             </div>
           </dl>
-        </section>
+        </IntelligenceSection>
 
-        <section className={styles.infoSection}>
-          <h3>相关附件</h3>
+        <IntelligenceSection title="相关附件" className={styles.infoSection}>
           <p className={styles.infoEmptyCopy}>当前政策未提供可下载附件</p>
-        </section>
+        </IntelligenceSection>
       </aside>
     </div>
   );

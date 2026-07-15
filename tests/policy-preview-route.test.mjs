@@ -28,10 +28,10 @@ test("policy page renders only the core workspace without the old banner", () =>
   assert.doesNotMatch(source, /isUsingMock: isOpportunityTotalMock/);
   assert.match(source, /fetchPolicySourceNameMap/);
   assert.doesNotMatch(source, /sourceEntries\.length > 0 \? sourceEntries\.length : null/);
-  assert.match(source, /<section className=\{styles\.workbench\}/);
-  assert.match(css, /border:\s*0/);
-  assert.match(css, /border-radius:\s*0/);
-  assert.match(css, /box-shadow:\s*none/);
+  assert.match(source, /<IntelligencePageShell/);
+  assert.match(source, /<IntelligenceWorkspace/);
+  assert.doesNotMatch(css, /\.(?:page|canvas|workbench)\s*\{/);
+  assert.doesNotMatch(css, /(?:linear|radial)-gradient|backdrop-filter/);
 });
 
 test("list shows only real relevance progress and disables stale items while loading", () => {
@@ -49,6 +49,13 @@ test("selection waits for loading and mobile focus can move to detail and return
   assert.match(source, /lastSelectedButtonRef/);
   assert.match(source, /requestAnimationFrame/);
   assert.match(source, /tabIndex=\{-1\}/);
+});
+
+test("policy overlay focus follows the shared workspace breakpoint", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
+  assert.match(source, /useBreakpoint/);
+  assert.match(source, /breakpoint !== "desktop"/);
+  assert.doesNotMatch(source, /max-width: 959px/);
 });
 
 test("preview supports date range and policy source filtering", () => {
@@ -94,18 +101,15 @@ test("timeline renders one date node for each date group", () => {
   assert.match(css, /display:\s*none;\s*width:\s*8px/s);
 });
 
-test("workbench height follows the no-banner viewport contract", () => {
+test("shared shell and workspace own the no-banner viewport contract", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
   const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
-  const workbenchBlock = css.match(/\.workbench\s*\{([^}]*)\}/)?.[1] ?? "";
-  const paneBlock = css.match(/\.listPane,\s*\.detailPane\s*\{([^}]*)\}/)?.[1] ?? "";
   assert.doesNotMatch(css, /calc\(100dvh - 286px\)/);
   assert.doesNotMatch(css, /calc\(100dvh - 316px\)/);
   assert.doesNotMatch(css, /min-height:\s*620px/);
-  assert.match(css, /\.page\s*\{[\s\S]*?height:\s*var\(--app-content-height, 100dvh\)/);
-  assert.match(css, /\.canvas\s*\{[\s\S]*?height:\s*100%/);
-  assert.match(workbenchBlock, /height:\s*100%/);
-  assert.doesNotMatch(workbenchBlock, /height:\s*clamp\(/);
-  assert.match(paneBlock, /height:\s*100%/);
+  assert.match(source, /<IntelligencePageShell/);
+  assert.match(source, /<IntelligenceWorkspace/);
+  assert.doesNotMatch(css, /\.(?:page|canvas|workbench|listPane|detailPane)\s*\{/);
 });
 
 test("every animated application page keeps a full dynamic viewport height", () => {

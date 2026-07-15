@@ -11,18 +11,17 @@ import {
   Loader2,
   MessageCircle,
   MessageSquare,
-  Play,
   Repeat2,
   WifiOff,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { MotionCard } from "@/components/motion";
-import DataFreshness from "@/components/shared/data-freshness";
 import DateRangeFilter from "@/components/shared/date-range-filter";
 import FeedPagination from "@/components/shared/feed-pagination";
 import { SearchInput } from "@/components/shared/forms/SearchInput";
-import MasterDetailView from "@/components/shared/master-detail-view";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { SkeletonPolicyIntel } from "@/components/shared/skeleton-states";
 import { useDetailView } from "@/hooks/use-detail-view";
 import {
@@ -42,19 +41,17 @@ const PAGE_SIZE = 20;
 const PLATFORM_FILTERS: {
   value: TechFrontierPlatformFilter;
   label: string;
-  iconSrc?: string;
   icon?: typeof Layers3;
+  mark?: string;
 }[] = [
   { value: "all", label: "全部", icon: Layers3 },
-  { value: "x", label: "X", iconSrc: "/logos/x.svg" },
-  { value: "wechat_mp", label: "公众号", iconSrc: "/logos/wechat.svg" },
-  { value: "youtube", label: "YouTube", iconSrc: "/logos/youtube.svg" },
+  { value: "x", label: "X", mark: "X" },
+  { value: "wechat_mp", label: "公众号", icon: MessageSquare },
 ];
 
 const platformBadgeClass: Record<TechFrontierPostItem["platform"], string> = {
   x: "border-slate-900 bg-slate-900 text-white",
   wechat_mp: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  youtube: "border-red-200 bg-red-50 text-red-700",
 };
 
 const postTypeClass: Record<string, string> = {
@@ -138,28 +135,6 @@ function groupByRealDate(items: TechFrontierPostItem[]) {
     }));
 }
 
-function getYoutubeVideoId(item: TechFrontierPostItem) {
-  if (item.platform !== "youtube") return null;
-  const fromId = item.id.split(":").at(-1);
-  if (fromId && /^[\w-]{8,}$/.test(fromId)) return fromId;
-
-  if (!item.sourceUrl) return null;
-  try {
-    const url = new URL(item.sourceUrl);
-    const videoId = url.searchParams.get("v");
-    if (videoId) return videoId;
-    const lastPath = url.pathname.split("/").filter(Boolean).at(-1);
-    return lastPath || null;
-  } catch {
-    return null;
-  }
-}
-
-function getYoutubeThumbnailUrl(item: TechFrontierPostItem) {
-  const videoId = getYoutubeVideoId(item);
-  return videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
-}
-
 function getAuthorInitial(item: TechFrontierPostItem) {
   const name = item.authorName || item.authorHandle || item.platformLabel;
   return name.trim().slice(0, 1).toUpperCase();
@@ -172,21 +147,20 @@ function PlatformLogo({
   item: Pick<TechFrontierPostItem, "platform" | "platformLabel">;
   className?: string;
 }) {
-  const src =
-    item.platform === "x"
-      ? "/logos/x.svg"
-      : item.platform === "wechat_mp"
-        ? "/logos/wechat.svg"
-        : "/logos/youtube.svg";
-
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full bg-white",
+        "inline-flex shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-[10px] font-semibold text-slate-900",
+        item.platform === "wechat_mp" && "text-emerald-700",
         className,
       )}
+      aria-label={item.platformLabel}
     >
-      <img src={src} alt={item.platformLabel} className="h-4 w-4" />
+      {item.platform === "x" ? (
+        <span aria-hidden="true">X</span>
+      ) : (
+        <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+      )}
     </span>
   );
 }
@@ -267,16 +241,10 @@ function XPostCard({
     text.length > 95 || text.split(/\r?\n/).filter(Boolean).length > 2;
 
   return (
-    <button
-      type="button"
+    <IntelligenceListItem
       onClick={onClick}
-      aria-current={selected ? "true" : undefined}
-      className={cn(
-        "w-full rounded-2xl border bg-white p-4 text-left shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition",
-        selected
-          ? "border-sky-300 ring-2 ring-sky-100"
-          : "border-slate-200 hover:border-sky-200 hover:shadow-[0_10px_28px_rgba(15,23,42,0.08)]",
-      )}
+      selected={selected}
+      className="p-4"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -315,82 +283,7 @@ function XPostCard({
         <MetricChip icon={Heart} value={item.metrics.likes} />
         <MetricChip icon={Eye} value={item.metrics.views} />
       </div>
-    </button>
-  );
-}
-
-function YoutubePostCard({
-  item,
-  selected,
-  onClick,
-}: {
-  item: TechFrontierPostItem;
-  selected: boolean;
-  onClick: () => void;
-}) {
-  const thumbnailUrl = getYoutubeThumbnailUrl(item);
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={selected ? "true" : undefined}
-      className={cn(
-        "grid w-full grid-cols-[132px_minmax(0,1fr)] overflow-hidden rounded-2xl border bg-white text-left shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition",
-        selected
-          ? "border-sky-300 ring-2 ring-sky-100"
-          : "border-slate-200 hover:border-sky-200 hover:shadow-[0_10px_28px_rgba(15,23,42,0.08)]",
-      )}
-    >
-      <div className="relative min-h-[118px] bg-slate-100">
-        {thumbnailUrl ? (
-          <img
-            src={thumbnailUrl}
-            alt={`${item.title} 视频封面`}
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-slate-100">
-            <PlatformLogo item={item} className="h-10 w-10" />
-          </div>
-        )}
-        <span className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
-        <span className="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red-600 text-white shadow-lg">
-          <Play className="ml-0.5 h-4 w-4 fill-current" />
-        </span>
-      </div>
-
-      <div className="flex min-w-0 flex-col p-4">
-        <div className="mb-2 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h4 className="line-clamp-2 text-base font-semibold leading-snug text-slate-950">
-              {item.title}
-            </h4>
-            <p className="mt-1 truncate text-sm text-slate-400">
-              {item.authorName}
-            </p>
-          </div>
-          <Badge
-            variant="outline"
-            className="shrink-0 border-blue-200 bg-blue-50 text-[11px] font-semibold text-blue-600"
-          >
-            原帖
-          </Badge>
-        </div>
-
-        <p className="line-clamp-2 text-sm leading-6 text-slate-600">
-          {item.content || item.summary || item.title}
-        </p>
-
-        <div className="mt-auto flex items-end justify-between gap-3 pt-3 text-xs text-slate-400">
-          <span className="truncate">{item.categoryLabel}</span>
-          <span className="shrink-0">
-            热度 {formatNumber(item.engagementTotal)}
-          </span>
-        </div>
-      </div>
-    </button>
+    </IntelligenceListItem>
   );
 }
 
@@ -404,16 +297,10 @@ function GenericPostCard({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <IntelligenceListItem
       onClick={onClick}
-      aria-current={selected ? "true" : undefined}
-      className={cn(
-        "w-full rounded-xl border bg-white p-4 text-left transition",
-        selected
-          ? "border-sky-300 ring-2 ring-sky-100"
-          : "border-slate-200 hover:border-sky-200 hover:shadow-sm",
-      )}
+      selected={selected}
+      className="p-4"
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
@@ -446,7 +333,7 @@ function GenericPostCard({
         <span>{item.categoryLabel}</span>
         <span>热度 {formatNumber(item.engagementTotal)}</span>
       </div>
-    </button>
+    </IntelligenceListItem>
   );
 }
 
@@ -463,12 +350,6 @@ function TechFrontierCard({
     return <XPostCard item={item} selected={selected} onClick={onClick} />;
   }
 
-  if (item.platform === "youtube") {
-    return (
-      <YoutubePostCard item={item} selected={selected} onClick={onClick} />
-    );
-  }
-
   return <GenericPostCard item={item} selected={selected} onClick={onClick} />;
 }
 
@@ -483,6 +364,10 @@ function TimelineList({
   isLoading: boolean;
   onSelect: (item: TechFrontierPostItem) => void;
 }) {
+  if (isLoading && groups.length === 0) {
+    return <SkeletonPolicyIntel />;
+  }
+
   if (groups.length === 0) {
     return (
       <p className="rounded-xl border border-dashed border-slate-200 bg-white py-10 text-center text-sm text-slate-500">
@@ -547,11 +432,10 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
     : item;
   const images = getDetailImages(activeDetail);
   const topReplies = activeDetail?.top_replies ?? [];
-  const youtubeThumbnailUrl = getYoutubeThumbnailUrl(detailItem);
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <div>
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             {detailItem.platform === "x" ? (
@@ -587,26 +471,6 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
         <p className="mt-5 whitespace-pre-line text-base leading-8 text-slate-700">
           {detailItem.content || detailItem.summary}
         </p>
-
-        {detailItem.platform === "youtube" && youtubeThumbnailUrl && (
-          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950">
-            <div className="relative aspect-video">
-              <img
-                src={youtubeThumbnailUrl}
-                alt={`${detailItem.title} 视频封面`}
-                loading="lazy"
-                className="h-full w-full object-cover opacity-95"
-              />
-              <span className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
-              <span className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-red-600 text-white shadow-xl">
-                <Play className="ml-1 h-6 w-6 fill-current" />
-              </span>
-              <span className="absolute bottom-3 left-3 rounded-md bg-black/65 px-2 py-1 text-xs font-medium text-white">
-                YouTube 原帖预览
-              </span>
-            </div>
-          </div>
-        )}
 
         {images.length > 0 && (
           <div className="mt-4 grid gap-2">
@@ -785,159 +649,134 @@ export default function TechFrontierPage() {
     });
   }, []);
 
-  if (isLoading && items.length === 0) return <SkeletonPolicyIntel />;
-
   return (
-    <div className="flex h-[var(--app-content-height,100dvh)] flex-col gap-4 overflow-hidden px-5 pb-1 pt-5">
-      <MotionCard delay={0} className="relative z-10 shrink-0">
-        <Card className="shadow-card">
-          <CardContent className="space-y-3 p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <SearchInput
-                value={searchInput}
-                onChange={setSearchInput}
-                onSearch={handleSearchSubmit}
-                placeholder="搜索 X、YouTube、公众号前沿认知、作者..."
-                className="min-w-[16rem] flex-1"
-                inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
-                buttonClassName="h-9 rounded-lg"
-              />
+    <IntelligencePageShell className="h-[var(--app-content-height,100dvh)]">
+      <IntelligenceToolbar
+        title="社媒情报"
+        total={total}
+        updatedAt={generatedAt ? new Date(generatedAt) : undefined}
+        actions={
+          isDisconnected ? (
+            <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
+              <WifiOff className="h-3.5 w-3.5" />
+              后端未连接
+            </span>
+          ) : undefined
+        }
+      >
+        <SearchInput
+          value={searchInput}
+          onChange={setSearchInput}
+          onSearch={handleSearchSubmit}
+          placeholder="搜索 X、公众号前沿认知或作者"
+          className="min-w-[16rem] flex-1"
+          inputClassName="h-9 rounded-lg border-[#e5e9f0] bg-white text-sm"
+          buttonClassName="h-9 rounded-lg"
+        />
 
-              <DateRangeFilter
-                from={dateFrom}
-                to={dateTo}
-                onFromChange={handleDateFromChange}
-                onToChange={handleDateToChange}
-                onClear={handleDateClear}
-                className="w-full min-w-0 md:w-auto md:shrink-0"
-              />
-            </div>
+        <DateRangeFilter
+          from={dateFrom}
+          to={dateTo}
+          onFromChange={handleDateFromChange}
+          onToChange={handleDateToChange}
+          onClear={handleDateClear}
+          className="w-full min-w-0 md:w-auto md:shrink-0"
+        />
 
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1 rounded-lg bg-muted/40 p-1">
-                {PLATFORM_FILTERS.map(
-                  ({ value, label, icon: Icon, iconSrc }) => {
-                    const active = activePlatform === value;
-                    const count = platformTotals[value];
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => handlePlatformChange(value)}
-                        className={cn(
-                          "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[11px] font-medium transition-colors",
-                          active
-                            ? "bg-foreground text-background shadow-sm"
-                            : "text-muted-foreground hover:bg-background hover:text-foreground",
-                        )}
-                      >
-                        {iconSrc ? (
-                          <img
-                            src={iconSrc}
-                            alt={label}
-                            className={cn(
-                              "h-3.5 w-3.5",
-                              active && value === "x" && "invert",
-                            )}
-                          />
-                        ) : Icon ? (
-                          <Icon className="h-3.5 w-3.5" />
-                        ) : null}
-                        {label}
-                        {count > 0 && (
-                          <span className="font-tabular opacity-80">
-                            {formatNumber(count)}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  },
+        <div className="flex items-center gap-1 rounded-lg bg-[#f2f4f7] p-1">
+          {PLATFORM_FILTERS.map(({ value, label, icon: Icon, mark }) => {
+            const active = activePlatform === value;
+            const count = platformTotals[value];
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => handlePlatformChange(value)}
+                aria-pressed={active}
+                className={cn(
+                  "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3156d8]",
+                  active
+                    ? "bg-[#1a3a5c] text-white"
+                    : "text-[#667085] hover:bg-white hover:text-[#1a3a5c]",
                 )}
-              </div>
-
-              <div className="ml-auto flex items-center gap-2">
-                {isDisconnected && (
-                  <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-700">
-                    <WifiOff className="h-3 w-3" />
-                    后端未连接
+              >
+                {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
+                {mark ? <span aria-hidden="true">{mark}</span> : null}
+                {label}
+                {count > 0 && (
+                  <span className="font-tabular opacity-80">
+                    {formatNumber(count)}
                   </span>
                 )}
-                {generatedAt && (
-                  <DataFreshness updatedAt={new Date(generatedAt)} />
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </MotionCard>
+              </button>
+            );
+          })}
+        </div>
+      </IntelligenceToolbar>
 
-      <MotionCard delay={0.1} className="min-h-0 flex-1 overflow-hidden">
-        <MasterDetailView
-          className="h-full rounded-2xl border border-slate-200 bg-white/60"
-          listContentClassName="min-h-0 overflow-hidden"
-          listWidth={55}
-          isOpen={isOpen}
-          onClose={close}
-          detailHeader={
-            selectedItem
-              ? {
-                  title: (
-                    <h2 className="line-clamp-2 text-lg font-semibold leading-snug">
-                      {selectedItem.title}
-                    </h2>
-                  ),
-                  subtitle: (
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                      <PlatformBadge item={selectedItem} />
-                      <span>{selectedItem.authorName}</span>
-                      <span>&middot;</span>
-                      <span>{selectedItem.date}</span>
-                      {selectedItem.engagementTotal > 0 && (
-                        <>
-                          <span>&middot;</span>
-                          <span>
-                            热度 {formatNumber(selectedItem.engagementTotal)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  ),
-                  sourceUrl: selectedItem.sourceUrl ?? undefined,
-                }
-              : undefined
-          }
-          detailContent={
-            selectedItem ? <OriginalPostDetail item={selectedItem} /> : null
-          }
-        >
-          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-slate-50/60 p-4">
-            <div
-              ref={listRef}
-              aria-busy={isLoading}
-              className="min-h-0 overflow-y-auto overscroll-contain"
-            >
-              <TimelineList
-                groups={dateGroups}
-                selectedId={selectedItem?.id}
-                isLoading={isLoading}
-                onSelect={open}
-              />
-            </div>
-            <div className="border-t border-border/60 bg-transparent pt-3">
-              <FeedPagination
-                page={page}
-                pageSize={PAGE_SIZE}
-                total={total}
-                totalPages={totalPages}
-                isLoading={isLoading}
-                totalIsEstimate
-                onPageChange={handlePageChange}
-                className="w-full"
-              />
-            </div>
+      <IntelligenceWorkspace
+        listContentClassName="min-h-0 overflow-hidden"
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedItem
+            ? {
+                title: (
+                  <h2 className="line-clamp-2 text-lg font-semibold leading-snug text-[#1a3a5c]">
+                    {selectedItem.title}
+                  </h2>
+                ),
+                subtitle: (
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[#667085]">
+                    <PlatformBadge item={selectedItem} />
+                    <span>{selectedItem.authorName}</span>
+                    <span>&middot;</span>
+                    <span>{selectedItem.date}</span>
+                    {selectedItem.engagementTotal > 0 && (
+                      <>
+                        <span>&middot;</span>
+                        <span>
+                          热度 {formatNumber(selectedItem.engagementTotal)}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                ),
+                sourceUrl: selectedItem.sourceUrl ?? undefined,
+              }
+            : undefined
+        }
+        detailContent={
+          selectedItem ? <OriginalPostDetail item={selectedItem} /> : null
+        }
+      >
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
+          <div
+            ref={listRef}
+            aria-busy={isLoading}
+            className="min-h-0 overflow-y-auto overscroll-contain"
+          >
+            <TimelineList
+              groups={dateGroups}
+              selectedId={selectedItem?.id}
+              isLoading={isLoading}
+              onSelect={open}
+            />
           </div>
-        </MasterDetailView>
-      </MotionCard>
-    </div>
+          <div className="border-t border-[#e5e9f0] pt-3">
+            <FeedPagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              totalPages={totalPages}
+              isLoading={isLoading}
+              totalIsEstimate
+              onPageChange={handlePageChange}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </IntelligenceWorkspace>
+    </IntelligencePageShell>
   );
 }

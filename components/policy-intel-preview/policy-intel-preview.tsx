@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { usePolicyFeed } from "@/hooks/use-policy-opportunities";
 import { fetchPolicySourceNameMap } from "@/lib/api";
 import {
@@ -13,8 +16,9 @@ import type {
   PolicyFeedItem,
 } from "@/lib/types/policy-intel";
 import PolicyPreviewList from "./policy-preview-list";
-import PolicyPreviewDetail from "./policy-preview-detail";
-import styles from "./policy-intel-preview.module.css";
+import PolicyPreviewDetail, {
+  PolicyPreviewDetailHeader,
+} from "./policy-preview-detail";
 
 export default function PolicyIntelPreview() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +35,8 @@ export default function PolicyIntelPreview() {
   >([]);
   const detailRef = useRef<HTMLElement>(null);
   const lastSelectedButtonRef = useRef<HTMLButtonElement | null>(null);
+  const breakpoint = useBreakpoint();
+  const isCompactViewport = breakpoint !== "desktop";
 
   const { items, isLoading, total, totalPages } = usePolicyFeed({
     keyword: searchQuery || undefined,
@@ -99,13 +105,14 @@ export default function PolicyIntelPreview() {
     lastSelectedButtonRef.current = trigger;
     setSelectedId(item.id);
     setMobileDetailOpen(true);
-    if (window.matchMedia("(max-width: 959px)").matches) {
+    if (isCompactViewport) {
       requestAnimationFrame(() => detailRef.current?.focus());
     }
   }
 
   function closeMobileDetail() {
     setMobileDetailOpen(false);
+    if (!isCompactViewport) setSelectedId(null);
     requestAnimationFrame(() => lastSelectedButtonRef.current?.focus());
   }
 
@@ -144,47 +151,50 @@ export default function PolicyIntelPreview() {
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.canvas}>
-        <section className={styles.workbench} aria-label="政策情报工作台">
-          <div
-            className={`${styles.listPane} ${mobileDetailOpen ? styles.listPaneHidden : ""}`}
-          >
-            <PolicyPreviewList
-              items={sortedItems}
-              selectedId={selectedId}
-              sort={sort}
-              category={category}
-              sources={sourceOptions}
-              selectedSourceId={selectedSourceId}
-              dateFrom={dateFrom}
-              dateTo={dateTo}
-              page={page}
-              total={total}
-              totalPages={totalPages}
-              isLoading={isLoading}
-              onSelect={selectItem}
-              onSortChange={setSort}
-              onCategoryChange={changeCategory}
-              onSourceChange={changeSource}
-              onDateFromChange={changeDateFrom}
-              onDateToChange={changeDateTo}
-              onClearFilters={clearFilters}
-              onPageChange={setPage}
-              onSearch={changeSearchQuery}
-            />
-          </div>
-
-          <article
-            ref={detailRef}
-            className={`${styles.detailPane} ${mobileDetailOpen ? "" : styles.detailPaneHidden}`}
-            aria-label="政策详情"
-            tabIndex={-1}
-          >
-            <PolicyPreviewDetail item={selectedItem} onBack={closeMobileDetail} />
-          </article>
-        </section>
-      </div>
-    </main>
+    <IntelligencePageShell>
+      <IntelligenceWorkspace
+        isOpen={
+          selectedItem !== null && (!isCompactViewport || mobileDetailOpen)
+        }
+        onClose={closeMobileDetail}
+        listContentClassName="min-h-0 overflow-hidden"
+        detailHeader={
+          selectedItem
+            ? { title: <PolicyPreviewDetailHeader item={selectedItem} /> }
+            : undefined
+        }
+        detailContent={
+          selectedItem ? (
+            <article ref={detailRef} aria-label="政策详情" tabIndex={-1}>
+              <PolicyPreviewDetail item={selectedItem} />
+            </article>
+          ) : null
+        }
+      >
+        <PolicyPreviewList
+          items={sortedItems}
+          selectedId={selectedId}
+          sort={sort}
+          category={category}
+          sources={sourceOptions}
+          selectedSourceId={selectedSourceId}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          page={page}
+          total={total}
+          totalPages={totalPages}
+          isLoading={isLoading}
+          onSelect={selectItem}
+          onSortChange={setSort}
+          onCategoryChange={changeCategory}
+          onSourceChange={changeSource}
+          onDateFromChange={changeDateFrom}
+          onDateToChange={changeDateTo}
+          onClearFilters={clearFilters}
+          onPageChange={setPage}
+          onSearch={changeSearchQuery}
+        />
+      </IntelligenceWorkspace>
+    </IntelligencePageShell>
   );
 }
