@@ -95,25 +95,19 @@ export default function Page() {
         )}
       >
         <div className="min-h-[calc(100dvh-5rem)] [--app-content-height:calc(100dvh-5rem)] md:min-h-[100dvh] md:[--app-content-height:100dvh]">
+          {activePage === "policy-intel" && <PolicyIntelModule />}
+          {activePage === "tech-frontier" && <TechFrontierModule />}
           {activePage === "papers" && <PapersModule />}
+          {activePage === "talent-radar" && <TalentRadarModule />}
+          {activePage === "university-eco" && <UniversityEcoModule />}
+          {activePage === "sentiment" && <SentimentModule />}
           {activePage === "academic-achievements" && (
             <AcademicAchievementsModule />
           )}
           {activePage === "internal-experts" && <InternalExpertsModule />}
-          {![
-            "papers",
-            "academic-achievements",
-            "internal-experts",
-          ].includes(activePage) && (
+          {activePage === "home" && (
             <MotionPage pageKey={activePage}>
-              {activePage === "home" && (
-                <HomeModule onNavigate={handleNavigate} />
-              )}
-              {activePage === "policy-intel" && <PolicyIntelModule />}
-              {activePage === "tech-frontier" && <TechFrontierModule />}
-              {activePage === "talent-radar" && <TalentRadarModule />}
-              {activePage === "university-eco" && <UniversityEcoModule />}
-              {activePage === "sentiment" && <SentimentModule />}
+              <HomeModule onNavigate={handleNavigate} />
             </MotionPage>
           )}
         </div>

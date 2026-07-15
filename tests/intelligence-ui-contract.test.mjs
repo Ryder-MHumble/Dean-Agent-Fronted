@@ -38,7 +38,10 @@ test("intelligence workspace opts into report styling without changing defaults"
   assert.match(masterDetail, /variant\?: "default" \| "intelligence"/);
   assert.match(masterDetail, /variant = "default"/);
   assert.match(masterDetail, /variant === "intelligence"/);
-  assert.match(masterDetail, /bg-background\/95 backdrop-blur-sm/);
+  assert.match(
+    masterDetail,
+    /variant === "intelligence"\s*\?\s*"border-\[#e5e9f0\] bg-white"\s*:\s*"bg-background\/95 backdrop-blur-sm"/,
+  );
 });
 
 test("shared intelligence primitives expose stable QA selectors", () => {
@@ -52,6 +55,41 @@ test("shared intelligence primitives expose stable QA selectors", () => {
 
   for (const [path, selector] of selectors) {
     assert.match(read(path), new RegExp(selector));
+  }
+});
+
+test("only the overview page uses the entrance animation wrapper", () => {
+  const page = read("../app/page.tsx");
+  const motionPages = page.match(/<MotionPage\b[^>]*>[\s\S]*?<\/MotionPage>/g);
+
+  assert.equal(motionPages?.length, 1);
+  const wrappedSource = motionPages[0];
+  const unwrappedSource = page.replace(wrappedSource, "");
+  const branchPattern = (pageId, componentName) =>
+    new RegExp(
+      `\\{activePage === "${pageId}"\\s*&&\\s*(?:\\(\\s*)?<${componentName}\\b`,
+    );
+
+  assert.match(wrappedSource, /<HomeModule\b/);
+  assert.match(
+    page,
+    /\{activePage === "home"\s*&&\s*\(\s*<MotionPage\b[^>]*>[\s\S]*?<HomeModule\b[\s\S]*?<\/MotionPage>\s*\)\}/,
+  );
+  assert.doesNotMatch(unwrappedSource, /<HomeModule\b/);
+
+  for (const [pageId, componentName] of [
+    ["policy-intel", "PolicyIntelModule"],
+    ["tech-frontier", "TechFrontierModule"],
+    ["papers", "PapersModule"],
+    ["talent-radar", "TalentRadarModule"],
+    ["university-eco", "UniversityEcoModule"],
+    ["sentiment", "SentimentModule"],
+    ["academic-achievements", "AcademicAchievementsModule"],
+    ["internal-experts", "InternalExpertsModule"],
+  ]) {
+    const pattern = branchPattern(pageId, componentName);
+    assert.doesNotMatch(wrappedSource, pattern, `${pageId} must not be animated`);
+    assert.match(unwrappedSource, pattern, `${pageId} must render outside MotionPage`);
   }
 });
 

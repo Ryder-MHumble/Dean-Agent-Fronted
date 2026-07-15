@@ -216,9 +216,10 @@ function DetailPanelInner({
       {/* Sticky header */}
       <div
         className={cn(
-          "flex items-start justify-between gap-3 border-b bg-background/95 backdrop-blur-sm px-6 py-4",
-          variant === "intelligence" &&
-            "border-[#e5e9f0] bg-white backdrop-blur-none",
+          "flex items-start justify-between gap-3 border-b px-6 py-4",
+          variant === "intelligence"
+            ? "border-[#e5e9f0] bg-white"
+            : "bg-background/95 backdrop-blur-sm",
         )}
       >
         <div className="flex-1 min-w-0">
