@@ -6,20 +6,22 @@ import {
   Loader2,
   UserRound,
   Calendar,
+  ChevronRight,
   FileText,
   Link2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import DataItemCard, {
-  ItemChevron,
-  accentConfig,
-} from "@/components/shared/data-item-card";
 import FeedPagination from "@/components/shared/feed-pagination";
-import DataFreshness from "@/components/shared/data-freshness";
 import { SearchInput } from "@/components/shared/forms/SearchInput";
-import MasterDetailView from "@/components/shared/master-detail-view";
+import {
+  IntelligenceDetailHeader,
+  IntelligenceSection,
+} from "@/components/shared/intelligence-detail";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { useLeaders } from "@/hooks/use-leaders";
 import generatedAvatarMapping from "@/lib/generated/leader-avatars.json";
@@ -166,8 +168,8 @@ function LeaderAvatar({
 
   if (avatarUrl && !imgError) {
     return (
-      <div
-        className="shrink-0 overflow-hidden rounded-full bg-muted"
+      <span
+        className="inline-block shrink-0 overflow-hidden rounded-full bg-muted"
         style={{ width: size, height: size }}
       >
         <img
@@ -177,17 +179,17 @@ function LeaderAvatar({
           onError={() => setImgError(true)}
           className="h-full w-full object-cover"
         />
-      </div>
+      </span>
     );
   }
 
   return (
-    <div
+    <span
       className="flex shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-700"
       style={{ width: size, height: size }}
     >
       <UserRound className="h-4 w-4" />
-    </div>
+    </span>
   );
 }
 
@@ -218,11 +220,14 @@ function LeaderDetailContent({ leader }: { leader: LeaderProfile }) {
     <div className="space-y-6">
       {/* 履历时间线 */}
       {experiences.length > 0 && (
-        <section>
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            履历时间线
-          </h3>
+        <IntelligenceSection
+          title={
+            <span className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              履历时间线
+            </span>
+          }
+        >
           <div className="relative space-y-3 border-l border-border/60 pl-4">
             {experiences.map((exp, i) => {
               const start = exp.start_date?.slice(0, 10) || "未知";
@@ -273,16 +278,19 @@ function LeaderDetailContent({ leader }: { leader: LeaderProfile }) {
               );
             })}
           </div>
-        </section>
+        </IntelligenceSection>
       )}
 
       {/* 任免事件 */}
       {events.length > 0 && (
-        <section>
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <FileText className="h-4 w-4 text-muted-foreground" />
-            任免事件
-          </h3>
+        <IntelligenceSection
+          title={
+            <span className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              任免事件
+            </span>
+          }
+        >
           <div className="space-y-2">
             {events.map((event, i) => {
               const isAppoint = event.action !== "免去";
@@ -335,23 +343,21 @@ function LeaderDetailContent({ leader }: { leader: LeaderProfile }) {
               );
             })}
           </div>
-        </section>
+        </IntelligenceSection>
       )}
 
       {/* 简介 */}
       {detailText && (
-        <section>
-          <h3 className="mb-2 text-sm font-semibold">简介</h3>
+        <IntelligenceSection title="简介">
           <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
             {detailText}
           </p>
-        </section>
+        </IntelligenceSection>
       )}
 
       {/* 来源引用 */}
       {sourceRefs.length > 0 && (
-        <section>
-          <h3 className="mb-2 text-sm font-semibold">来源引用</h3>
+        <IntelligenceSection title="来源引用">
           <div className="space-y-1.5">
             {sourceRefs.map((ref, i) => {
               const url =
@@ -385,9 +391,29 @@ function LeaderDetailContent({ leader }: { leader: LeaderProfile }) {
               );
             })}
           </div>
-        </section>
+        </IntelligenceSection>
       )}
     </div>
+  );
+}
+
+function LeaderDetailHeader({ leader }: { leader: LeaderProfile }) {
+  return (
+    <IntelligenceDetailHeader
+      badges={<LeaderDomainBadge domain={leader.leader_domain} />}
+      title={
+        <span className="flex items-center gap-3">
+          <LeaderAvatar leader={leader} size={44} />
+          <span>{leader.name}</span>
+        </span>
+      }
+      meta={
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>{getDisplayPositions(leader)}</span>
+          <span>{getDisplayOrgs(leader)}</span>
+        </span>
+      }
+    />
   );
 }
 
@@ -432,7 +458,7 @@ export default function TalentRadarModule() {
       .map((value) => new Date(value as string))
       .filter((date) => !Number.isNaN(date.getTime()))
       .sort((a, b) => b.getTime() - a.getTime());
-    return dates[0] ?? new Date();
+    return dates[0];
   }, [items]);
 
   const needsReviewCount = items.filter(getQualityNeedsReview).length;
@@ -479,41 +505,12 @@ export default function TalentRadarModule() {
   };
 
   return (
-    <div className="flex h-[var(--app-content-height,100dvh)] flex-col gap-4 overflow-hidden px-5 pb-1 pt-5">
-      <Card className="relative z-10 shrink-0 rounded-xl shadow-sm">
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <SearchInput
-              value={keywordInput}
-              onChange={setKeywordInput}
-              onSearch={applyFilters}
-              placeholder="搜索职务、履历、来源..."
-              className="min-w-[16rem] flex-1"
-              inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
-              buttonClassName="h-9 rounded-lg"
-            />
-            <Input
-              value={nameInput}
-              onChange={(event) => setNameInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") applyFilters();
-              }}
-              placeholder="姓名"
-              aria-label="姓名"
-              className="h-9 w-full rounded-lg text-sm sm:w-36"
-            />
-            <Input
-              value={organizationInput}
-              onChange={(event) => setOrganizationInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") applyFilters();
-              }}
-              placeholder="所属机构"
-              aria-label="所属机构"
-              className="h-9 w-full rounded-lg text-sm sm:w-48"
-            />
-          </div>
-
+    <IntelligencePageShell className="h-[var(--app-content-height,100dvh)] overflow-hidden">
+      <IntelligenceToolbar
+        title="外部领导"
+        total={total}
+        updatedAt={latestUpdatedAt}
+        supplemental={
           <div className="flex flex-wrap items-center gap-2">
             {domainFilters.map((filter) => (
               <button
@@ -546,9 +543,6 @@ export default function TalentRadarModule() {
                 {filter.label}
               </button>
             ))}
-            <span className="text-[11px] text-muted-foreground">
-              共 {total} 条
-            </span>
             {needsReviewCount > 0 && (
               <span className="text-[11px] text-amber-700">
                 当前页 {needsReviewCount} 条待核验
@@ -564,133 +558,131 @@ export default function TalentRadarModule() {
                 清除筛选
               </button>
             )}
-            <div className="ml-auto flex items-center gap-2">
-              {isLoading && items.length > 0 && (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-              )}
-              <DataFreshness updatedAt={latestUpdatedAt} />
-            </div>
+            {isLoading && items.length > 0 && (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            )}
           </div>
-        </CardContent>
-      </Card>
+        }
+      >
+        <SearchInput
+          value={keywordInput}
+          onChange={setKeywordInput}
+          onSearch={applyFilters}
+          placeholder="搜索职务、履历、来源..."
+          className="min-w-[16rem] flex-1"
+          inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
+          buttonClassName="h-9 rounded-lg"
+        />
+        <Input
+          value={nameInput}
+          onChange={(event) => setNameInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") applyFilters();
+          }}
+          placeholder="姓名"
+          aria-label="姓名"
+          className="h-9 w-full rounded-lg text-sm sm:w-36"
+        />
+        <Input
+          value={organizationInput}
+          onChange={(event) => setOrganizationInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") applyFilters();
+          }}
+          placeholder="所属机构"
+          aria-label="所属机构"
+          className="h-9 w-full rounded-lg text-sm sm:w-48"
+        />
+      </IntelligenceToolbar>
 
-      <Card className="min-h-0 flex-1 overflow-hidden rounded-xl shadow-sm">
-        <MasterDetailView
-          className="h-full"
-          listContentClassName="min-h-0 overflow-hidden"
-          isOpen={isOpen}
-          onClose={close}
-          detailHeader={
-            selectedItem
-              ? {
-                  title: (
-                    <div className="flex items-center gap-3">
-                      <LeaderAvatar leader={selectedItem} size={44} />
-                      <div className="min-w-0">
-                        <h2 className="text-lg font-semibold leading-snug">
-                          {selectedItem.name}
-                        </h2>
-                        <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <LeaderDomainBadge domain={selectedItem.leader_domain} />
-                          <span className="text-xs text-muted-foreground">
-                            {getDisplayPositions(selectedItem)}
+      <IntelligenceWorkspace
+        listContentClassName="min-h-0 overflow-hidden"
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedItem
+            ? {
+                title: <LeaderDetailHeader leader={selectedItem} />,
+                sourceUrl: selectedItem.latest_source_url ?? undefined,
+              }
+            : undefined
+        }
+        detailContent={
+          selectedItem ? <LeaderDetailContent leader={selectedItem} /> : null
+        }
+      >
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
+          <div
+            ref={listRef}
+            aria-busy={isLoading}
+            className={cn(
+              "min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1 transition-opacity",
+              isLoading && items.length > 0 && "opacity-60",
+            )}
+          >
+            {isLoading && items.length === 0 ? (
+              <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                数据加载中
+              </div>
+            ) : items.length === 0 ? (
+              <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
+                暂无匹配的外部领导
+              </div>
+            ) : (
+              items.map((leader) => {
+                const summary = getLeaderSummary(leader);
+                return (
+                  <IntelligenceListItem
+                    key={leader.id}
+                    selected={selectedItem?.id === leader.id}
+                    onClick={() => open(leader)}
+                    className="group p-3.5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <LeaderAvatar leader={leader} size={40} />
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1.5 flex items-start justify-between gap-3">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <h3 className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-[#3156d8]">
+                              {leader.name}
+                            </h3>
+                            <LeaderDomainBadge domain={leader.leader_domain} />
+                          </div>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
+                        </div>
+                        <p className="mb-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                          {summary || "简介待补充"}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                          <span className="max-w-[35%] truncate font-medium text-foreground/80">
+                            {getDisplayPositions(leader)}
+                          </span>
+                          <span className="max-w-[40%] truncate">
+                            {getDisplayOrgs(leader)}
+                          </span>
+                          <span className="ml-auto shrink-0">
+                            {normalizeDate(leader.latest_event_date)}
                           </span>
                         </div>
                       </div>
                     </div>
-                  ),
-                  subtitle: (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {getDisplayOrgs(selectedItem)}
-                    </p>
-                  ),
-                  sourceUrl: selectedItem.latest_source_url ?? undefined,
-                }
-              : undefined
-          }
-          detailContent={
-            selectedItem ? <LeaderDetailContent leader={selectedItem} /> : null
-          }
-        >
-          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 p-3">
-            <div
-              ref={listRef}
-              aria-busy={isLoading}
-              className={cn(
-                "min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1 transition-opacity",
-                isLoading && items.length > 0 && "opacity-60",
-              )}
-            >
-              {isLoading && items.length === 0 ? (
-                <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  数据加载中
-                </div>
-              ) : items.length === 0 ? (
-                <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
-                  暂无匹配的外部领导
-                </div>
-              ) : (
-                items.map((leader) => {
-                  const summary = getLeaderSummary(leader);
-                  return (
-                    <DataItemCard
-                      key={leader.id}
-                      isSelected={selectedItem?.id === leader.id}
-                      onClick={() => open(leader)}
-                      accentColor="blue"
-                      className="p-3.5"
-                    >
-                      <div className="flex items-start gap-3">
-                        <LeaderAvatar leader={leader} size={40} />
-                        <div className="min-w-0 flex-1">
-                          <div className="mb-1.5 flex items-start justify-between gap-3">
-                            <div className="flex min-w-0 items-center gap-2">
-                              <h3
-                                className={cn(
-                                  "truncate text-sm font-semibold text-foreground transition-colors",
-                                  accentConfig.blue.title,
-                                )}
-                              >
-                                {leader.name}
-                              </h3>
-                              <LeaderDomainBadge domain={leader.leader_domain} />
-                            </div>
-                            <ItemChevron accentColor="blue" />
-                          </div>
-                          <p className="mb-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                            {summary || "简介待补充"}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-                            <span className="max-w-[35%] truncate font-medium text-foreground/80">
-                              {getDisplayPositions(leader)}
-                            </span>
-                            <span className="max-w-[40%] truncate">
-                              {getDisplayOrgs(leader)}
-                            </span>
-                            <span className="ml-auto shrink-0">
-                              {normalizeDate(leader.latest_event_date)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </DataItemCard>
-                  );
-                })
-              )}
-            </div>
-            <FeedPagination
-              page={page}
-              pageSize={pageSize}
-              total={total}
-              totalPages={totalPages}
-              isLoading={isLoading}
-              onPageChange={handlePageChange}
-              className="w-full"
-            />
+                  </IntelligenceListItem>
+                );
+              })
+            )}
           </div>
-        </MasterDetailView>
-      </Card>
-    </div>
+          <FeedPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            totalPages={totalPages}
+            isLoading={isLoading}
+            onPageChange={handlePageChange}
+            className="w-full"
+          />
+        </div>
+      </IntelligenceWorkspace>
+    </IntelligencePageShell>
   );
 }

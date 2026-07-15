@@ -1,21 +1,22 @@
 "use client";
 
-import { useMemo, useRef, useState, type ReactNode } from "react";
-import { ExternalLink } from "lucide-react";
-import DataItemCard, {
-  ItemAvatar,
-  ItemChevron,
-  accentConfig,
-} from "@/components/shared/data-item-card";
+import { useMemo, useRef, useState } from "react";
+import { ChevronRight, ExternalLink } from "lucide-react";
+import { ItemAvatar } from "@/components/shared/data-item-card";
 import FeedPagination from "@/components/shared/feed-pagination";
 import { SearchInput } from "@/components/shared/forms/SearchInput";
-import MasterDetailView from "@/components/shared/master-detail-view";
+import {
+  IntelligenceDetailHeader,
+  IntelligenceSection,
+} from "@/components/shared/intelligence-detail";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import SkillAccessNote from "@/components/shared/skill-access-note";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { useDetailView } from "@/hooks/use-detail-view";
 import expertSnapshot from "@/lib/generated/two-academies-experts.json";
-import { cn } from "@/lib/utils";
 
 interface ExpertRecord {
   name: string;
@@ -36,19 +37,14 @@ interface ExpertSnapshot {
 
 const snapshot = expertSnapshot as ExpertSnapshot;
 const PAGE_SIZE = 20;
+const parsedSnapshotUpdatedAt = new Date(snapshot.syncedAt);
+const snapshotUpdatedAt = Number.isNaN(parsedSnapshotUpdatedAt.getTime())
+  ? undefined
+  : parsedSnapshotUpdatedAt;
 
 function formatDate(value: string): string {
   if (!value) return "时间待补充";
   return value.slice(0, 10);
-}
-
-function DetailSection({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="space-y-2 border-b border-border/60 pb-4 last:border-b-0">
-      <h3 className="text-sm font-semibold text-[#1a3a5c]">{title}</h3>
-      {children}
-    </section>
-  );
 }
 
 function ExpertDetail({ expert }: { expert: ExpertRecord }) {
@@ -61,8 +57,8 @@ function ExpertDetail({ expert }: { expert: ExpertRecord }) {
   ].filter((field) => field[1]);
 
   return (
-    <div className="space-y-4">
-      <DetailSection title="专家信息">
+    <div className="space-y-5">
+      <IntelligenceSection title="专家信息">
         <div className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
           {basicFields.map(([label, value]) => (
             <div key={label} className="min-w-0">
@@ -71,27 +67,29 @@ function ExpertDetail({ expert }: { expert: ExpertRecord }) {
             </div>
           ))}
         </div>
-      </DetailSection>
+      </IntelligenceSection>
 
-      <DetailSection title="研究方向">
+      <IntelligenceSection title="研究方向">
         <p className="whitespace-pre-line text-sm leading-6 text-muted-foreground">
           {expert.researchAreas || "研究方向待补充"}
         </p>
-      </DetailSection>
+      </IntelligenceSection>
 
       {expert.discipline && (
-        <DetailSection title="学科方向">
+        <IntelligenceSection title="学科方向">
           <p className="text-sm leading-6 text-muted-foreground">
             {expert.discipline}
           </p>
-        </DetailSection>
+        </IntelligenceSection>
       )}
 
-      <DetailSection title="数据更新">
-        <p className="text-sm text-muted-foreground">
-          更新时间：{formatDate(expert.updatedAt)}
-        </p>
-      </DetailSection>
+      {expert.updatedAt && (
+        <IntelligenceSection title="数据更新">
+          <p className="text-sm text-muted-foreground">
+            更新时间：{formatDate(expert.updatedAt)}
+          </p>
+        </IntelligenceSection>
+      )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
         <a
@@ -104,11 +102,32 @@ function ExpertDetail({ expert }: { expert: ExpertRecord }) {
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
         </a>
         <SkillAccessNote
-          label="配置专家推荐 skill"
+          label="配置专家推荐技能"
           href="https://skills.zgci.org/space/global/liangyuan-expert-recommender"
         />
       </div>
     </div>
+  );
+}
+
+function ExpertDetailHeader({ expert }: { expert: ExpertRecord }) {
+  return (
+    <IntelligenceDetailHeader
+      badges={
+        expert.title ? (
+          <Badge variant="outline" className="text-[10px]">
+            {expert.title}
+          </Badge>
+        ) : undefined
+      }
+      title={expert.name}
+      meta={
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>{expert.organization || "单位待补充"}</span>
+          {expert.region && <span>{expert.region}</span>}
+        </span>
+      }
+    />
   );
 }
 
@@ -154,150 +173,134 @@ export default function InternalExpertsModule() {
   };
 
   return (
-    <div className="flex h-[var(--app-content-height,100dvh)] min-h-0 flex-col gap-4 overflow-hidden bg-[#f7f8fa] px-5 pb-1 pt-5">
-      <Card className="relative z-10 shrink-0 rounded-xl shadow-sm">
-        <CardContent className="space-y-3 p-4">
-          <SearchInput
-            value={searchInput}
-            onChange={setSearchInput}
-            onSearch={(value) => {
-              setQuery(value);
-              setPage(1);
-              close();
-            }}
-            placeholder="搜索姓名、单位、研究方向"
-            className="w-full"
-            inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
-            buttonClassName="h-9 rounded-lg"
-          />
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-muted-foreground">
-            <span>共 {filteredExperts.length} 人</span>
-            <span>数据更新时间：{formatDate(snapshot.syncedAt)}</span>
+    <IntelligencePageShell className="h-[var(--app-content-height,100dvh)] overflow-hidden">
+      <IntelligenceToolbar
+        title="两院专家库"
+        total={filteredExperts.length}
+        updatedAt={snapshotUpdatedAt}
+        actions={
+          <>
             <a
               href="http://10.1.132.21:5174/?tab=scholars"
               target="_blank"
               rel="noreferrer"
-              className="ml-auto inline-flex items-center gap-1 font-medium text-[#1a3a5c] underline-offset-4 hover:underline"
+              className="inline-flex items-center gap-1 text-xs font-medium text-[#1a3a5c] underline-offset-4 hover:underline"
             >
               更多学者数据请访问 10.1.132.21:5174
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             </a>
             <SkillAccessNote
-              label="配置专家推荐 skill"
+              label="配置专家推荐技能"
               href="https://skills.zgci.org/space/global/liangyuan-expert-recommender"
             />
-          </div>
-        </CardContent>
-      </Card>
+          </>
+        }
+      >
+        <SearchInput
+          value={searchInput}
+          onChange={setSearchInput}
+          onSearch={(value) => {
+            setQuery(value);
+            setPage(1);
+            close();
+          }}
+          placeholder="搜索姓名、单位、研究方向"
+          className="w-full"
+          inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
+          buttonClassName="h-9 rounded-lg"
+        />
+      </IntelligenceToolbar>
 
-      <Card className="min-h-0 flex-1 overflow-hidden rounded-xl shadow-sm">
-        <MasterDetailView
-          className="h-full"
-          listContentClassName="min-h-0 overflow-hidden"
-          isOpen={isOpen}
-          onClose={close}
-          detailHeader={
-            selectedItem
-              ? {
-                  title: (
-                    <h2 className="text-lg font-semibold leading-snug">
-                      {selectedItem.name}
-                    </h2>
-                  ),
-                  subtitle: (
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      {selectedItem.title && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {selectedItem.title}
-                        </Badge>
-                      )}
-                      <span>{selectedItem.organization || "单位待补充"}</span>
-                      {selectedItem.region && <span>{selectedItem.region}</span>}
-                    </div>
-                  ),
-                }
-              : undefined
-          }
-          detailContent={
-            selectedItem ? <ExpertDetail expert={selectedItem} /> : null
-          }
-        >
-          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 p-3">
-            <div
-              ref={listRef}
-              className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1"
-            >
-              {visibleExperts.length === 0 ? (
-                <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
-                  {snapshot.items.length === 0
-                    ? "专家脱敏数据将在同步后显示"
-                    : "暂无匹配的专家公开信息"}
-                </div>
-              ) : (
-                visibleExperts.map((expert) => (
-                  <DataItemCard
-                    key={`${expert.name}-${expert.organization}`}
-                    isSelected={
-                      selectedItem?.name === expert.name &&
-                      selectedItem?.organization === expert.organization
-                    }
-                    onClick={() => open(expert)}
-                    accentColor="blue"
-                    className="p-3.5"
-                  >
-                    <div className="flex items-start gap-3">
-                      <ItemAvatar text={expert.name.slice(0, 1) || "专"} />
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex items-start justify-between gap-3">
-                          <h3
-                            className={cn(
-                              "line-clamp-1 min-w-0 flex-1 text-sm font-semibold leading-5 text-foreground transition-colors",
-                              accentConfig.blue.title,
-                            )}
-                          >
-                            {expert.name}
-                          </h3>
-                          <ItemChevron accentColor="blue" />
-                        </div>
-                        <p className="line-clamp-1 text-xs text-muted-foreground">
-                          {[expert.organization, expert.department, expert.title]
-                            .filter(Boolean)
-                            .join(" · ") || "单位信息待补充"}
-                        </p>
-                        <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
-                          {expert.researchAreas || expert.discipline || "研究方向待补充"}
-                        </p>
-                        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
-                          {expert.region && (
-                            <Badge variant="outline" className="text-[10px]">
-                              {expert.region}
-                            </Badge>
-                          )}
-                          {expert.role && (
-                            <span className="max-w-[55%] truncate">{expert.role}</span>
-                          )}
+      <IntelligenceWorkspace
+        listContentClassName="min-h-0 overflow-hidden"
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedItem
+            ? {
+                title: <ExpertDetailHeader expert={selectedItem} />,
+              }
+            : undefined
+        }
+        detailContent={
+          selectedItem ? <ExpertDetail expert={selectedItem} /> : null
+        }
+      >
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
+          <div
+            ref={listRef}
+            className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1"
+          >
+            {visibleExperts.length === 0 ? (
+              <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
+                {snapshot.items.length === 0
+                  ? "专家脱敏数据将在同步后显示"
+                  : "暂无匹配的专家公开信息"}
+              </div>
+            ) : (
+              visibleExperts.map((expert) => (
+                <IntelligenceListItem
+                  key={`${expert.name}-${expert.organization}`}
+                  selected={
+                    selectedItem?.name === expert.name &&
+                    selectedItem?.organization === expert.organization
+                  }
+                  onClick={() => open(expert)}
+                  className="group p-3.5"
+                >
+                  <div className="flex items-start gap-3">
+                    <ItemAvatar text={expert.name.slice(0, 1) || "专"} />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-start justify-between gap-3">
+                        <h3 className="line-clamp-1 min-w-0 flex-1 text-sm font-semibold leading-5 text-foreground transition-colors group-hover:text-[#3156d8]">
+                          {expert.name}
+                        </h3>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
+                      </div>
+                      <p className="line-clamp-1 text-xs text-muted-foreground">
+                        {[expert.organization, expert.department, expert.title]
+                          .filter(Boolean)
+                          .join(" · ") || "单位信息待补充"}
+                      </p>
+                      <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                        {expert.researchAreas ||
+                          expert.discipline ||
+                          "研究方向待补充"}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                        {expert.region && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {expert.region}
+                          </Badge>
+                        )}
+                        {expert.role && (
+                          <span className="max-w-[55%] truncate">
+                            {expert.role}
+                          </span>
+                        )}
+                        {expert.updatedAt && (
                           <span className="ml-auto shrink-0">
                             {formatDate(expert.updatedAt)}
                           </span>
-                        </div>
+                        )}
                       </div>
                     </div>
-                  </DataItemCard>
-                ))
-              )}
-            </div>
-            <FeedPagination
-              page={effectivePage}
-              pageSize={PAGE_SIZE}
-              total={filteredExperts.length}
-              totalPages={totalPages}
-              isLoading={false}
-              onPageChange={handlePageChange}
-              className="w-full"
-            />
+                  </div>
+                </IntelligenceListItem>
+              ))
+            )}
           </div>
-        </MasterDetailView>
-      </Card>
-    </div>
+          <FeedPagination
+            page={effectivePage}
+            pageSize={PAGE_SIZE}
+            total={filteredExperts.length}
+            totalPages={totalPages}
+            isLoading={false}
+            onPageChange={handlePageChange}
+            className="w-full"
+          />
+        </div>
+      </IntelligenceWorkspace>
+    </IntelligencePageShell>
   );
 }

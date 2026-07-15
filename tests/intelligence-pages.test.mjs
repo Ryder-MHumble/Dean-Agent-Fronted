@@ -99,11 +99,16 @@ test("active intelligence modules use the full app content height", () => {
 test("external leaders use the shared policy intelligence list-detail pattern", () => {
   const leaderSource = readSource("../components/modules/talent-radar/index.tsx");
   assert.match(leaderSource, /<SearchInput/);
-  assert.match(leaderSource, /<MasterDetailView/);
-  assert.match(leaderSource, /<DataItemCard/);
+  assert.match(leaderSource, /<IntelligencePageShell/);
+  assert.match(leaderSource, /<IntelligenceToolbar/);
+  assert.match(leaderSource, /<IntelligenceWorkspace/);
+  assert.match(leaderSource, /<IntelligenceListItem/);
+  assert.match(leaderSource, /<IntelligenceDetailHeader/);
+  assert.match(leaderSource, /<IntelligenceSection/);
   assert.match(leaderSource, /<FeedPagination/);
   assert.doesNotMatch(leaderSource, /<Sheet|SheetContent|<Table|TableRow/);
   assert.match(leaderSource, /line-clamp-2/);
+  assert.doesNotMatch(leaderSource, /dates\[0\] \?\? new Date\(\)/);
 });
 
 test("paper and internal pages expose the required data links", () => {
@@ -144,11 +149,9 @@ test("report surfaces use compact report styling and shared pagination", () => {
 
   assert.match(paperListSource, /<IntelligenceToolbar/);
   assert.match(paperListSource, /<IntelligenceWorkspace/);
-  assert.ok((expertsSource.match(/rounded-xl[^"\n]*shadow-sm/g) ?? []).length >= 2);
-  assert.match(
-    expertsSource,
-    /className="[^"]*rounded-xl[^"]*shadow-sm[^"]*"/,
-  );
+  assert.match(expertsSource, /<IntelligencePageShell/);
+  assert.match(expertsSource, /<IntelligenceToolbar/);
+  assert.match(expertsSource, /<IntelligenceWorkspace/);
   assert.match(expertsSource, /placeholder="搜索姓名、单位、研究方向"/);
   assert.match(expertsSource, /<FeedPagination/);
 });
@@ -253,12 +256,22 @@ test("internal experts use the shared policy intelligence list-detail pattern", 
   );
 
   assert.match(expertsSource, /<SearchInput/);
-  assert.match(expertsSource, /<MasterDetailView/);
-  assert.match(expertsSource, /<DataItemCard/);
+  assert.match(expertsSource, /<IntelligencePageShell/);
+  assert.match(expertsSource, /<IntelligenceToolbar/);
+  assert.match(expertsSource, /<IntelligenceWorkspace/);
+  assert.match(expertsSource, /<IntelligenceListItem/);
+  assert.match(expertsSource, /<IntelligenceDetailHeader/);
+  assert.match(expertsSource, /<IntelligenceSection/);
   assert.match(expertsSource, /<FeedPagination/);
   assert.doesNotMatch(expertsSource, /<Table|TableRow|TableCell/);
   assert.match(expertsSource, /研究方向/);
   assert.match(expertsSource, /学科方向/);
+  assert.match(expertsSource, /key=\{`\$\{expert\.name\}-\$\{expert\.organization\}`\}/);
+  assert.match(
+    expertsSource,
+    /selectedItem\?\.name === expert\.name &&[\s\S]{0,100}selectedItem\?\.organization === expert\.organization/,
+  );
+  assert.match(expertsSource, /expert\.updatedAt &&/);
   assert.match(
     expertsSource,
     /h-\[var\(--app-content-height,100dvh\)\][^"\n]*overflow-hidden/,

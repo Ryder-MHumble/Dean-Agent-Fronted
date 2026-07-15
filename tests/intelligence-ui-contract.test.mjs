@@ -89,3 +89,18 @@ test("paper data pages use the unified shell and detail hierarchy", () => {
     assert.match(source, /<IntelligenceSection/);
   }
 });
+
+test("leader and expert pages use the unified people layout", () => {
+  for (const path of [
+    "../components/modules/talent-radar/index.tsx",
+    "../components/modules/internal-shared/internal-experts.tsx",
+  ]) {
+    const source = read(path);
+    assert.match(source, /<IntelligencePageShell/);
+    assert.match(source, /<IntelligenceToolbar/);
+    assert.match(source, /<IntelligenceWorkspace/);
+    assert.match(source, /<IntelligenceListItem/);
+    assert.match(source, /<IntelligenceDetailHeader/);
+    assert.match(source, /<IntelligenceSection/);
+  }
+});
