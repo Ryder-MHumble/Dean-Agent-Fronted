@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft } from "lucide-react";
 import { usePolicyFeed } from "@/hooks/use-policy-opportunities";
 import { fetchPolicySourceNameMap } from "@/lib/api";
 import {
@@ -15,6 +14,7 @@ import type {
 } from "@/lib/types/policy-intel";
 import PolicyPreviewHero from "./policy-preview-hero";
 import PolicyPreviewList from "./policy-preview-list";
+import PolicyPreviewDetail from "./policy-preview-detail";
 import styles from "./policy-intel-preview.module.css";
 
 export default function PolicyIntelPreview() {
@@ -126,8 +126,8 @@ export default function PolicyIntelPreview() {
   function selectItem(item: PolicyFeedItem, trigger: HTMLButtonElement) {
     lastSelectedButtonRef.current = trigger;
     setSelectedId(item.id);
+    setMobileDetailOpen(true);
     if (window.matchMedia("(max-width: 767px)").matches) {
-      setMobileDetailOpen(true);
       requestAnimationFrame(() => detailRef.current?.focus());
     }
   }
@@ -155,57 +155,42 @@ export default function PolicyIntelPreview() {
           generatedAt={policyTotal === null ? null : policyGeneratedAt}
         />
 
-        <section
-          className={`${styles.workbench} ${mobileDetailOpen ? styles.mobileDetailOpen : ""}`}
-          aria-label="政策情报工作台"
-        >
-          <PolicyPreviewList
-            items={sortedItems}
-            selectedId={selectedId}
-            sort={sort}
-            category={category}
-            sources={sourceOptions}
-            selectedSourceId={selectedSourceId}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            page={page}
-            total={total}
-            totalPages={totalPages}
-            isLoading={isLoading}
-            onSelect={selectItem}
-            onSortChange={setSort}
-            onCategoryChange={setCategory}
-            onSourceChange={setSelectedSourceId}
-            onDateFromChange={setDateFrom}
-            onDateToChange={setDateTo}
-            onClearFilters={clearFilters}
-            onPageChange={setPage}
-            onSearch={setSearchQuery}
-          />
+        <section className={styles.workbench} aria-label="政策情报工作台">
+          <div
+            className={`${styles.listPane} ${mobileDetailOpen ? styles.listPaneHidden : ""}`}
+          >
+            <PolicyPreviewList
+              items={sortedItems}
+              selectedId={selectedId}
+              sort={sort}
+              category={category}
+              sources={sourceOptions}
+              selectedSourceId={selectedSourceId}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              page={page}
+              total={total}
+              totalPages={totalPages}
+              isLoading={isLoading}
+              onSelect={selectItem}
+              onSortChange={setSort}
+              onCategoryChange={setCategory}
+              onSourceChange={setSelectedSourceId}
+              onDateFromChange={setDateFrom}
+              onDateToChange={setDateTo}
+              onClearFilters={clearFilters}
+              onPageChange={setPage}
+              onSearch={setSearchQuery}
+            />
+          </div>
 
           <article
             ref={detailRef}
-            className={styles.detailPanel}
+            className={`${styles.detailPane} ${mobileDetailOpen ? "" : styles.detailPaneHidden}`}
             aria-label="政策详情"
             tabIndex={-1}
           >
-            <button
-              type="button"
-              className={styles.mobileBack}
-              onClick={closeMobileDetail}
-            >
-              <ChevronLeft aria-hidden="true" />
-              返回政策列表
-            </button>
-            <p className={styles.detailLabel}>政策详情</p>
-            {selectedItem ? (
-              <>
-                <h2>{selectedItem.title}</h2>
-                <p className={styles.detailSummary}>{selectedItem.summary}</p>
-              </>
-            ) : (
-              <p className={styles.emptyDetail}>请选择一条政策查看详情</p>
-            )}
+            <PolicyPreviewDetail item={selectedItem} onBack={closeMobileDetail} />
           </article>
         </section>
       </div>

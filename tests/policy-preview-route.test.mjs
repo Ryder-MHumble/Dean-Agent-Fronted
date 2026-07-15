@@ -75,3 +75,11 @@ test("hero copy and workbench height follow the reviewed viewport contract", () 
   assert.doesNotMatch(css, /min-height:\s*620px/);
   assert.match(css, /height:\s*clamp\(/);
 });
+
+test("policy detail exposes all reference modules without collapsibles", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-preview-detail.tsx", "utf8");
+  for (const heading of ["AI 摘要", "政策要点", "政策解读", "政策原文", "政策信息", "影响范围", "相关附件"]) {
+    assert.match(source, new RegExp(heading));
+  }
+  assert.doesNotMatch(source, /Accordion|Collapsible|defaultOpen/);
+});
