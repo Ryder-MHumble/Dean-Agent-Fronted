@@ -84,13 +84,56 @@ test("policy detail exposes all reference modules without collapsibles", () => {
   assert.doesNotMatch(source, /Accordion|Collapsible|defaultOpen/);
 });
 
-test("policy detail keeps impact scope empty and normalizes optional information", () => {
+test("policy detail uses strict section mapping and keeps every section mounted", () => {
   const source = readFileSync("components/policy-intel-preview/policy-preview-detail.tsx", "utf8");
-  assert.match(source, /当前政策暂无结构化影响范围数据/);
+  assert.match(source, /getPolicyPreviewDetailSections/);
+  assert.match(source, /const detailSections = getPolicyPreviewDetailSections\(item\)/);
+  assert.match(source, /detailSections\.aiSummary \|\| "暂无政策摘要"/);
+  assert.match(source, /detailSections\.interpretation \|\| "暂无政策解读"/);
+  assert.match(source, /detailSections\.originalContent \|\| "暂无可展示的政策正文"/);
+  assert.match(source, /暂无政策标签/);
+  assert.doesNotMatch(source, /item\.content \|\| item\.detail/);
+});
+
+test("policy detail shows only real impact fields", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-preview-detail.tsx", "utf8");
+  assert.match(source, /政策匹配度/);
+  assert.match(source, /内容相关度/);
+  assert.match(source, /重要程度/);
+  assert.match(source, /item\.matchScore != null/);
+  assert.match(source, /item\.relevance != null/);
+  assert.match(source, /role="progressbar"/);
+  assert.doesNotMatch(source, /当前政策暂无结构化影响范围数据/);
+  assert.doesNotMatch(source, /impactAudience|categoryImpact|受众比例/);
+});
+
+test("policy detail normalizes optional information", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-preview-detail.tsx", "utf8");
   assert.match(source, /const funding = item\.funding\?\.trim\(\) \|\| null/);
   assert.match(source, /资金范围/);
   assert.match(source, /\{funding \?\? "--"\}/);
-  assert.doesNotMatch(source, /hasImpactData|impactTrack|明确资金范围/);
+  assert.doesNotMatch(source, /明确资金范围/);
+});
+
+test("filter callbacks reset pagination before updating filter state", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
+  assert.doesNotMatch(
+    source,
+    /useEffect\(\(\) => \{\s*setPage\(1\);\s*\}, \[searchQuery, category, selectedSourceId, dateFrom, dateTo\]\)/,
+  );
+  for (const [handler, setter] of [
+    ["changeSearchQuery", "setSearchQuery"],
+    ["changeCategory", "setCategory"],
+    ["changeSource", "setSelectedSourceId"],
+    ["changeDateFrom", "setDateFrom"],
+    ["changeDateTo", "setDateTo"],
+  ]) {
+    assert.match(
+      source,
+      new RegExp(`function ${handler}\\([^)]*\\) \\{\\s*setPage\\(1\\);\\s*${setter}\\(value\\);`),
+    );
+  }
+  assert.match(source, /onPageChange=\{setPage\}/);
 });
 
 test("policy detail exposes an external link only through the URL normalizer", () => {

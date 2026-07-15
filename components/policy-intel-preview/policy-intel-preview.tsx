@@ -103,10 +103,6 @@ export default function PolicyIntelPreview() {
   }, [isLoading, requestKey, sort, sortedItems]);
 
   useEffect(() => {
-    setPage(1);
-  }, [searchQuery, category, selectedSourceId, dateFrom, dateTo]);
-
-  useEffect(() => {
     let cancelled = false;
     fetchPolicySourceNameMap().then((sourceMap) => {
       if (cancelled) return;
@@ -137,7 +133,33 @@ export default function PolicyIntelPreview() {
     requestAnimationFrame(() => lastSelectedButtonRef.current?.focus());
   }
 
+  function changeSearchQuery(value: string) {
+    setPage(1);
+    setSearchQuery(value);
+  }
+
+  function changeCategory(value: PolicyFeedCategory | "全部") {
+    setPage(1);
+    setCategory(value);
+  }
+
+  function changeSource(value: string) {
+    setPage(1);
+    setSelectedSourceId(value);
+  }
+
+  function changeDateFrom(value: string) {
+    setPage(1);
+    setDateFrom(value);
+  }
+
+  function changeDateTo(value: string) {
+    setPage(1);
+    setDateTo(value);
+  }
+
   function clearFilters() {
+    setPage(1);
     setSearchQuery("");
     setCategory("全部");
     setSelectedSourceId("");
@@ -174,13 +196,13 @@ export default function PolicyIntelPreview() {
               isLoading={isLoading}
               onSelect={selectItem}
               onSortChange={setSort}
-              onCategoryChange={setCategory}
-              onSourceChange={setSelectedSourceId}
-              onDateFromChange={setDateFrom}
-              onDateToChange={setDateTo}
+              onCategoryChange={changeCategory}
+              onSourceChange={changeSource}
+              onDateFromChange={changeDateFrom}
+              onDateToChange={changeDateTo}
               onClearFilters={clearFilters}
               onPageChange={setPage}
-              onSearch={setSearchQuery}
+              onSearch={changeSearchQuery}
             />
           </div>
 

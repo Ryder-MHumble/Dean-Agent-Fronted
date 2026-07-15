@@ -62,3 +62,33 @@ test("normalizeExternalPolicyUrl rejects unsafe or non-absolute URLs", () => {
     assert.equal(policyPreview.normalizeExternalPolicyUrl?.(value), null);
   }
 });
+
+test("getPolicyPreviewDetailSections trims fields without cross-section fallbacks", () => {
+  assert.deepEqual(
+    policyPreview.getPolicyPreviewDetailSections?.({
+      aiInsight: "  AI 洞察  ",
+      summary: "  后备摘要  ",
+      detail: "  政策解读  ",
+      content: "  政策原文  ",
+    }),
+    {
+      aiSummary: "AI 洞察",
+      interpretation: "政策解读",
+      originalContent: "政策原文",
+    },
+  );
+
+  assert.deepEqual(
+    policyPreview.getPolicyPreviewDetailSections?.({
+      aiInsight: "   ",
+      summary: "  后备摘要  ",
+      detail: "   ",
+      content: "   ",
+    }),
+    {
+      aiSummary: "后备摘要",
+      interpretation: null,
+      originalContent: null,
+    },
+  );
+});

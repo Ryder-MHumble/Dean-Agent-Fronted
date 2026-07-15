@@ -1,5 +1,6 @@
 import { ChevronLeft, ExternalLink } from "lucide-react";
 import {
+  getPolicyPreviewDetailSections,
   getPolicyPreviewScore,
   normalizeExternalPolicyUrl,
 } from "@/lib/policy-preview";
@@ -35,6 +36,7 @@ export default function PolicyPreviewDetail({
   const funding = item.funding?.trim() || null;
   const leader = item.leader?.trim() || null;
   const sourceUrl = normalizeExternalPolicyUrl(item.sourceUrl);
+  const detailSections = getPolicyPreviewDetailSections(item);
   const hasScore = item.matchScore != null || item.relevance != null;
   const score = getPolicyPreviewScore(item);
   const scoreLabel = item.matchScore != null ? "政策匹配度" : "政策相关度";
@@ -76,7 +78,7 @@ export default function PolicyPreviewDetail({
 
         <section className={styles.detailSection}>
           <h3>AI 摘要</h3>
-          <p>{item.summary || "暂无政策摘要"}</p>
+          <p>{detailSections.aiSummary || "暂无政策摘要"}</p>
         </section>
 
         <section className={styles.detailSection}>
@@ -94,21 +96,28 @@ export default function PolicyPreviewDetail({
 
         <section className={styles.detailSection}>
           <h3>政策解读</h3>
-          <p>{item.aiInsight || "暂无政策解读"}</p>
+          <p>{detailSections.interpretation || "暂无政策解读"}</p>
         </section>
 
         <section className={styles.detailSection}>
           <h3>政策原文</h3>
-          <p>{item.content || item.detail || "暂无可展示的政策正文"}</p>
+          <p>
+            {detailSections.originalContent || "暂无可展示的政策正文"}
+          </p>
         </section>
 
-        {item.tags.length > 0 ? (
-          <div className={styles.detailTags} aria-label="政策标签">
-            {item.tags.map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
-          </div>
-        ) : null}
+        <section className={styles.detailSection}>
+          <h3>标签</h3>
+          {item.tags.length > 0 ? (
+            <div className={styles.detailTags} aria-label="政策标签">
+              {item.tags.map((tag) => (
+                <span key={tag}>{tag}</span>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.detailEmptyCopy}>暂无政策标签</p>
+          )}
+        </section>
       </div>
 
       <aside className={styles.infoRail} aria-label="政策信息侧栏">
@@ -150,9 +159,56 @@ export default function PolicyPreviewDetail({
 
         <section className={styles.infoSection}>
           <h3>影响范围</h3>
-          <p className={styles.infoEmptyCopy}>
-            当前政策暂无结构化影响范围数据
-          </p>
+          <dl className={styles.impactList}>
+            {item.matchScore != null ? (
+              <div>
+                <dt>政策匹配度</dt>
+                <dd>
+                  <span
+                    className={styles.impactTrack}
+                    role="progressbar"
+                    aria-label="政策匹配度"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={item.matchScore}
+                  >
+                    <i
+                      style={{
+                        width: `${Math.min(100, Math.max(0, item.matchScore))}%`,
+                      }}
+                    />
+                  </span>
+                  <strong>{item.matchScore}</strong>
+                </dd>
+              </div>
+            ) : null}
+            {item.relevance != null ? (
+              <div>
+                <dt>内容相关度</dt>
+                <dd>
+                  <span
+                    className={styles.impactTrack}
+                    role="progressbar"
+                    aria-label="内容相关度"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={item.relevance}
+                  >
+                    <i
+                      style={{
+                        width: `${Math.min(100, Math.max(0, item.relevance))}%`,
+                      }}
+                    />
+                  </span>
+                  <strong>{item.relevance}</strong>
+                </dd>
+              </div>
+            ) : null}
+            <div>
+              <dt>重要程度</dt>
+              <dd>{item.importance}</dd>
+            </div>
+          </dl>
         </section>
 
         <section className={styles.infoSection}>

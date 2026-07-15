@@ -2,6 +2,12 @@ import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 
 export type PolicyPreviewSort = "latest" | "relevance" | "impact";
 
+export interface PolicyPreviewDetailSections {
+  aiSummary: string | null;
+  interpretation: string | null;
+  originalContent: string | null;
+}
+
 const IMPACT_WEIGHT: Record<string, number> = {
   紧急: 4,
   重要: 3,
@@ -11,6 +17,16 @@ const IMPACT_WEIGHT: Record<string, number> = {
 
 export function getPolicyPreviewScore(item: Partial<PolicyFeedItem>): number {
   return item.matchScore ?? item.relevance ?? 0;
+}
+
+export function getPolicyPreviewDetailSections(
+  item: Pick<PolicyFeedItem, "aiInsight" | "summary" | "detail" | "content">,
+): PolicyPreviewDetailSections {
+  return {
+    aiSummary: item.aiInsight?.trim() || item.summary?.trim() || null,
+    interpretation: item.detail?.trim() || null,
+    originalContent: item.content?.trim() || null,
+  };
 }
 
 export function normalizeExternalPolicyUrl(value?: string): string | null {

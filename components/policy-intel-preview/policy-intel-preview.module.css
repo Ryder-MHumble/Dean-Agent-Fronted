@@ -646,7 +646,7 @@
 }
 
 .detailTags {
-  padding-top: 18px;
+  padding-top: 0;
 }
 
 .infoRail {
@@ -689,6 +689,52 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.7;
+}
+
+.impactList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.impactList > div {
+  display: grid;
+  gap: 6px;
+}
+
+.impactList dt {
+  color: #7d8698;
+  font-size: 12px;
+}
+
+.impactList dd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #3d485e;
+  font-size: 12px;
+}
+
+.impactList strong {
+  width: 24px;
+  color: #3943b8;
+  text-align: right;
+}
+
+.impactTrack {
+  height: 5px;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3e6ef;
+}
+
+.impactTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #8790ef;
 }
 
 .detailEmptyState {
