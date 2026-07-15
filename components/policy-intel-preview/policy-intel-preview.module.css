@@ -714,6 +714,38 @@
   }
 }
 
+@media (min-width: 1024px) and (max-width: 1100px) {
+  .workbench {
+    grid-template-columns: minmax(410px, 42%) minmax(0, 1fr);
+  }
+
+  .heroContent {
+    width: 72%;
+    padding-inline: 34px;
+  }
+
+  .metric dd {
+    font-size: 14px;
+  }
+
+  .metric {
+    padding-inline: 10px;
+  }
+
+  .filterRow {
+    grid-template-columns: minmax(96px, 1fr) 84px 96px auto;
+    gap: 5px;
+  }
+
+  .filterRow select {
+    padding-inline: 6px;
+  }
+
+  .searchButton {
+    padding-inline: 10px;
+  }
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
@@ -781,8 +813,9 @@
   }
 
   .heroSubtitle {
-    max-width: 240px;
+    max-width: 300px;
     line-height: 1.6;
+    word-break: keep-all;
   }
 
   .workbench {
