@@ -81,6 +81,13 @@
   white-space: nowrap;
 }
 
+.metric dt small {
+  margin-left: 4px;
+  color: #929aab;
+  font-size: 9px;
+  font-weight: 400;
+}
+
 .metric dd {
   overflow: hidden;
   margin: 5px 0 0;

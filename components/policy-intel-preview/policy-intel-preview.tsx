@@ -5,6 +5,7 @@ import { ChevronLeft } from "lucide-react";
 import { usePolicyFeed } from "@/hooks/use-policy-opportunities";
 import { fetchPolicySourceNameMap } from "@/lib/api";
 import {
+  getPolicyPreviewSelectedId,
   sortPolicyPreviewItems,
   type PolicyPreviewSort,
 } from "@/lib/policy-preview";
@@ -29,6 +30,7 @@ export default function PolicyIntelPreview() {
   const [sourceOptions, setSourceOptions] = useState<
     { id: string; label: string }[]
   >([]);
+  const [sourceCount, setSourceCount] = useState<number | null>(null);
   const detailRef = useRef<HTMLElement>(null);
   const lastSelectedButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -40,15 +42,37 @@ export default function PolicyIntelPreview() {
     page,
     pageSize: 20,
   });
-  const { total: policyTotal, generatedAt: policyGeneratedAt } = usePolicyFeed({
-    page: 1,
-    pageSize: 1,
-  });
-  const { total: opportunityTotal } = usePolicyFeed({
+  const {
+    total: policyTotalValue,
+    generatedAt: policyGeneratedAt,
+    isLoading: isPolicyTotalLoading,
+    isUsingMock: isPolicyTotalMock,
+  } = usePolicyFeed({ page: 1, pageSize: 1 });
+  const {
+    total: opportunityTotalValue,
+    isLoading: isOpportunityTotalLoading,
+    isUsingMock: isOpportunityTotalMock,
+  } = usePolicyFeed({
     category: "政策机会",
     page: 1,
     pageSize: 1,
   });
+  const policyTotal =
+    isPolicyTotalLoading || isPolicyTotalMock ? null : policyTotalValue;
+  const opportunityTotal =
+    isOpportunityTotalLoading || isOpportunityTotalMock
+      ? null
+      : opportunityTotalValue;
+  const requestKey = [
+    page,
+    searchQuery,
+    category,
+    selectedSourceId,
+    dateFrom,
+    dateTo,
+  ].join("\u0000");
+  const loadingRequestKeyRef = useRef<string | null>(null);
+  const lastSortRef = useRef(sort);
 
   const sortedItems = useMemo(
     () => sortPolicyPreviewItems(items, sort),
@@ -60,15 +84,23 @@ export default function PolicyIntelPreview() {
   );
 
   useEffect(() => {
-    if (isLoading) return;
-    setSelectedId((current) => {
-      if (current && sortedItems.some((item) => item.id === current)) {
-        return current;
-      }
-      return sortedItems[0]?.id ?? null;
-    });
-    setMobileDetailOpen(false);
-  }, [isLoading, sortedItems]);
+    const sortChanged = lastSortRef.current !== sort;
+    lastSortRef.current = sort;
+
+    if (isLoading) {
+      loadingRequestKeyRef.current = requestKey;
+      return;
+    }
+
+    const requestCompleted = loadingRequestKeyRef.current === requestKey;
+    if (requestCompleted) loadingRequestKeyRef.current = null;
+    const resetToFirst = requestCompleted || sortChanged;
+
+    setSelectedId((current) =>
+      getPolicyPreviewSelectedId(sortedItems, current, resetToFirst),
+    );
+    if (resetToFirst) setMobileDetailOpen(false);
+  }, [isLoading, requestKey, sort, sortedItems]);
 
   useEffect(() => {
     setPage(1);
@@ -78,11 +110,13 @@ export default function PolicyIntelPreview() {
     let cancelled = false;
     fetchPolicySourceNameMap().then((sourceMap) => {
       if (cancelled) return;
+      const sourceEntries = Object.entries(sourceMap);
       setSourceOptions(
-        Object.entries(sourceMap)
+        sourceEntries
           .map(([id, label]) => ({ id, label }))
           .sort((a, b) => a.label.localeCompare(b.label, "zh-CN")),
       );
+      setSourceCount(sourceEntries.length > 0 ? sourceEntries.length : null);
     });
     return () => {
       cancelled = true;
@@ -117,8 +151,8 @@ export default function PolicyIntelPreview() {
         <PolicyPreviewHero
           total={policyTotal}
           opportunityCount={opportunityTotal}
-          sourceCount={sourceOptions.length}
-          generatedAt={policyGeneratedAt}
+          sourceCount={sourceCount}
+          generatedAt={policyTotal === null ? null : policyGeneratedAt}
         />
 
         <section

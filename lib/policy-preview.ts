@@ -13,6 +13,18 @@ export function getPolicyPreviewScore(item: Partial<PolicyFeedItem>): number {
   return item.matchScore ?? item.relevance ?? 0;
 }
 
+export function getPolicyPreviewSelectedId(
+  items: Array<Pick<PolicyFeedItem, "id">>,
+  currentSelectedId: string | null,
+  resetToFirst: boolean,
+): string | null {
+  if (resetToFirst) return items[0]?.id ?? null;
+  if (currentSelectedId && items.some((item) => item.id === currentSelectedId)) {
+    return currentSelectedId;
+  }
+  return items[0]?.id ?? null;
+}
+
 export function sortPolicyPreviewItems(
   items: PolicyFeedItem[],
   sort: PolicyPreviewSort,

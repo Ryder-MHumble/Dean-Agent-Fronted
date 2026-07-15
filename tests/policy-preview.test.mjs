@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   formatPolicyPreviewTimestamp,
+  getPolicyPreviewSelectedId,
   getPolicyPreviewScore,
   sortPolicyPreviewItems,
 } from "../lib/policy-preview.ts";
@@ -23,6 +24,13 @@ test("getPolicyPreviewScore falls back from match score to relevance", () => {
   assert.equal(getPolicyPreviewScore(items[0]), 92);
   assert.equal(getPolicyPreviewScore(items[1]), 88);
   assert.equal(getPolicyPreviewScore({ id: "none" }), 0);
+});
+
+test("getPolicyPreviewSelectedId resets only after a completed query or sort", () => {
+  assert.equal(getPolicyPreviewSelectedId(items, "urgent", true), "old");
+  assert.equal(getPolicyPreviewSelectedId(items, "urgent", false), "urgent");
+  assert.equal(getPolicyPreviewSelectedId(items, "missing", false), "old");
+  assert.equal(getPolicyPreviewSelectedId([], "urgent", true), null);
 });
 
 test("formatPolicyPreviewTimestamp returns Chinese display text or dash", () => {

@@ -3,10 +3,14 @@ import { formatPolicyPreviewTimestamp } from "@/lib/policy-preview";
 import styles from "./policy-intel-preview.module.css";
 
 interface PolicyPreviewHeroProps {
-  total: number;
-  opportunityCount: number;
-  sourceCount: number;
+  total: number | null;
+  opportunityCount: number | null;
+  sourceCount: number | null;
   generatedAt: string | null;
+}
+
+function formatCount(value: number | null) {
+  return value === null ? "--" : value.toLocaleString("zh-CN");
 }
 
 export default function PolicyPreviewHero({
@@ -16,9 +20,9 @@ export default function PolicyPreviewHero({
   generatedAt,
 }: PolicyPreviewHeroProps) {
   const metrics = [
-    { label: "政策总量", value: total.toLocaleString("zh-CN") },
-    { label: "政策机会", value: opportunityCount.toLocaleString("zh-CN") },
-    { label: "全量信源", value: sourceCount.toLocaleString("zh-CN") },
+    { label: "政策总量", value: formatCount(total) },
+    { label: "政策机会", value: formatCount(opportunityCount) },
+    { label: "政策信源", note: "国家/北京", value: formatCount(sourceCount) },
     { label: "数据更新", value: formatPolicyPreviewTimestamp(generatedAt) },
   ];
 
@@ -41,7 +45,10 @@ export default function PolicyPreviewHero({
         <dl className={styles.metrics}>
           {metrics.map((metric) => (
             <div className={styles.metric} key={metric.label}>
-              <dt>{metric.label}</dt>
+              <dt>
+                {metric.label}
+                {metric.note ? <small>{metric.note}</small> : null}
+              </dt>
               <dd>{metric.value}</dd>
             </div>
           ))}

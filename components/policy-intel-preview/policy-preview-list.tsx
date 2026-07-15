@@ -133,7 +133,7 @@ export default function PolicyPreviewList({
             aria-label="政策信源"
             onChange={(event) => onSourceChange(event.target.value)}
           >
-            <option value="">全部信源</option>
+            <option value="">全部政策信源</option>
             {sources.map((source) => (
               <option value={source.id} key={source.id}>
                 {source.label}
