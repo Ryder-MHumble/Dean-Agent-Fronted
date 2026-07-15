@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 interface IntelligenceToolbarProps {
   title: string;
   total?: number;
+  totalIsEstimate?: boolean;
   updatedAt?: Date;
   actions?: ReactNode;
   children?: ReactNode;
@@ -17,6 +18,7 @@ interface IntelligenceToolbarProps {
 export default function IntelligenceToolbar({
   title,
   total,
+  totalIsEstimate = false,
   updatedAt,
   actions,
   children,
@@ -38,7 +40,9 @@ export default function IntelligenceToolbar({
           </h1>
           {total !== undefined && (
             <span className="text-sm text-[#667085]">
-              共 {total.toLocaleString("zh-CN")} 条
+              {totalIsEstimate
+                ? `至少 ${total.toLocaleString("zh-CN")} 条`
+                : `共 ${total.toLocaleString("zh-CN")} 条`}
             </span>
           )}
           {updatedAt && (

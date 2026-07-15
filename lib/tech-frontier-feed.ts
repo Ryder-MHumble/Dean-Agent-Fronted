@@ -128,10 +128,10 @@ function compactText(value: string, maxLength: number): string {
 }
 
 function getPostTitle(post: SocialPostBrief): string {
-  const explicitTitle = post.title?.trim();
+  const explicitTitle = normalizeTechFrontierDisplayText(post.title).trim();
   if (explicitTitle) return explicitTitle;
 
-  const content = post.content_text?.trim();
+  const content = normalizeTechFrontierDisplayText(post.content_text).trim();
   if (content) return compactText(content, 96);
 
   return "未命名动态";
@@ -225,7 +225,12 @@ export function normalizeTechFrontierPost(
   post: SocialPostBrief,
 ): TechFrontierPostItem {
   const platform = asPlatform(post.platform);
-  const content = post.content_text?.trim() || post.title?.trim() || "";
+  const normalizedTitle = normalizeTechFrontierDisplayText(post.title).trim();
+  const normalizedContent = normalizeTechFrontierDisplayText(
+    post.content_text,
+  ).trim();
+  const title = getPostTitle(post);
+  const content = normalizedContent || normalizedTitle;
   const likes = toNumber(post.like_count);
   const replies = toNumber(post.reply_count);
   const reposts = toNumber(post.repost_count);
@@ -245,9 +250,9 @@ export function normalizeTechFrontierPost(
     id: post.id,
     platform,
     platformLabel: PLATFORM_LABELS[platform],
-    title: getPostTitle(post),
-    summary: compactText(content || getPostTitle(post), 220),
-    content: content || getPostTitle(post),
+    title,
+    summary: compactText(content || title, 220),
+    content: content || title,
     authorName: post.author_display_name?.trim() || post.author_username,
     authorHandle: post.author_username,
     authorAvatarUrl: getAuthorAvatarUrl(post),

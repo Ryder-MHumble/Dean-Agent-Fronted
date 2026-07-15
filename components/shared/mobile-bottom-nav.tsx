@@ -119,7 +119,7 @@ export default function MobileBottomNav({ activePage, onNavigate }: MobileBottom
       </AnimatePresence>
 
       {/* Bottom navigation bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/90 backdrop-blur-xl border-t border-border/40 shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-white/90 backdrop-blur-xl border-t border-border/40 shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
         <div
           className="flex items-stretch"
           style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}

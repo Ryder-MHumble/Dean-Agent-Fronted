@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, ExternalLink } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -51,6 +51,30 @@ export default function MasterDetailView({
 }: MasterDetailViewProps) {
   const breakpoint = useBreakpoint();
   const isIntelligence = variant === "intelligence";
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      restoreFocusRef.current =
+        document.querySelector<HTMLElement>(
+          '[data-intelligence-item][aria-current="true"]',
+        ) ??
+        (document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null);
+    }
+
+    if (!isOpen && wasOpenRef.current) {
+      const target = restoreFocusRef.current;
+      requestAnimationFrame(() => {
+        if (target?.isConnected) target.focus();
+        restoreFocusRef.current = null;
+      });
+    }
+
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
 
   // Mobile: full-screen detail overlay
   if (breakpoint === "mobile") {

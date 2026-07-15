@@ -22,6 +22,41 @@ test("social display text converts escaped whitespace", () => {
   assert.equal(normalizeTechFrontierDisplayText(null), "");
 });
 
+test("normalizeTechFrontierPost removes literal escapes from display fields", () => {
+  const item = normalizeTechFrontierPost({
+    id: "social:x:escaped-content",
+    platform: "x",
+    external_post_id: "escaped-content",
+    source_id: "twitter_ai_kol_international",
+    title: null,
+    author_username: "author",
+    post_type: "post",
+    content_text: "第一段\\r\\n第二段\\n第三段\\t缩进",
+  });
+
+  for (const value of [item.title, item.summary, item.content]) {
+    assert.doesNotMatch(value, /\\[nt]/);
+  }
+  assert.equal(item.content, "第一段\n第二段\n第三段\t缩进");
+});
+
+test("normalizeTechFrontierPost removes literal escapes from explicit titles", () => {
+  const item = normalizeTechFrontierPost({
+    id: "social:wechat_mp:escaped-title",
+    platform: "wechat_mp",
+    external_post_id: "escaped-title",
+    source_id: "wechat_mp_1",
+    source_category: "前沿认知",
+    title: "显式\\n标题\\t清理",
+    author_username: "作者",
+    post_type: "post",
+    content_text: "正文",
+  });
+
+  assert.doesNotMatch(item.title, /\\[nt]/);
+  assert.equal(item.title, "显式\n标题\t清理");
+});
+
 test("collectTechFrontierPostPages keeps loaded rows when the backend rejects the terminal page", async () => {
   const pages = [
     {

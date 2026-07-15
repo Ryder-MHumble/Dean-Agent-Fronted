@@ -30,6 +30,63 @@ test("shared pagination renders exact and estimated totals", () => {
   assert.match(pagination, /共/);
 });
 
+test("mobile detail stays above the persistent bottom navigation", () => {
+  const masterDetail = read("../components/shared/master-detail-view.tsx");
+  const mobileNav = read("../components/shared/mobile-bottom-nav.tsx");
+
+  assert.match(masterDetail, /fixed inset-0 z-50 flex flex-col bg-background/);
+  assert.match(
+    mobileNav,
+    /<nav className="fixed bottom-0 left-0 right-0 z-40\b/,
+  );
+  assert.match(mobileNav, /fixed inset-x-0 bottom-0 z-50 md:hidden/);
+});
+
+test("shared detail restores focus to the selected intelligence item", () => {
+  const masterDetail = read("../components/shared/master-detail-view.tsx");
+
+  assert.match(
+    masterDetail,
+    /data-intelligence-item.*aria-current=.*true/,
+  );
+  assert.match(
+    masterDetail,
+    /requestAnimationFrame\([\s\S]*?isConnected[\s\S]*?\.focus\(\)/,
+  );
+});
+
+test("shared toolbar supports estimated totals and social intelligence opts in", () => {
+  const toolbar = read("../components/shared/intelligence-toolbar.tsx");
+  const social = read(
+    "../components/modules/tech-frontier/tech-frontier-page.tsx",
+  );
+
+  assert.match(toolbar, /totalIsEstimate\?: boolean/);
+  assert.match(toolbar, /totalIsEstimate = false/);
+  assert.match(
+    toolbar,
+    /totalIsEstimate\s*\?\s*`至少 \$\{total\.toLocaleString\("zh-CN"\)\} 条`\s*:\s*`共/,
+  );
+  assert.match(social, /<IntelligenceToolbar[\s\S]*?totalIsEstimate/);
+  assert.match(
+    social,
+    /count > 0[\s\S]*?至少 \{formatNumber\(count\)\}/,
+  );
+  assert.doesNotMatch(social, /\bmark\b/);
+});
+
+test("social intelligence only auto-opens results outside mobile", () => {
+  const social = read(
+    "../components/modules/tech-frontier/tech-frontier-page.tsx",
+  );
+
+  assert.match(social, /const breakpoint = useBreakpoint\(\)/);
+  assert.match(
+    social,
+    /breakpoint !== "mobile"[\s\S]{0,160}open\(visibleItems\[0\]\)/,
+  );
+});
+
 test("intelligence workspace opts into report styling without changing defaults", () => {
   const workspace = read("../components/shared/intelligence-workspace.tsx");
   const masterDetail = read("../components/shared/master-detail-view.tsx");

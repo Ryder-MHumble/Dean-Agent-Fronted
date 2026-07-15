@@ -23,6 +23,7 @@ import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
 import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { SkeletonPolicyIntel } from "@/components/shared/skeleton-states";
+import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { useDetailView } from "@/hooks/use-detail-view";
 import {
   useTechFrontierFeed,
@@ -43,10 +44,9 @@ const PLATFORM_FILTERS: {
   value: TechFrontierPlatformFilter;
   label: string;
   icon?: typeof Layers3;
-  mark?: string;
 }[] = [
   { value: "all", label: "全部", icon: Layers3 },
-  { value: "x", label: "X", mark: "X" },
+  { value: "x", label: "X" },
   { value: "wechat_mp", label: "公众号", icon: MessageSquare },
 ];
 
@@ -553,6 +553,7 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
 export default function TechFrontierPage() {
   const { selectedItem, open, close, isOpen } =
     useDetailView<TechFrontierPostItem>();
+  const breakpoint = useBreakpoint();
   const listRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -596,12 +597,17 @@ export default function TechFrontierPage() {
     }
 
     if (
-      !selectedItem ||
+      selectedItem &&
       !visibleItems.some((item) => item.id === selectedItem.id)
     ) {
+      close();
+      return;
+    }
+
+    if (!selectedItem && breakpoint !== "mobile") {
       open(visibleItems[0]);
     }
-  }, [close, open, selectedItem, visibleItems]);
+  }, [breakpoint, close, open, selectedItem, visibleItems]);
 
   const resetPage = useCallback(() => {
     setPage(1);
@@ -657,6 +663,7 @@ export default function TechFrontierPage() {
       <IntelligenceToolbar
         title="社媒情报"
         total={total}
+        totalIsEstimate
         updatedAt={generatedAt ? new Date(generatedAt) : undefined}
         actions={
           isDisconnected ? (
@@ -687,7 +694,7 @@ export default function TechFrontierPage() {
         />
 
         <div className="flex items-center gap-1 rounded-lg bg-[#f2f4f7] p-1">
-          {PLATFORM_FILTERS.map(({ value, label, icon: Icon, mark }) => {
+          {PLATFORM_FILTERS.map(({ value, label, icon: Icon }) => {
             const active = activePlatform === value;
             const count = platformTotals[value];
             return (
@@ -704,11 +711,10 @@ export default function TechFrontierPage() {
                 )}
               >
                 {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
-                {mark ? <span aria-hidden="true">{mark}</span> : null}
                 {label}
                 {count > 0 && (
                   <span className="font-tabular opacity-80">
-                    {formatNumber(count)}
+                    至少 {formatNumber(count)}
                   </span>
                 )}
               </button>
