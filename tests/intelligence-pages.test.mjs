@@ -55,6 +55,8 @@ test("active intelligence modules use the full app content height", () => {
   const shellModules = [
     "../components/modules/papers/index.tsx",
     "../components/modules/internal-shared/academic-achievements.tsx",
+    "../components/modules/university-eco/index.tsx",
+    "../components/modules/internal-mgmt/sentiment/index.tsx",
   ];
   const fixedHeightModules = [
     "../components/modules/internal-shared/internal-experts.tsx",
@@ -82,10 +84,6 @@ test("active intelligence modules use the full app content height", () => {
     "../components/modules/university-eco/research-tracking.tsx",
   );
   const home = readSource("../components/pages/home-briefing.tsx");
-  const sentiment = readSource(
-    "../components/modules/internal-mgmt/sentiment/index.tsx",
-  );
-
   assert.match(moduleLayout, /h-\[var\(--app-content-height,100dvh\)\]/);
   assert.match(moduleLayout, /flex h-full min-h-0 flex-col/);
   assert.match(peerDynamics, /flex h-full min-h-0 flex-col/);
@@ -93,7 +91,6 @@ test("active intelligence modules use the full app content height", () => {
   assert.doesNotMatch(peerDynamics, /calc\(100vh - 10rem\)/);
   assert.doesNotMatch(researchTracking, /calc\(100vh - 12rem\)/);
   assert.match(home, /min-h-\[var\(--app-content-height,100dvh\)\]/);
-  assert.match(sentiment, /min-h-\[var\(--app-content-height,100dvh\)\]/);
 });
 
 test("external leaders use the shared policy intelligence list-detail pattern", () => {
@@ -300,4 +297,41 @@ test("generated expert snapshot contains only approved public fields", () => {
     assert.deepEqual(Object.keys(expert), approvedKeys);
   }
   assert.doesNotMatch(JSON.stringify(snapshot), /电子邮箱|手机号|电话|@/);
+});
+
+test("sentiment keeps full-item selection and closes details on query changes", () => {
+  const sentiment = readSource(
+    "../components/modules/internal-mgmt/sentiment/index.tsx",
+  );
+  const report = readSource(
+    "../components/modules/internal-mgmt/sentiment/sentiment-report.tsx",
+  );
+
+  assert.match(
+    sentiment,
+    /useState<SentimentContentItem \| null>\(null\)/,
+  );
+  assert.match(sentiment, /setSelectedContent\(item\)/);
+  assert.match(sentiment, /selectedContent\?\.content_id/);
+  for (const handler of [
+    "handlePlatformChange",
+    "handleSearch",
+    "handleSortChange",
+    "handlePageChange",
+  ]) {
+    assert.match(
+      sentiment,
+      new RegExp(
+        `(?:const|function) ${handler}[\\s\\S]{0,320}setSelectedContent\\(null\\)`,
+      ),
+    );
+  }
+  assert.match(sentiment, /pageSize:\s*(?:15|PAGE_SIZE)/);
+  assert.match(sentiment, /pageSize=\{(?:15|PAGE_SIZE)\}/);
+  assert.match(sentiment, /overview\.top_content/);
+  assert.match(sentiment, /<SentimentReport/);
+  assert.doesNotMatch(
+    `${sentiment}\n${report}`,
+    /\b(?:positive|negative|neutral|polarity)\b|正面|负面|中性/i,
+  );
 });

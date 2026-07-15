@@ -1,7 +1,14 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  type FocusEvent,
+  type ReactNode,
+} from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,26 +19,24 @@ import {
   SlidersHorizontal,
   Check,
   X,
+  ChevronRight,
 } from "lucide-react";
 import { SkeletonResearchTracking } from "@/components/shared/skeleton-states";
-import { MotionNumber } from "@/components/motion";
-import MasterDetailView from "@/components/shared/master-detail-view";
 import DetailArticleBody from "@/components/shared/detail-article-body";
 import DateGroupedList from "@/components/shared/date-grouped-list";
-import DataItemCard, {
-  ItemAvatar,
-  ItemChevron,
-  accentConfig,
-} from "@/components/shared/data-item-card";
+import { ItemAvatar } from "@/components/shared/data-item-card";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ResearchOutput } from "@/lib/types/university-eco";
 import { useUniversityResearch } from "@/hooks/use-university-research";
 import { fetchUniversityArticle, fetchUniversitySources } from "@/lib/api";
-import DataFreshness from "@/components/shared/data-freshness";
 import DateRangeFilter from "@/components/shared/date-range-filter";
 import FeedPagination from "@/components/shared/feed-pagination";
+import { IntelligenceDetailHeader } from "@/components/shared/intelligence-detail";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 function TypeBadge({ type }: { type: ResearchOutput["type"] }) {
@@ -97,7 +102,7 @@ function ArticleCover({
   );
 }
 
-export default function ResearchTracking() {
+export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
   const {
     selectedItem: selectedOutput,
     open,
@@ -271,6 +276,12 @@ export default function ResearchTracking() {
     }, 150);
   }, []);
 
+  const handleSourceBlur = useCallback((event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setSourceDropdownOpen(false);
+    }
+  }, []);
+
   const toggleSource = useCallback((sourceId: string) => {
     setSelectedSources((prev) => {
       const next = new Set(prev);
@@ -307,354 +318,359 @@ export default function ResearchTracking() {
     setArticleContent({});
   }, [sourceIdsKey, dateFrom, dateTo, close]);
 
-  if (isLoading && sortedOutputs.length === 0) {
-    return <SkeletonResearchTracking />;
-  }
-
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-wrap items-center justify-end gap-2 mb-3 shrink-0">
-        <DateRangeFilter
-          from={dateFrom}
-          to={dateTo}
-          onFromChange={setDateFrom}
-          onToChange={setDateTo}
-          onClear={() => {
-            setDateFrom("");
-            setDateTo("");
-          }}
-          className="w-full min-w-0 md:w-auto md:shrink-0"
-        />
-        {sourcesWithCount.length > 0 && (
-          <div
-            className="relative shrink-0"
-            onMouseEnter={openDropdown}
-            onMouseLeave={scheduleClose}
-          >
-            <button
-              type="button"
-              className={cn(
-                "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border text-xs font-medium transition-colors",
-                activeSourceCount > 0
-                  ? "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                  : "bg-background text-muted-foreground border-border hover:bg-muted",
-              )}
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" />
-              信源筛选
-              {activeSourceCount > 0 && (
-                <Badge className="h-4 min-w-4 px-1 text-[10px] bg-blue-600 hover:bg-blue-600">
-                  {activeSourceCount}
-                </Badge>
-              )}
-            </button>
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <IntelligenceToolbar
+        title="高校生态"
+        total={itemCount}
+        updatedAt={generatedAt ? new Date(generatedAt) : undefined}
+        supplemental={
+          <div className="grid grid-cols-3 divide-x divide-[#e5e9f0]">
+            <div className="flex items-center gap-2 px-3 first:pl-0">
+              <BookOpen className="h-4 w-4 text-blue-500" aria-hidden="true" />
+              <div>
+                <p className="text-[11px] text-[#667085]">同行论文</p>
+                <p className="font-tabular text-base font-semibold text-[#1a3a5c]">
+                  {metrics.papers.toLocaleString("zh-CN")} 篇
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3">
+              <Lightbulb
+                className="h-4 w-4 text-emerald-500"
+                aria-hidden="true"
+              />
+              <div>
+                <p className="text-[11px] text-[#667085]">新专利</p>
+                <p className="font-tabular text-base font-semibold text-[#1a3a5c]">
+                  {metrics.patents.toLocaleString("zh-CN")} 项
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-3">
+              <Trophy className="h-4 w-4 text-amber-500" aria-hidden="true" />
+              <div>
+                <p className="text-[11px] text-[#667085]">重大获奖</p>
+                <p className="font-tabular text-base font-semibold text-[#1a3a5c]">
+                  {metrics.awards.toLocaleString("zh-CN")} 项
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      >
+        <div className="w-full space-y-3">
+          {tabs}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <DateRangeFilter
+              from={dateFrom}
+              to={dateTo}
+              onFromChange={setDateFrom}
+              onToChange={setDateTo}
+              onClear={() => {
+                setDateFrom("");
+                setDateTo("");
+              }}
+              className="w-full min-w-0 md:w-auto md:shrink-0"
+            />
+            {sourcesWithCount.length > 0 && (
+              <div
+                className="relative shrink-0"
+                onMouseEnter={openDropdown}
+                onMouseLeave={scheduleClose}
+                onFocus={openDropdown}
+                onBlur={handleSourceBlur}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setSourceDropdownOpen(false);
+                  }
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={openDropdown}
+                  aria-haspopup="menu"
+                  aria-expanded={sourceDropdownOpen}
+                  aria-controls="research-source-filter-menu"
+                  className={cn(
+                    "inline-flex h-8 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition-colors",
+                    activeSourceCount > 0
+                      ? "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      : "border-border bg-background text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  信源筛选
+                  {activeSourceCount > 0 && (
+                    <Badge className="h-4 min-w-4 bg-blue-600 px-1 text-[10px] hover:bg-blue-600">
+                      {activeSourceCount}
+                    </Badge>
+                  )}
+                </button>
 
-            {sourceDropdownOpen && (
-              <div className="absolute right-0 top-full mt-1.5 z-50 w-72 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150">
-                <div className="px-3 py-2.5 border-b">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold">信源渠道</span>
-                    {activeSourceCount > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSources(new Set())}
-                        className="text-[11px] text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        清除筛选
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="max-h-72 overflow-y-auto overscroll-contain p-1.5">
-                  {sourcesWithCount.map(({ id, label, count }) => {
-                    const checked = effectiveSources.has(id);
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => toggleSource(id)}
-                        className={cn(
-                          "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-left transition-colors",
-                          checked ? "bg-blue-50" : "hover:bg-muted/60",
+                {sourceDropdownOpen && (
+                  <div
+                    id="research-source-filter-menu"
+                    role="menu"
+                    className="absolute right-0 top-full z-50 mt-1.5 w-72 rounded-lg border bg-popover shadow-lg"
+                  >
+                    <div className="border-b px-3 py-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold">信源渠道</span>
+                        {activeSourceCount > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSources(new Set())}
+                            className="text-[11px] text-blue-600 hover:text-blue-800"
+                          >
+                            清除筛选
+                          </button>
                         )}
-                      >
-                        <div
-                          className={cn(
-                            "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border transition-colors",
-                            checked
-                              ? "bg-blue-600 border-blue-600"
-                              : "border-muted-foreground/30",
-                          )}
-                        >
-                          {checked && (
-                            <Check className="h-2.5 w-2.5 text-white" />
-                          )}
-                        </div>
-                        <span className="text-[12px] flex-1 truncate">
-                          {label}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground font-tabular">
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                      </div>
+                    </div>
+                    <div className="max-h-72 overflow-y-auto overscroll-contain p-1.5">
+                      {sourcesWithCount.map(({ id, label, count }) => {
+                        const checked = effectiveSources.has(id);
+                        return (
+                          <button
+                            key={id}
+                            type="button"
+                            role="menuitemcheckbox"
+                            aria-checked={checked}
+                            onClick={() => toggleSource(id)}
+                            className={cn(
+                              "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors",
+                              checked ? "bg-blue-50" : "hover:bg-muted/60",
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border",
+                                checked
+                                  ? "border-blue-600 bg-blue-600"
+                                  : "border-muted-foreground/30",
+                              )}
+                            >
+                              {checked && (
+                                <Check className="h-2.5 w-2.5 text-white" />
+                              )}
+                            </div>
+                            <span className="flex-1 truncate text-[12px]">
+                              {label}
+                            </span>
+                            <span className="font-tabular text-[10px] text-muted-foreground">
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-        <DataFreshness
-          updatedAt={generatedAt ? new Date(generatedAt) : new Date()}
-        />
-      </div>
 
-      {activeSourceCount > 0 && (
-        <div className="flex items-center gap-2 mb-3 shrink-0">
-          {Array.from(effectiveSources).map((sourceId) => {
-            const source = sourcesWithCount.find((s) => s.id === sourceId);
-            if (!source) return null;
-            return (
+          {activeSourceCount > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {Array.from(effectiveSources).map((sourceId) => {
+                const source = sourcesWithCount.find((s) => s.id === sourceId);
+                if (!source) return null;
+                return (
+                  <button
+                    key={sourceId}
+                    type="button"
+                    onClick={() => toggleSource(sourceId)}
+                    className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600 hover:bg-blue-100"
+                    aria-label={`移除信源筛选：${source.label}`}
+                  >
+                    {source.label}
+                    <X className="h-2.5 w-2.5" aria-hidden="true" />
+                  </button>
+                );
+              })}
               <button
-                key={sourceId}
                 type="button"
-                onClick={() => toggleSource(sourceId)}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
+                onClick={() => setSelectedSources(new Set())}
+                className="text-[10px] text-[#667085] hover:text-[#1a3a5c]"
               >
-                {source.label}
-                <X className="h-2.5 w-2.5" />
+                清除
               </button>
-            );
-          })}
-          <button
-            type="button"
-            onClick={() => setSelectedSources(new Set())}
-            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-          >
-            清除
-          </button>
+            </div>
+          )}
         </div>
-      )}
+      </IntelligenceToolbar>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 shrink-0">
-        <Card className="shadow-card">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">同行论文</p>
-              <p className="text-xl font-bold font-tabular">
-                <MotionNumber value={metrics.papers} suffix="篇" />
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-500">
-              <Lightbulb className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">新专利</p>
-              <p className="text-xl font-bold font-tabular">
-                <MotionNumber value={metrics.patents} suffix="项" />
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
-              <Trophy className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[11px] text-muted-foreground">重大获奖</p>
-              <p className="text-xl font-bold font-tabular">
-                <MotionNumber value={metrics.awards} suffix="项" />
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex-1 min-h-0">
-        <MasterDetailView
-          isOpen={isOpen}
-          onClose={close}
-          detailHeader={
-            selectedOutput
-              ? {
-                  title: (
-                    <h2 className="text-lg font-semibold">
-                      {selectedOutput.title}
-                    </h2>
-                  ),
-                  subtitle: (
-                    <div className="flex items-center gap-2 flex-wrap mt-1 text-sm text-muted-foreground">
-                      <TypeBadge type={selectedOutput.type} />
-                      <span>{selectedOutput.institution}</span>
-                      <span>&middot;</span>
-                      <span>{selectedOutput.field}</span>
-                      <span>&middot;</span>
-                      <span className="font-medium">
-                        来源：{selectedOutput.sourceName || "未知来源"}
-                      </span>
-                      <span>&middot;</span>
-                      <span>{selectedOutput.date}</span>
-                    </div>
-                  ),
-                  sourceUrl: selectedOutput.sourceUrl ?? undefined,
-                }
-              : undefined
-          }
-          detailContent={
-            selectedOutput && (
-              <>
-                {contentLoading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>加载原文内容...</span>
-                  </div>
-                )}
-                <DetailArticleBody
-                  aiAnalysis={{
-                    title: "AI 竞争分析",
-                    content: selectedOutput.aiAnalysis,
-                    colorScheme: "purple",
-                  }}
-                  content={
-                    selectedOutput.content ||
-                    articleContent.content ||
-                    undefined
-                  }
-                  summary={
-                    !(selectedOutput.content || articleContent.content)
-                      ? selectedOutput.detail
-                      : undefined
-                  }
-                  images={
-                    selectedOutput.images?.length
-                      ? selectedOutput.images
-                      : articleContent.images
-                  }
-                  extraMeta={
-                    <div className="space-y-3">
-                      <InfluenceBadge level={selectedOutput.influence} />
-                      <div>
-                        <h4 className="text-sm font-semibold mb-1">
-                          作者/团队
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedOutput.authors}
-                        </p>
+      <IntelligenceWorkspace
+        listContentClassName="min-h-0 overflow-hidden"
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedOutput
+            ? {
+                title: (
+                  <IntelligenceDetailHeader
+                    badges={
+                      <div className="flex flex-wrap items-center gap-2">
+                        <TypeBadge type={selectedOutput.type} />
+                        <InfluenceBadge level={selectedOutput.influence} />
                       </div>
-                    </div>
-                  }
-                />
-              </>
-            )
-          }
-          detailFooter={
-            selectedOutput && (
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1"
-                  onClick={() => {
-                    toast.success("已加入重点跟踪列表");
-                    close();
-                  }}
-                >
-                  重点跟踪
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => toast.success("详细分析报告已生成")}
-                >
-                  生成报告
-                </Button>
-              </div>
-            )
-          }
-        >
-          <div className="flex h-full min-h-0 flex-col gap-3">
-            <div
-              ref={listRef}
-              aria-busy={isLoading}
-              className={cn(
-                "min-h-0 flex-1 overflow-y-auto pr-1 transition-opacity",
-                isLoading && "opacity-60",
+                    }
+                    title={selectedOutput.title}
+                    meta={
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span>{selectedOutput.institution}</span>
+                        <span>&middot;</span>
+                        <span>{selectedOutput.field}</span>
+                        <span>&middot;</span>
+                        <span>来源：{selectedOutput.sourceName || "未知来源"}</span>
+                        <span>&middot;</span>
+                        <span>{selectedOutput.date}</span>
+                      </div>
+                    }
+                  />
+                ),
+                sourceUrl: selectedOutput.sourceUrl ?? undefined,
+              }
+            : undefined
+        }
+        detailContent={
+          selectedOutput && (
+            <>
+              {contentLoading && (
+                <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>加载原文内容...</span>
+                </div>
               )}
-            >
+              <DetailArticleBody
+                aiAnalysis={{
+                  title: "智能竞争分析",
+                  content: selectedOutput.aiAnalysis,
+                  colorScheme: "purple",
+                }}
+                content={
+                  selectedOutput.content || articleContent.content || undefined
+                }
+                summary={
+                  !(selectedOutput.content || articleContent.content)
+                    ? selectedOutput.detail
+                    : undefined
+                }
+                images={
+                  selectedOutput.images?.length
+                    ? selectedOutput.images
+                    : articleContent.images
+                }
+                extraMeta={
+                  <div>
+                    <h4 className="mb-1 text-sm font-semibold">作者/团队</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedOutput.authors}
+                    </p>
+                  </div>
+                }
+              />
+            </>
+          )
+        }
+        detailFooter={
+          selectedOutput && (
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  toast.success("已加入重点跟踪列表");
+                  close();
+                }}
+              >
+                重点跟踪
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => toast.success("详细分析报告已生成")}
+              >
+                生成报告
+              </Button>
+            </div>
+          )
+        }
+      >
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
+          <div
+            ref={listRef}
+            aria-busy={isLoading}
+            className={cn(
+              "min-h-0 overflow-y-auto overscroll-contain pr-1 transition-opacity",
+              isLoading && "opacity-60",
+            )}
+          >
+            {isLoading && sortedOutputs.length === 0 ? (
+              <SkeletonResearchTracking />
+            ) : (
               <DateGroupedList
                 items={filteredOutputs}
                 emptyMessage="暂无科研成果"
                 renderItem={(output) => (
-                <DataItemCard
-                  isSelected={selectedOutput?.id === output.id}
-                  onClick={() => handleOpen(output)}
-                  accentColor="purple"
-                  className="p-0 overflow-hidden"
-                >
-                  <div className="px-4 py-3 sm:px-5 sm:py-4">
-                    <div className="flex items-start gap-3">
-                      <ArticleCover
-                        imageUrl={output.images?.[0]?.src}
-                        fallbackText={(output.institution || "机").trim()}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start gap-2">
-                          <div className="min-w-0 flex-1">
-                            <h4
-                              className={cn(
-                                "text-[15px] font-semibold leading-snug transition-colors",
-                                accentConfig.purple.title,
-                              )}
-                            >
-                              {output.title}
-                            </h4>
-                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                              <span className="font-medium text-foreground/80">
-                                {output.institution}
-                              </span>
-                              <span>&middot;</span>
-                              <span>{output.field}</span>
-                              <span>&middot;</span>
-                              <span>{output.date}</span>
+                  <IntelligenceListItem
+                    selected={selectedOutput?.id === output.id}
+                    onClick={() => handleOpen(output)}
+                    className="group overflow-hidden p-0"
+                  >
+                    <div className="px-4 py-3 sm:px-5 sm:py-4">
+                      <div className="flex items-start gap-3">
+                        <ArticleCover
+                          imageUrl={output.images?.[0]?.src}
+                          fallbackText={(output.institution || "机").trim()}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-[#3156d8]">
+                                {output.title}
+                              </h4>
+                              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground/80">
+                                  {output.institution}
+                                </span>
+                                <span>&middot;</span>
+                                <span>{output.field}</span>
+                                <span>&middot;</span>
+                                <span>{output.date}</span>
+                              </div>
                             </div>
+                            <InfluenceBadge level={output.influence} />
+                            <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
                           </div>
-                          <InfluenceBadge level={output.influence} />
-                          <ItemChevron accentColor="purple" />
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <TypeBadge type={output.type} />
+                            <span className="inline-flex max-w-full items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">
+                              来源：{output.sourceName || "未知来源"}
+                            </span>
+                          </div>
+                          <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">
+                            作者/团队：{output.authors}
+                          </p>
                         </div>
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <TypeBadge type={output.type} />
-                          <span className="inline-flex items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 max-w-full">
-                            来源：{output.sourceName || "未知来源"}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-xs text-muted-foreground line-clamp-1">
-                          作者/团队：{output.authors}
-                        </p>
                       </div>
                     </div>
-                  </div>
-                  </DataItemCard>
+                  </IntelligenceListItem>
                 )}
               />
-            </div>
-
-            <FeedPagination
-              page={page}
-              pageSize={pageSize}
-              total={itemCount}
-              totalPages={totalPages}
-              isLoading={isLoading}
-              onPageChange={handlePageChange}
-              className="shrink-0"
-            />
+            )}
           </div>
-        </MasterDetailView>
-      </div>
+
+          <FeedPagination
+            page={page}
+            pageSize={pageSize}
+            total={itemCount}
+            totalPages={totalPages}
+            isLoading={isLoading}
+            onPageChange={handlePageChange}
+            className="shrink-0"
+          />
+        </div>
+      </IntelligenceWorkspace>
     </div>
   );
 }

@@ -1,100 +1,84 @@
 "use client";
 
-import { Heart, MessageCircle, Share2, Bookmark, MapPin } from "lucide-react";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
 import { Badge } from "@/components/ui/badge";
-import { StaggerItem } from "@/components/motion";
-import { cn } from "@/lib/utils";
-import { formatPublishTime, formatNumber } from "@/lib/utils";
 import { getPlatformConfig } from "@/lib/config/platforms";
 import type { SentimentContentItem } from "@/lib/types/internal-mgmt";
+import { cn, formatNumber, formatPublishTime } from "@/lib/utils";
+import {
+  Bookmark,
+  ChevronRight,
+  Heart,
+  MapPin,
+  MessageCircle,
+  Play,
+  Share2,
+} from "lucide-react";
 
 interface ContentCardProps {
   item: SentimentContentItem;
+  selected?: boolean;
   onClick: () => void;
 }
 
-export function ContentCard({ item, onClick }: ContentCardProps) {
+function safeImageUrl(url: string | null | undefined) {
+  return url ? url.replace(/^http:\/\//i, "https://") : "";
+}
+
+export function ContentCard({
+  item,
+  selected = false,
+  onClick,
+}: ContentCardProps) {
   const cfg = getPlatformConfig(item.platform);
   const images = item.platform_data?.image_list
     ? String(item.platform_data.image_list).split(",").filter(Boolean)
     : [];
-  const hasVideo = !!item.platform_data?.video_url;
-
-  // 抖音/B站优先显示 cover_url，小红书显示 image_list
+  const hasVideo = Boolean(item.platform_data?.video_url);
   const shouldShowCover =
     (item.platform === "dy" || item.platform === "bili") && item.cover_url;
   const shouldShowImages = !shouldShowCover && images.length > 0;
 
-  // 根据平台确定封面比例：抖音竖屏 9:16，B站横屏 16:9
-  const coverAspectClass =
-    item.platform === "dy" ? "aspect-[9/16]" : "aspect-video";
-
-  // 将 http:// 转为 https:// 避免 Mixed Content 问题
-  const safeImageUrl = (url: string | null | undefined) => {
-    if (!url) return "";
-    const safeUrl = url.replace(/^http:\/\//i, "https://");
-    // 调试：打印转换结果
-    if (url !== safeUrl) {
-      console.log(`[Image URL] Converted: ${url} -> ${safeUrl}`);
-    }
-    return safeUrl;
-  };
-
-  // 调试：打印当前 item 的关键信息
-  if (item.platform === "bili") {
-    console.log(`[Bilibili] ${item.title}`, {
-      platform: item.platform,
-      avatar: item.avatar,
-      cover_url: item.cover_url,
-      shouldShowCover,
-    });
-  }
-
   return (
-    <StaggerItem>
-      <div
-        onClick={onClick}
-        className="flex gap-4 p-4 border-b last:border-0 cursor-pointer rounded-sm transition-all hover:bg-muted/40 group"
-      >
-        {/* Creator avatar */}
-        <div className="flex h-10 w-10 items-center justify-center rounded-full shrink-0 overflow-hidden bg-muted border-2 border-border">
+    <IntelligenceListItem
+      selected={selected}
+      onClick={onClick}
+      aria-label={`查看${item.nickname || "匿名用户"}发布的${item.title}`}
+      className="group p-3.5"
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted">
           {item.avatar ? (
             <img
               src={safeImageUrl(item.avatar)}
               alt={item.nickname || "用户"}
               className="h-full w-full object-cover"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = "none";
-                console.warn(
-                  `Failed to load avatar for ${item.nickname}:`,
-                  item.avatar,
-                );
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
               }}
             />
           ) : (
-            <span className="text-sm font-bold text-muted-foreground">
+            <span className="text-xs font-semibold text-muted-foreground">
               {(item.nickname || "匿名")[0]}
             </span>
           )}
         </div>
 
-        {/* Content body */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-base font-bold text-foreground truncate max-w-[180px]">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex min-w-0 items-center gap-2">
+            <span className="min-w-0 truncate text-sm font-semibold text-foreground">
               {item.nickname || "匿名用户"}
             </span>
             <Badge
               variant="outline"
-              className="text-[10px] shrink-0 inline-flex items-center gap-1"
+              className="inline-flex shrink-0 items-center gap-1 text-[10px]"
             >
               {cfg.logoUrl && (
                 <img
                   src={cfg.logoUrl}
                   alt=""
-                  className="h-3 w-3 object-cover rounded-sm"
+                  className="h-3 w-3 rounded-sm object-contain"
                 />
               )}
               {cfg.label}
@@ -102,103 +86,101 @@ export function ContentCard({ item, onClick }: ContentCardProps) {
             {hasVideo && (
               <Badge
                 variant="outline"
-                className="text-[10px] border-purple-200 bg-purple-50 text-purple-700 shrink-0"
+                className="shrink-0 border-purple-200 bg-purple-50 text-[10px] text-purple-700"
               >
                 视频
               </Badge>
             )}
-            <span className="text-sm text-muted-foreground font-medium ml-auto shrink-0">
+            <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
               {formatPublishTime(item.publish_time)}
             </span>
           </div>
 
-          <p className="text-base font-bold text-foreground leading-snug mb-1 line-clamp-2">
-            {item.title}
-          </p>
+          <div className="flex items-start gap-2">
+            <h3 className="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-5 text-foreground transition-colors group-hover:text-[#3156d8]">
+              {item.title}
+            </h3>
+            <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
+          </div>
 
           {item.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed mb-0 line-clamp-2">
-              {item.description.slice(0, 120)}
+            <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {item.description}
             </p>
           )}
 
           {shouldShowCover && (
             <div
               className={cn(
-                "w-full rounded-lg bg-muted overflow-hidden mb-2 relative",
-                coverAspectClass,
+                "relative mt-2 overflow-hidden rounded-lg bg-muted",
+                item.platform === "dy" ? "h-24 w-16" : "aspect-video w-32",
               )}
             >
               <img
                 src={safeImageUrl(item.cover_url)}
                 alt={item.title}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                  console.warn(
-                    `Failed to load cover for ${item.title}:`,
-                    item.cover_url,
-                  );
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
                 }}
               />
               {hasVideo && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <div className="h-12 w-12 rounded-full bg-white/90 flex items-center justify-center">
-                    <div className="w-0 h-0 border-l-[12px] border-l-black border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
-                  </div>
-                </div>
+                <span className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90">
+                    <Play className="h-3.5 w-3.5 fill-current text-[#1a3a5c]" />
+                  </span>
+                </span>
               )}
             </div>
           )}
 
           {shouldShowImages && (
-            <div className="flex gap-2 mb-0">
-              {images.slice(0, 3).map((src, i) => (
+            <div className="mt-2 flex gap-1.5">
+              {images.slice(0, 3).map((src, index) => (
                 <div
-                  key={i}
-                  className="w-20 h-20 rounded-lg bg-muted overflow-hidden shrink-0"
+                  key={`${src}-${index}`}
+                  className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted"
                 >
                   <img
-                    src={src}
+                    src={safeImageUrl(src)}
                     alt=""
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                     loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
                     }}
                   />
                 </div>
               ))}
               {images.length > 3 && (
-                <div className="w-20 h-20 rounded-lg bg-muted flex items-center justify-center text-sm text-muted-foreground font-medium">
+                <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-muted text-xs text-muted-foreground">
                   +{images.length - 3}
-                </div>
+                </span>
               )}
             </div>
           )}
 
-          <div className="flex items-center gap-5 text-sm text-muted-foreground font-medium">
-            <span className="inline-flex items-center gap-1.5">
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
               <Heart className="h-3.5 w-3.5" />
               {formatNumber(item.liked_count)}
             </span>
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1">
               <MessageCircle className="h-3.5 w-3.5" />
               {formatNumber(item.comment_count)}
             </span>
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1">
               <Share2 className="h-3.5 w-3.5" />
               {formatNumber(item.share_count)}
             </span>
-            <span className="inline-flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1">
               <Bookmark className="h-3.5 w-3.5" />
               {formatNumber(item.collected_count)}
             </span>
             {item.ip_location && (
-              <span className="inline-flex items-center gap-1.5 ml-auto">
+              <span className="ml-auto inline-flex items-center gap-1">
                 <MapPin className="h-3.5 w-3.5" />
                 {item.ip_location}
               </span>
@@ -206,6 +188,6 @@ export function ContentCard({ item, onClick }: ContentCardProps) {
           </div>
         </div>
       </div>
-    </StaggerItem>
+    </IntelligenceListItem>
   );
 }

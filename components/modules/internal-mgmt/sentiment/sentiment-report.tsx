@@ -1,148 +1,130 @@
 "use client";
 
-import { useMemo } from "react";
-import { Sparkles, TrendingUp, AlertCircle, Hash } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { formatNumber } from "@/lib/utils";
 import { getPlatformConfig } from "@/lib/config/platforms";
 import type { SentimentOverview } from "@/lib/types/internal-mgmt";
+import { cn, formatNumber } from "@/lib/utils";
+import { Activity, Hash, Sparkles } from "lucide-react";
+import { useMemo } from "react";
 
 interface SentimentReportProps {
   overview: SentimentOverview;
 }
 
 function buildReportParagraphs(overview: SentimentOverview): string[] {
-  const { total_contents, total_comments, total_engagement, platforms, top_content, keywords } =
-    overview;
-
-  // Sort platforms by content count
-  const topPlatforms = [...platforms].sort((a, b) => b.content_count - a.content_count);
+  const {
+    total_contents,
+    total_comments,
+    total_engagement,
+    platforms,
+    top_content,
+    keywords,
+  } = overview;
+  const topPlatforms = [...platforms].sort(
+    (a, b) => b.content_count - a.content_count,
+  );
   const dominant = topPlatforms[0];
-  const dominantPct = dominant
-    ? Math.round((dominant.content_count / total_contents) * 100)
-    : 0;
-
-  // Top content by engagement
+  const dominantPct =
+    dominant && total_contents > 0
+      ? Math.round((dominant.content_count / total_contents) * 100)
+      : 0;
   const topItem = top_content[0];
   const topEngagement = topItem
-    ? topItem.liked_count + topItem.comment_count + topItem.share_count + topItem.collected_count
+    ? topItem.liked_count +
+      topItem.comment_count +
+      topItem.share_count +
+      topItem.collected_count
     : 0;
 
-  // Build paragraphs
-  const p1 = `当前舆情监测共收录 ${formatNumber(total_contents)} 条社媒内容，累计评论 ${formatNumber(total_comments)} 条，总互动量达 ${formatNumber(total_engagement)}，覆盖 ${platforms.length} 个平台。` +
-    (dominant ? `其中${dominant.platform_label}占比最高，贡献了 ${dominantPct}% 的内容来源（${dominant.content_count} 条）。` : "");
-
-  const platformDetail = topPlatforms
-    .slice(0, 3)
-    .map((p) => `${p.platform_label} ${formatNumber(p.total_likes + p.total_comments)} 次互动`)
-    .join("、");
-
-  const p2 = platformDetail
-    ? `各平台互动分布：${platformDetail}。整体来看，用户参与度较为活跃，评论与点赞比较均衡。`
+  const totals = `当前共收录 ${formatNumber(total_contents)} 条社媒内容，累计评论 ${formatNumber(total_comments)} 条，总互动量 ${formatNumber(total_engagement)}。`;
+  const distribution = dominant
+    ? `${dominant.platform_label}内容量最高，占全部内容的 ${dominantPct}%（${formatNumber(dominant.content_count)} 条）。`
     : "";
-
-  const p3 = topItem
-    ? `热度最高的内容来自「${topItem.nickname || "匿名用户"}」，标题为《${topItem.title.slice(0, 30)}${topItem.title.length > 30 ? "…" : ""}》，累计互动 ${formatNumber(topEngagement)} 次，是当前舆论场的核心焦点内容。`
+  const focus = topItem
+    ? `当前互动量最高的内容为《${topItem.title}》，累计互动 ${formatNumber(topEngagement)} 次。`
     : "";
+  const keywordSummary =
+    keywords.length > 0
+      ? `高频关键词：${keywords.slice(0, 6).join("、")}。`
+      : "";
 
-  const p4 = keywords && keywords.length > 0
-    ? `高频关键词涵盖：${keywords.slice(0, 6).join("、")}等，反映了当前社媒讨论的主要议题方向。建议持续关注相关话题动态，及时研判舆情走向。`
-    : "建议持续关注社媒平台动态，及时研判舆情走向，做好预警响应准备。";
-
-  return [p1, p2, p3, p4].filter(Boolean);
+  return [totals + distribution, focus, keywordSummary].filter(Boolean);
 }
 
 export function SentimentReport({ overview }: SentimentReportProps) {
   const paragraphs = useMemo(() => buildReportParagraphs(overview), [overview]);
-
   const topPlatforms = useMemo(
-    () => [...overview.platforms].sort((a, b) => b.content_count - a.content_count).slice(0, 3),
+    () =>
+      [...overview.platforms]
+        .sort((a, b) => b.content_count - a.content_count)
+        .slice(0, 3),
     [overview.platforms],
   );
-
-  // Simple sentiment signal: high engagement relative to content = active discussion
-  const engagementPerContent = overview.total_contents > 0
-    ? Math.round(overview.total_engagement / overview.total_contents)
-    : 0;
-  const alertLevel: "normal" | "active" | "hot" =
-    engagementPerContent > 5000 ? "hot" : engagementPerContent > 1000 ? "active" : "normal";
-
-  const alertConfig = {
-    normal: { label: "舆情平稳", color: "bg-green-50 text-green-700 border-green-200" },
-    active: { label: "讨论活跃", color: "bg-amber-50 text-amber-700 border-amber-200" },
-    hot: { label: "热度较高", color: "bg-red-50 text-red-700 border-red-200" },
-  }[alertLevel];
+  const engagementPerContent =
+    overview.total_contents > 0
+      ? Math.round(overview.total_engagement / overview.total_contents)
+      : 0;
+  const activity =
+    engagementPerContent > 5000
+      ? { label: "互动强度高", color: "border-red-200 bg-red-50 text-red-700" }
+      : engagementPerContent > 1000
+        ? {
+            label: "互动较活跃",
+            color: "border-amber-200 bg-amber-50 text-amber-700",
+          }
+        : {
+            label: "互动常态",
+            color: "border-emerald-200 bg-emerald-50 text-emerald-700",
+          };
 
   return (
-    <Card className="bg-gradient-to-br from-purple-50/60 via-slate-50/40 to-blue-50/50 border-purple-100/80 shadow-card">
-      <CardContent className="p-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-purple-500" />
-            <span className="text-xs font-semibold text-foreground">AI 舆情简报</span>
-          </div>
-          <div className="flex items-center gap-2">
+    <section className="grid gap-3 rounded-lg border border-[#e5e9f0] bg-[#f8fafc] p-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+      <div className="min-w-0">
+        <div className="mb-1.5 flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-[#3156d8]" aria-hidden="true" />
+          <h2 className="text-sm font-semibold text-[#1a3a5c]">智能舆情简报</h2>
+        </div>
+        <div className="space-y-1 text-xs leading-5 text-[#667085]">
+          {paragraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex max-w-md flex-wrap content-start items-center gap-1.5 lg:justify-end">
+        <Badge variant="outline" className={cn("gap-1 text-[10px]", activity.color)}>
+          <Activity className="h-2.5 w-2.5" aria-hidden="true" />
+          {activity.label}
+        </Badge>
+        {topPlatforms.map((platform) => {
+          const cfg = getPlatformConfig(platform.platform);
+          return (
             <Badge
+              key={platform.platform}
               variant="outline"
-              className={cn("text-[10px] font-medium border", alertConfig.color)}
+              className={cn("gap-1 text-[10px]", cfg.bgColor, cfg.color)}
             >
-              {alertLevel === "hot" ? (
-                <AlertCircle className="h-2.5 w-2.5 mr-1" />
-              ) : (
-                <TrendingUp className="h-2.5 w-2.5 mr-1" />
+              {cfg.logoUrl && (
+                <img src={cfg.logoUrl} alt="" className="h-2.5 w-2.5 object-contain" />
               )}
-              {alertConfig.label}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Paragraphs */}
-        <div className="space-y-2 mb-3">
-          {paragraphs.map((p, i) => (
-            <p
-              key={i}
-              className="text-[13px] leading-relaxed text-muted-foreground"
-            >
-              {p}
-            </p>
-          ))}
-        </div>
-
-        {/* Platform pills + keywords row */}
-        <div className="flex items-center flex-wrap gap-1.5 pt-2.5 border-t border-purple-100/60">
-          {topPlatforms.map((p) => {
-            const cfg = getPlatformConfig(p.platform);
-            return (
-              <span
-                key={p.platform}
-                className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border",
-                  cfg.bgColor,
-                  cfg.color,
-                )}
-              >
-                {cfg.logoUrl && (
-                  <img src={cfg.logoUrl} alt="" className="h-2.5 w-2.5 object-contain" />
-                )}
-                {p.platform_label}
-                <span className="opacity-60">{p.content_count}</span>
+              {platform.platform_label}
+              <span className="font-tabular opacity-70">
+                {formatNumber(platform.content_count)}
               </span>
-            );
-          })}
-          {overview.keywords.slice(0, 5).map((kw) => (
-            <span
-              key={kw}
-              className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200"
-            >
-              <Hash className="h-2 w-2" />
-              {kw}
-            </span>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            </Badge>
+          );
+        })}
+        {overview.keywords.slice(0, 5).map((keyword) => (
+          <Badge
+            key={keyword}
+            variant="secondary"
+            className="gap-0.5 text-[10px] text-[#667085]"
+          >
+            <Hash className="h-2.5 w-2.5" aria-hidden="true" />
+            {keyword}
+          </Badge>
+        ))}
+      </div>
+    </section>
   );
 }

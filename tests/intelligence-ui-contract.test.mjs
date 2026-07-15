@@ -104,3 +104,44 @@ test("leader and expert pages use the unified people layout", () => {
     assert.match(source, /<IntelligenceSection/);
   }
 });
+
+test("university and sentiment pages use the unified shell", () => {
+  const university = read("../components/modules/university-eco/index.tsx");
+  const peers = read("../components/modules/university-eco/peer-dynamics.tsx");
+  const research = read(
+    "../components/modules/university-eco/research-tracking.tsx",
+  );
+  const sentiment = read(
+    "../components/modules/internal-mgmt/sentiment/index.tsx",
+  );
+  const sentimentDetail = read(
+    "../components/modules/internal-mgmt/sentiment/detail-panel.tsx",
+  );
+
+  assert.match(university, /<IntelligencePageShell/);
+  assert.match(university, /<Tabs/);
+  assert.doesNotMatch(university, /ModuleLayout/);
+  for (const source of [peers, research, sentiment]) {
+    assert.match(source, /<IntelligenceToolbar|toolbar=/);
+    assert.match(source, /<IntelligenceWorkspace/);
+  }
+  assert.doesNotMatch(sentiment, /<Sheet|<DetailPanel/);
+  assert.match(sentiment, /<IntelligenceListItem|<ContentCard/);
+  assert.match(sentiment, /<FeedPagination/);
+  assert.match(sentimentDetail, /IntelligenceDetailHeader/);
+  assert.match(sentimentDetail, /IntelligenceSection/);
+  assert.doesNotMatch(sentimentDetail, /<Sheet|SheetContent|SheetHeader/);
+});
+
+test("sentiment list items and summary use compact report primitives", () => {
+  const contentCard = read(
+    "../components/modules/internal-mgmt/sentiment/content-card.tsx",
+  );
+  const report = read(
+    "../components/modules/internal-mgmt/sentiment/sentiment-report.tsx",
+  );
+
+  assert.match(contentCard, /<IntelligenceListItem/);
+  assert.doesNotMatch(contentCard, /<StaggerItem/);
+  assert.doesNotMatch(report, /<Card|<CardContent|bg-gradient/);
+});

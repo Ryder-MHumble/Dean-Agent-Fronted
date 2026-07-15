@@ -1,6 +1,14 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  type FocusEvent,
+  type ReactNode,
+} from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,18 +21,17 @@ import {
   SlidersHorizontal,
   Check,
   X,
+  ChevronRight,
 } from "lucide-react";
 import { SkeletonPeerDynamics } from "@/components/shared/skeleton-states";
-import MasterDetailView from "@/components/shared/master-detail-view";
 import DetailArticleBody from "@/components/shared/detail-article-body";
 import DateGroupedList from "@/components/shared/date-grouped-list";
-import DataItemCard, {
-  ItemChevron,
-  accentConfig,
-} from "@/components/shared/data-item-card";
-import DataFreshness from "@/components/shared/data-freshness";
 import DateRangeFilter from "@/components/shared/date-range-filter";
 import FeedPagination from "@/components/shared/feed-pagination";
+import { IntelligenceDetailHeader } from "@/components/shared/intelligence-detail";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { useUniversityFeed } from "@/hooks/use-university-feed";
 import { fetchUniversityArticle } from "@/lib/api";
@@ -117,7 +124,7 @@ function sortNewsByDateDesc(a: PeerNewsItem, b: PeerNewsItem) {
   return getNewsDateTimestamp(b.date) - getNewsDateTimestamp(a.date);
 }
 
-export default function PeerDynamics() {
+export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
   const {
     selectedItem: selectedNews,
     open,
@@ -252,6 +259,12 @@ export default function PeerDynamics() {
     }, 150);
   }, []);
 
+  const handleSourceBlur = useCallback((event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setSourceDropdownOpen(false);
+    }
+  }, []);
+
   const toggleSource = useCallback((sourceId: string) => {
     setSelectedSources((prev) => {
       const next = new Set(prev);
@@ -311,44 +324,49 @@ export default function PeerDynamics() {
     }
   }, [page, totalPages]);
 
-  if (isLoading && sortedNews.length === 0) {
-    return <SkeletonPeerDynamics />;
-  }
-
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-3 mb-1 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {FILTER_TABS.map((tab) => {
-              const count = groupCounts[tab.value] ?? 0;
-              if (tab.value !== "all" && count === 0) return null;
-              return (
-                <button
-                  key={tab.value}
-                  type="button"
-                  onClick={() =>
-                    setActiveFilter((prev) =>
-                      prev === tab.value && tab.value !== "all"
-                        ? "all"
-                        : tab.value,
-                    )
-                  }
-                  className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                    activeFilter === tab.value
-                      ? "bg-blue-100 text-blue-700 shadow-sm"
-                      : "bg-muted/60 text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  {tab.icon && <tab.icon className="h-3 w-3" />}
-                  {tab.label}
-                  <span className="ml-0.5 text-[10px] opacity-70">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <IntelligenceToolbar
+        title="高校生态"
+        total={total}
+        updatedAt={generatedAt ? new Date(generatedAt) : undefined}
+      >
+        <div className="w-full space-y-3">
+          {tabs}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {FILTER_TABS.map((tab) => {
+                const count = groupCounts[tab.value] ?? 0;
+                if (tab.value !== "all" && count === 0) return null;
+                return (
+                  <button
+                    key={tab.value}
+                    type="button"
+                    aria-pressed={activeFilter === tab.value}
+                    onClick={() =>
+                      setActiveFilter((prev) =>
+                        prev === tab.value && tab.value !== "all"
+                          ? "all"
+                          : tab.value,
+                      )
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3156d8] focus-visible:ring-offset-2",
+                      activeFilter === tab.value
+                        ? "border-blue-200 bg-blue-50 text-blue-700"
+                        : "border-[#e5e9f0] bg-white text-[#667085] hover:bg-[#f8fafc]",
+                    )}
+                  >
+                    {tab.icon && <tab.icon className="h-3 w-3" aria-hidden="true" />}
+                    {tab.label}
+                    <span className="font-tabular text-[10px] opacity-70">
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2">
             <DateRangeFilter
               from={dateFrom}
               to={dateTo}
@@ -365,9 +383,20 @@ export default function PeerDynamics() {
                 className="relative shrink-0"
                 onMouseEnter={openDropdown}
                 onMouseLeave={scheduleClose}
+                onFocus={openDropdown}
+                onBlur={handleSourceBlur}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setSourceDropdownOpen(false);
+                  }
+                }}
               >
                 <button
                   type="button"
+                  onClick={openDropdown}
+                  aria-haspopup="menu"
+                  aria-expanded={sourceDropdownOpen}
+                  aria-controls="peer-source-filter-menu"
                   className={cn(
                     "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border text-xs font-medium transition-colors",
                     activeSourceCount > 0
@@ -385,7 +414,11 @@ export default function PeerDynamics() {
                 </button>
 
                 {sourceDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-1.5 z-50 w-72 rounded-lg border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-150">
+                  <div
+                    id="peer-source-filter-menu"
+                    role="menu"
+                    className="absolute right-0 top-full z-50 mt-1.5 w-72 rounded-lg border bg-popover shadow-lg"
+                  >
                     <div className="px-3 py-2.5 border-b">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold">信源渠道</span>
@@ -407,6 +440,8 @@ export default function PeerDynamics() {
                           <button
                             key={id}
                             type="button"
+                            role="menuitemcheckbox"
+                            aria-checked={checked}
                             onClick={() => toggleSource(id)}
                             className={cn(
                               "w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md text-left transition-colors",
@@ -439,189 +474,180 @@ export default function PeerDynamics() {
                 )}
               </div>
             )}
-            <DataFreshness
-              updatedAt={generatedAt ? new Date(generatedAt) : new Date()}
-            />
+            </div>
           </div>
+          {activeSourceCount > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {Array.from(effectiveSources).map((sourceId) => {
+                const source = sourcesWithCount.find((s) => s.id === sourceId);
+                if (!source) return null;
+                return (
+                  <button
+                    key={sourceId}
+                    type="button"
+                    onClick={() => toggleSource(sourceId)}
+                    className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600 hover:bg-blue-100"
+                    aria-label={`移除信源筛选：${source.label}`}
+                  >
+                    {source.label}
+                    <X className="h-2.5 w-2.5" aria-hidden="true" />
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setSelectedSources(new Set())}
+                className="text-[10px] text-[#667085] hover:text-[#1a3a5c]"
+              >
+                清除
+              </button>
+            </div>
+          )}
         </div>
-        {activeSourceCount > 0 && (
-          <div className="flex items-center gap-2 mt-2">
-            {Array.from(effectiveSources).map((sourceId) => {
-              const source = sourcesWithCount.find((s) => s.id === sourceId);
-              if (!source) return null;
-              return (
-                <button
-                  key={sourceId}
-                  type="button"
-                  onClick={() => toggleSource(sourceId)}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
-                >
-                  {source.label}
-                  <X className="h-2.5 w-2.5" />
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setSelectedSources(new Set())}
-              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-            >
-              清除
-            </button>
-          </div>
-        )}
-      </div>
+      </IntelligenceToolbar>
 
-      <div className="flex-1 min-h-0">
-        <MasterDetailView
-          isOpen={isOpen}
-          onClose={close}
-          detailHeader={
-            selectedNews
-              ? {
-                  title: (
-                    <h2 className="text-lg font-semibold leading-snug">
-                      {selectedNews.title}
-                    </h2>
-                  ),
-                  subtitle: (
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <GroupBadge group={selectedNews.group} />
-                      <span className="text-sm text-muted-foreground font-medium">
-                        来源：{selectedNews.sourceName || "未知来源"}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        &middot;
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {selectedNews.displayDate || selectedNews.date || "未知日期"}
-                      </span>
-                    </div>
-                  ),
-                  sourceUrl: selectedNews.url,
+      <IntelligenceWorkspace
+        listContentClassName="min-h-0 overflow-hidden"
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedNews
+            ? {
+                title: (
+                  <IntelligenceDetailHeader
+                    badges={<GroupBadge group={selectedNews.group} />}
+                    title={selectedNews.title}
+                    meta={
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span>来源：{selectedNews.sourceName || "未知来源"}</span>
+                        <span>&middot;</span>
+                        <span>
+                          {selectedNews.displayDate ||
+                            selectedNews.date ||
+                            "未知日期"}
+                        </span>
+                      </div>
+                    }
+                  />
+                ),
+                sourceUrl: selectedNews.url,
+              }
+            : undefined
+        }
+        detailContent={
+          selectedNews && (
+            <>
+              {contentLoading && (
+                <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>加载原文内容...</span>
+                </div>
+              )}
+              <DetailArticleBody
+                aiAnalysis={
+                  selectedNews.summary
+                    ? {
+                        title: "智能摘要分析",
+                        content: selectedNews.summary,
+                        colorScheme: "indigo",
+                      }
+                    : undefined
                 }
-              : undefined
-          }
-          detailContent={
-            selectedNews && (
-              <>
-                {contentLoading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>加载原文内容...</span>
-                  </div>
-                )}
-                <DetailArticleBody
-                  aiAnalysis={
-                    selectedNews.summary
-                      ? {
-                          title: "AI 摘要分析",
-                          content: selectedNews.summary,
-                          colorScheme: "indigo",
-                        }
-                      : undefined
-                  }
-                  content={
-                    selectedNews.content || articleContent.content || undefined
-                  }
-                  summary={
-                    !(selectedNews.content || articleContent.content)
-                      ? selectedNews.title
-                      : undefined
-                  }
-                  images={
-                    selectedNews.images?.length
-                      ? selectedNews.images
-                      : articleContent.images
-                  }
-                  tags={selectedNews.tags}
-                />
-              </>
-            )
-          }
-          detailFooter={
-            selectedNews && (
-              <div className="flex gap-2">
-                <Button
-                  className="flex-1"
-                  onClick={() => {
-                    toast.success("已加入重点跟踪");
-                    close();
-                  }}
-                >
-                  重点跟踪
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => toast.success("详细分析报告已生成")}
-                >
-                  生成报告
-                </Button>
-              </div>
-            )
-          }
-        >
-          <div className="flex h-full min-h-0 flex-col gap-3">
+                content={selectedNews.content || articleContent.content || undefined}
+                summary={
+                  !(selectedNews.content || articleContent.content)
+                    ? selectedNews.title
+                    : undefined
+                }
+                images={
+                  selectedNews.images?.length
+                    ? selectedNews.images
+                    : articleContent.images
+                }
+                tags={selectedNews.tags}
+              />
+            </>
+          )
+        }
+        detailFooter={
+          selectedNews && (
+            <div className="flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  toast.success("已加入重点跟踪");
+                  close();
+                }}
+              >
+                重点跟踪
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => toast.success("详细分析报告已生成")}
+              >
+                生成报告
+              </Button>
+            </div>
+          )
+        }
+      >
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
             <div
               ref={listRef}
               aria-busy={isLoading}
               className={cn(
-                "min-h-0 flex-1 overflow-y-auto pr-1 transition-opacity",
+                "min-h-0 overflow-y-auto overscroll-contain pr-1 transition-opacity",
                 isLoading && "opacity-60",
               )}
             >
-              <DateGroupedList
-                items={filteredBySourceNews}
-                emptyMessage="暂无同行动态"
-                renderItem={(news) => (
-                <DataItemCard
-                  isSelected={selectedNews?.id === news.id}
-                  onClick={() => handleOpen(news)}
-                  accentColor="blue"
-                  className="p-0 overflow-hidden"
-                >
-                  <div className="px-4 py-3 sm:px-5 sm:py-4">
-                    <div className="flex items-start gap-3">
-                      <ArticleCover
-                        imageUrl={
-                          news.thumbnail || news.images?.[0]?.src
-                        }
-                        fallbackText={(news.sourceName || "源").trim()}
-                      />
-                      <div className="min-w-0 flex-1">
+              {isLoading && sortedNews.length === 0 ? (
+                <SkeletonPeerDynamics />
+              ) : (
+                <DateGroupedList
+                  items={filteredBySourceNews}
+                  emptyMessage="暂无同行动态"
+                  renderItem={(news) => (
+                    <IntelligenceListItem
+                      selected={selectedNews?.id === news.id}
+                      onClick={() => handleOpen(news)}
+                      className="group overflow-hidden p-0"
+                    >
+                      <div className="px-4 py-3 sm:px-5 sm:py-4">
                         <div className="flex items-start gap-3">
+                          <ArticleCover
+                            imageUrl={news.thumbnail || news.images?.[0]?.src}
+                            fallbackText={(news.sourceName || "源").trim()}
+                          />
                           <div className="min-w-0 flex-1">
-                            <h4
-                              className={cn(
-                                "text-[15px] font-semibold leading-snug transition-colors",
-                                accentConfig.blue.title,
-                              )}
-                            >
-                              {news.title}
-                            </h4>
-                            {news.summary && (
-                              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                                {news.summary}
-                              </p>
-                            )}
+                            <div className="flex items-start gap-3">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-[#3156d8]">
+                                  {news.title}
+                                </h4>
+                                {news.summary && (
+                                  <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                    {news.summary}
+                                  </p>
+                                )}
+                              </div>
+                              <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              <GroupBadge group={news.group} />
+                              <span className="inline-flex max-w-full items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                                来源：{news.sourceName || "未知来源"}
+                              </span>
+                              <span className="ml-auto text-xs text-muted-foreground">
+                                {news.displayDate || news.date || "未知日期"}
+                              </span>
+                            </div>
                           </div>
-                          <ItemChevron accentColor="blue" />
-                        </div>
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          <GroupBadge group={news.group} />
-                          <span className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 max-w-full">
-                            来源：{news.sourceName || "未知来源"}
-                          </span>
-                          <span className="ml-auto text-xs text-muted-foreground">
-                            {news.displayDate || news.date || "未知日期"}
-                          </span>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                  </DataItemCard>
-                )}
-              />
+                    </IntelligenceListItem>
+                  )}
+                />
+              )}
             </div>
 
             <FeedPagination
@@ -633,9 +659,8 @@ export default function PeerDynamics() {
               onPageChange={handlePageChange}
               className="shrink-0"
             />
-          </div>
-        </MasterDetailView>
-      </div>
+        </div>
+      </IntelligenceWorkspace>
     </div>
   );
 }
