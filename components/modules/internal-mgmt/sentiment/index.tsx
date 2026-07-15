@@ -258,15 +258,7 @@ export default function SentimentMonitor() {
           overviewLoading ? (
             <OverviewSkeleton />
           ) : overview ? (
-            <div className="space-y-3">
-              <OverviewMetrics overview={overview} />
-              <SentimentReport overview={overview} />
-              <PopularContentList
-                items={overview.top_content}
-                selectedContentId={selectedContent?.content_id ?? null}
-                onSelect={setSelectedContent}
-              />
-            </div>
+            <OverviewMetrics overview={overview} />
           ) : null
         }
       >
@@ -328,6 +320,16 @@ export default function SentimentMonitor() {
             aria-busy={feedLoading}
             className="min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1"
           >
+            {overview && (
+              <div className="mb-3 space-y-3">
+                <SentimentReport overview={overview} />
+                <PopularContentList
+                  items={overview.top_content}
+                  selectedContentId={selectedContent?.content_id ?? null}
+                  onSelect={setSelectedContent}
+                />
+              </div>
+            )}
             {feedLoading ? (
               <FeedSkeleton />
             ) : feed && feed.items.length > 0 ? (

@@ -145,3 +145,22 @@ test("sentiment list items and summary use compact report primitives", () => {
   assert.doesNotMatch(contentCard, /<StaggerItem/);
   assert.doesNotMatch(report, /<Card|<CardContent|bg-gradient/);
 });
+
+test("sentiment insights scroll inside the workspace instead of expanding the toolbar", () => {
+  const sentiment = read(
+    "../components/modules/internal-mgmt/sentiment/index.tsx",
+  );
+  const toolbarStart = sentiment.indexOf("<IntelligenceToolbar");
+  const workspaceStart = sentiment.indexOf("<IntelligenceWorkspace");
+  const reportStart = sentiment.indexOf("<SentimentReport");
+  const popularStart = sentiment.indexOf("<PopularContentList");
+
+  assert.ok(toolbarStart >= 0 && workspaceStart > toolbarStart);
+  assert.doesNotMatch(
+    sentiment.slice(toolbarStart, workspaceStart),
+    /<SentimentReport|<PopularContentList/,
+  );
+  assert.ok(reportStart > workspaceStart);
+  assert.ok(popularStart > reportStart);
+  assert.ok(sentiment.indexOf("<FeedPagination") > popularStart);
+});

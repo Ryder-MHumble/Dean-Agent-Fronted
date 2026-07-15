@@ -15,6 +15,9 @@ const researchTrackingSource = readSource(
 const universityModuleSource = readSource(
   "../components/modules/university-eco/index.tsx",
 );
+const dateGroupedListSource = readSource(
+  "../components/shared/date-grouped-list.tsx",
+);
 const universityFeedHookSource = readSource("../hooks/use-university-feed.ts");
 
 test("university ecosystem opens on the university-news feed by default", () => {
@@ -68,5 +71,14 @@ test("university toolbars remain visible while list data loads", () => {
         source.indexOf("<IntelligenceWorkspace"),
     );
     assert.ok(source.indexOf("<Skeleton") > source.indexOf("<IntelligenceWorkspace"));
+  }
+});
+
+test("university date groups opt out of entrance animation", () => {
+  assert.match(dateGroupedListSource, /animated\?: boolean/);
+  assert.match(dateGroupedListSource, /animated = true/);
+  assert.match(dateGroupedListSource, /animated \?/);
+  for (const source of [peerDynamicsSource, researchTrackingSource]) {
+    assert.match(source, /<DateGroupedList[\s\S]{0,160}animated=\{false\}/);
   }
 });

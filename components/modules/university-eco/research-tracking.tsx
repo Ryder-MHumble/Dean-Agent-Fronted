@@ -611,6 +611,7 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
               <DateGroupedList
                 items={filteredOutputs}
                 emptyMessage="暂无科研成果"
+                animated={false}
                 renderItem={(output) => (
                   <IntelligenceListItem
                     selected={selectedOutput?.id === output.id}

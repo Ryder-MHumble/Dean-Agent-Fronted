@@ -13,6 +13,7 @@ interface DateGroupedListProps<T extends { id: string; date?: string | null }> {
   renderItem: (item: T) => ReactNode;
   className?: string;
   emptyMessage?: string;
+  animated?: boolean;
 }
 
 export default function DateGroupedList<
@@ -22,6 +23,7 @@ export default function DateGroupedList<
   renderItem,
   className,
   emptyMessage = "暂无数据",
+  animated = true,
 }: DateGroupedListProps<T>) {
   const groups = groupByDate(items);
 
@@ -51,11 +53,19 @@ export default function DateGroupedList<
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <StaggerContainer className="space-y-3">
-              {group.items.map((item) => (
-                <StaggerItem key={item.id}>{renderItem(item)}</StaggerItem>
-              ))}
-            </StaggerContainer>
+            {animated ? (
+              <StaggerContainer className="space-y-3">
+                {group.items.map((item) => (
+                  <StaggerItem key={item.id}>{renderItem(item)}</StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : (
+              <div className="space-y-3">
+                {group.items.map((item) => (
+                  <div key={item.id}>{renderItem(item)}</div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}

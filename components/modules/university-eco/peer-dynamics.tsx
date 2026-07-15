@@ -606,6 +606,7 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
                 <DateGroupedList
                   items={filteredBySourceNews}
                   emptyMessage="暂无同行动态"
+                  animated={false}
                   renderItem={(news) => (
                     <IntelligenceListItem
                       selected={selectedNews?.id === news.id}
