@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRef } from "react";
 import {
   getPolicyPreviewScore,
@@ -145,19 +145,35 @@ export default function PolicyPreviewList({
           </button>
         </div>
         <div className={styles.dateFilterRow}>
-          <label>
-            <span>起始日期</span>
+          <label className={styles.dateField}>
+            <span
+              className={styles.dateDisplay}
+              data-date-display=""
+              aria-hidden="true"
+            >
+              <span>{dateFrom || "开始日期"}</span>
+              <CalendarDays />
+            </span>
             <input
               type="date"
+              aria-label="开始日期"
               value={dateFrom}
               max={dateTo || undefined}
               onChange={(event) => onDateFromChange(event.target.value)}
             />
           </label>
-          <label>
-            <span>结束日期</span>
+          <label className={styles.dateField}>
+            <span
+              className={styles.dateDisplay}
+              data-date-display=""
+              aria-hidden="true"
+            >
+              <span>{dateTo || "结束日期"}</span>
+              <CalendarDays />
+            </span>
             <input
               type="date"
+              aria-label="结束日期"
               value={dateTo}
               min={dateFrom || undefined}
               onChange={(event) => onDateToChange(event.target.value)}
