@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import * as policyPreview from "../lib/policy-preview.ts";
 import {
   formatPolicyPreviewTimestamp,
   getPolicyPreviewSelectedId,
@@ -36,4 +37,28 @@ test("getPolicyPreviewSelectedId resets only after a completed query or sort", (
 test("formatPolicyPreviewTimestamp returns Chinese display text or dash", () => {
   assert.match(formatPolicyPreviewTimestamp("2026-07-15T02:06:05.000Z"), /^2026-07-15 /);
   assert.equal(formatPolicyPreviewTimestamp(null), "--");
+});
+
+test("normalizeExternalPolicyUrl trims valid HTTP and HTTPS URLs", () => {
+  assert.equal(
+    policyPreview.normalizeExternalPolicyUrl?.("  https://example.com/policy?id=1  "),
+    "https://example.com/policy?id=1",
+  );
+  assert.equal(
+    policyPreview.normalizeExternalPolicyUrl?.("http://example.com/policy"),
+    "http://example.com/policy",
+  );
+});
+
+test("normalizeExternalPolicyUrl rejects unsafe or non-absolute URLs", () => {
+  for (const value of [
+    undefined,
+    "",
+    "   ",
+    "/policy/1",
+    "javascript:alert(1)",
+    "mailto:policy@example.com",
+  ]) {
+    assert.equal(policyPreview.normalizeExternalPolicyUrl?.(value), null);
+  }
 });

@@ -1,5 +1,8 @@
 import { ChevronLeft, ExternalLink } from "lucide-react";
-import { getPolicyPreviewScore } from "@/lib/policy-preview";
+import {
+  getPolicyPreviewScore,
+  normalizeExternalPolicyUrl,
+} from "@/lib/policy-preview";
 import type { PolicyFeedItem } from "@/lib/types/policy-intel";
 import styles from "./policy-intel-preview.module.css";
 
@@ -24,12 +27,17 @@ export default function PolicyPreviewDetail({
     );
   }
 
-  const source = item.sourceName ?? item.source_name ?? item.source;
+  const source =
+    item.sourceName?.trim() ||
+    item.source_name?.trim() ||
+    item.source.trim() ||
+    "--";
+  const funding = item.funding?.trim() || null;
+  const leader = item.leader?.trim() || null;
+  const sourceUrl = normalizeExternalPolicyUrl(item.sourceUrl);
   const hasScore = item.matchScore != null || item.relevance != null;
   const score = getPolicyPreviewScore(item);
   const scoreLabel = item.matchScore != null ? "政策匹配度" : "政策相关度";
-  const hasImpactData =
-    hasScore || item.funding != null || item.daysLeft != null;
 
   return (
     <div className={styles.detail}>
@@ -53,9 +61,9 @@ export default function PolicyPreviewDetail({
                 {scoreLabel} {score}
               </span>
             ) : null}
-            {item.sourceUrl ? (
+            {sourceUrl ? (
               <a
-                href={item.sourceUrl}
+                href={sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -123,57 +131,28 @@ export default function PolicyPreviewDetail({
               <dt>重要程度</dt>
               <dd>{item.importance}</dd>
             </div>
-            {item.leader ? (
+            {leader ? (
               <div>
                 <dt>讲话领导</dt>
-                <dd>{item.leader}</dd>
+                <dd>{leader}</dd>
               </div>
             ) : null}
+            <div>
+              <dt>资金范围</dt>
+              <dd>{funding ?? "--"}</dd>
+            </div>
+            <div>
+              <dt>申报剩余时间</dt>
+              <dd>{item.daysLeft != null ? `${item.daysLeft} 天` : "--"}</dd>
+            </div>
           </dl>
         </section>
 
         <section className={styles.infoSection}>
           <h3>影响范围</h3>
-          {hasImpactData ? (
-            <div className={styles.impactData}>
-              {hasScore ? (
-                <div>
-                  <span>
-                    {scoreLabel}
-                    <strong>{score}</strong>
-                  </span>
-                  <div
-                    className={styles.impactTrack}
-                    role="progressbar"
-                    aria-label={scoreLabel}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={score}
-                  >
-                    <i
-                      style={{
-                        width: `${Math.min(100, Math.max(0, score))}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : null}
-              {item.funding ? (
-                <p>
-                  <span>明确资金范围</span>
-                  <strong>{item.funding}</strong>
-                </p>
-              ) : null}
-              {item.daysLeft != null ? (
-                <p>
-                  <span>申报剩余时间</span>
-                  <strong>{item.daysLeft} 天</strong>
-                </p>
-              ) : null}
-            </div>
-          ) : (
-            <p className={styles.infoEmptyCopy}>暂无明确影响范围数据</p>
-          )}
+          <p className={styles.infoEmptyCopy}>
+            当前政策暂无结构化影响范围数据
+          </p>
         </section>
 
         <section className={styles.infoSection}>

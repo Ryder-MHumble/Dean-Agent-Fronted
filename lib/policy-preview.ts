@@ -13,6 +13,19 @@ export function getPolicyPreviewScore(item: Partial<PolicyFeedItem>): number {
   return item.matchScore ?? item.relevance ?? 0;
 }
 
+export function normalizeExternalPolicyUrl(value?: string): string | null {
+  const normalized = value?.trim();
+  if (!normalized) return null;
+
+  try {
+    const url = new URL(normalized);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return normalized;
+  } catch {
+    return null;
+  }
+}
+
 export function getPolicyPreviewSelectedId(
   items: Array<Pick<PolicyFeedItem, "id">>,
   currentSelectedId: string | null,

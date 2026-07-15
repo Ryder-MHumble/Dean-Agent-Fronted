@@ -83,3 +83,20 @@ test("policy detail exposes all reference modules without collapsibles", () => {
   }
   assert.doesNotMatch(source, /Accordion|Collapsible|defaultOpen/);
 });
+
+test("policy detail keeps impact scope empty and normalizes optional information", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-preview-detail.tsx", "utf8");
+  assert.match(source, /当前政策暂无结构化影响范围数据/);
+  assert.match(source, /const funding = item\.funding\?\.trim\(\) \|\| null/);
+  assert.match(source, /资金范围/);
+  assert.match(source, /\{funding \?\? "--"\}/);
+  assert.doesNotMatch(source, /hasImpactData|impactTrack|明确资金范围/);
+});
+
+test("policy detail exposes an external link only through the URL normalizer", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-preview-detail.tsx", "utf8");
+  assert.match(source, /normalizeExternalPolicyUrl/);
+  assert.match(source, /const sourceUrl = normalizeExternalPolicyUrl\(item\.sourceUrl\)/);
+  assert.match(source, /href=\{sourceUrl\}/);
+  assert.doesNotMatch(source, /href=\{item\.sourceUrl\}/);
+});

@@ -661,45 +661,6 @@
   overflow-wrap: anywhere;
 }
 
-.impactData > div,
-.impactData p {
-  margin: 0;
-}
-
-.impactData > div + p,
-.impactData p + p {
-  margin-top: 14px;
-}
-
-.impactData span {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: #687286;
-  font-size: 12px;
-}
-
-.impactData strong {
-  color: #3d48bf;
-  font-size: 13px;
-}
-
-.impactTrack {
-  height: 5px;
-  margin-top: 7px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #e1e5ee;
-}
-
-.impactTrack i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: #7f89eb;
-}
-
 .infoEmptyCopy {
   margin: 0;
   font-size: 12px;
