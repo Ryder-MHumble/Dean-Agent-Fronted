@@ -124,6 +124,8 @@ export default function MasterDetailView({
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
         closeDetail();
       }
     };
