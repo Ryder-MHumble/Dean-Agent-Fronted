@@ -42,16 +42,68 @@ test("mobile detail stays above the persistent bottom navigation", () => {
   assert.match(mobileNav, /fixed inset-x-0 bottom-0 z-50 md:hidden/);
 });
 
-test("shared detail restores focus to the selected intelligence item", () => {
+test("shared detail continuously tracks the selected intelligence item", () => {
   const masterDetail = read("../components/shared/master-detail-view.tsx");
 
   assert.match(
     masterDetail,
-    /data-intelligence-item.*aria-current=.*true/,
+    /if \(isOpen\) \{[\s\S]{0,500}document\.querySelector<HTMLElement>\(\s*'\[data-intelligence-item\]\[aria-current="true"\]'/,
+  );
+  assert.doesNotMatch(masterDetail, /if \(isOpen && !wasOpenRef\.current\)/);
+  assert.match(
+    masterDetail,
+    /if \(selectedItem\) \{[\s\S]{0,160}restoreFocusRef\.current = selectedItem;[\s\S]{0,160}else if \(!wasOpenRef\.current\)/,
+  );
+});
+
+test("shared detail restores focus only for user-initiated closes", () => {
+  const masterDetail = read("../components/shared/master-detail-view.tsx");
+
+  assert.match(masterDetail, /const shouldRestoreFocusRef = useRef\(false\)/);
+  assert.match(
+    masterDetail,
+    /const closeDetail = \(\) => \{[\s\S]{0,160}shouldRestoreFocusRef\.current = true;[\s\S]{0,160}onClose\(\);/,
+  );
+  assert.match(masterDetail, /onClick=\{closeDetail\}/);
+  assert.equal(masterDetail.match(/onClose=\{closeDetail\}/g)?.length, 2);
+  assert.match(
+    masterDetail,
+    /if \(shouldRestoreFocusRef\.current\) \{[\s\S]{0,500}target\?\.isConnected[\s\S]{0,80}target\.focus\(\)[\s\S]{0,240}shouldRestoreFocusRef\.current = false;/,
   );
   assert.match(
     masterDetail,
-    /requestAnimationFrame\([\s\S]*?isConnected[\s\S]*?\.focus\(\)/,
+    /if \(event\.key === "Escape"\)[\s\S]{0,100}shouldRestoreFocusRef\.current = true;/,
+  );
+  assert.match(
+    masterDetail,
+    /document\.addEventListener\("keydown", handleEscape, true\)/,
+  );
+  assert.match(
+    masterDetail,
+    /document\.removeEventListener\("keydown", handleEscape, true\)/,
+  );
+});
+
+test("mobile detail moves focus inside and cleans scheduled focus frames", () => {
+  const masterDetail = read("../components/shared/master-detail-view.tsx");
+
+  assert.match(
+    masterDetail,
+    /const mobileBackButtonRef = useRef<HTMLButtonElement \| null>\(null\)/,
+  );
+  assert.match(masterDetail, /ref=\{mobileBackButtonRef\}/);
+  assert.match(masterDetail, /mobileBackButtonRef\.current\?\.focus\(\)/);
+  assert.match(
+    masterDetail,
+    /const focusFrameRef = useRef<number \| null>\(null\)/,
+  );
+  assert.match(
+    masterDetail,
+    /cancelAnimationFrame\(focusFrameRef\.current\)/,
+  );
+  assert.match(
+    masterDetail,
+    /focusFrameRef\.current = requestAnimationFrame\([\s\S]{0,160}focusFrameRef\.current = null;/,
   );
 });
 

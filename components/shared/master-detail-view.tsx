@@ -52,29 +52,94 @@ export default function MasterDetailView({
   const breakpoint = useBreakpoint();
   const isIntelligence = variant === "intelligence";
   const restoreFocusRef = useRef<HTMLElement | null>(null);
+  const shouldRestoreFocusRef = useRef(false);
+  const mobileBackButtonRef = useRef<HTMLButtonElement | null>(null);
+  const focusFrameRef = useRef<number | null>(null);
   const wasOpenRef = useRef(false);
 
+  const cancelScheduledFocus = () => {
+    if (focusFrameRef.current === null) return;
+    cancelAnimationFrame(focusFrameRef.current);
+    focusFrameRef.current = null;
+  };
+
+  const scheduleFocus = (focus: () => void) => {
+    cancelScheduledFocus();
+    focusFrameRef.current = requestAnimationFrame(() => {
+      focusFrameRef.current = null;
+      focus();
+    });
+  };
+
+  const closeDetail = () => {
+    shouldRestoreFocusRef.current = true;
+    onClose();
+  };
+
   useEffect(() => {
-    if (isOpen && !wasOpenRef.current) {
-      restoreFocusRef.current =
-        document.querySelector<HTMLElement>(
-          '[data-intelligence-item][aria-current="true"]',
-        ) ??
-        (document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null);
+    if (isOpen) {
+      const selectedItem = document.querySelector<HTMLElement>(
+        '[data-intelligence-item][aria-current="true"]',
+      );
+
+      if (selectedItem) {
+        restoreFocusRef.current = selectedItem;
+      } else if (!wasOpenRef.current) {
+        restoreFocusRef.current =
+          document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+      }
+
+      if (!wasOpenRef.current) {
+        shouldRestoreFocusRef.current = false;
+        if (breakpoint === "mobile") {
+          scheduleFocus(() => mobileBackButtonRef.current?.focus());
+        } else {
+          cancelScheduledFocus();
+        }
+      }
     }
 
     if (!isOpen && wasOpenRef.current) {
-      const target = restoreFocusRef.current;
-      requestAnimationFrame(() => {
-        if (target?.isConnected) target.focus();
+      if (shouldRestoreFocusRef.current) {
+        const target = restoreFocusRef.current;
+        scheduleFocus(() => {
+          if (target?.isConnected) target.focus();
+          restoreFocusRef.current = null;
+          shouldRestoreFocusRef.current = false;
+        });
+      } else {
+        cancelScheduledFocus();
         restoreFocusRef.current = null;
-      });
+        shouldRestoreFocusRef.current = false;
+      }
     }
 
     wasOpenRef.current = isOpen;
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        shouldRestoreFocusRef.current = true;
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape, true);
+    return () => document.removeEventListener("keydown", handleEscape, true);
   }, [isOpen]);
+
+  useEffect(
+    () => () => {
+      if (focusFrameRef.current !== null) {
+        cancelAnimationFrame(focusFrameRef.current);
+      }
+    },
+    [],
+  );
 
   // Mobile: full-screen detail overlay
   if (breakpoint === "mobile") {
@@ -101,7 +166,8 @@ export default function MasterDetailView({
                 )}
               >
                 <button
-                  onClick={onClose}
+                  ref={mobileBackButtonRef}
+                  onClick={closeDetail}
                   className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted/60 transition-colors"
                   aria-label="返回列表"
                 >
@@ -164,7 +230,7 @@ export default function MasterDetailView({
                 detailHeader={detailHeader}
                 detailContent={detailContent}
                 detailFooter={detailFooter}
-                onClose={onClose}
+                onClose={closeDetail}
                 variant={variant}
               />
             </motion.div>
@@ -211,7 +277,7 @@ export default function MasterDetailView({
               detailHeader={detailHeader}
               detailContent={detailContent}
               detailFooter={detailFooter}
-              onClose={onClose}
+              onClose={closeDetail}
               variant={variant}
             />
           </motion.div>
