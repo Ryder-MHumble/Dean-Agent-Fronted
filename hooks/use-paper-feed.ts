@@ -18,6 +18,8 @@ interface UsePaperFeedParams {
   category?: PaperCategory;
   sourceId?: string;
   keyword?: string;
+  dateFrom?: string;
+  dateTo?: string;
   page?: number;
   pageSize?: number;
 }
@@ -44,6 +46,8 @@ async function fetchCategorySample(query: PaperQuery) {
       fetchPapers({
         ...sourceQuery,
         keyword: query.keyword,
+        dateFrom: query.dateFrom,
+        dateTo: query.dateTo,
         page: 1,
         pageSize: CATEGORY_SAMPLE_SIZE,
       }),
@@ -82,6 +86,8 @@ export function usePaperFeed(
       category: params.category,
       sourceId: params.sourceId,
       keyword: params.keyword,
+      dateFrom: params.dateFrom,
+      dateTo: params.dateTo,
       page,
       pageSize,
     }),
@@ -89,6 +95,8 @@ export function usePaperFeed(
       params.category,
       params.sourceId,
       params.keyword,
+      params.dateFrom,
+      params.dateTo,
       page,
       pageSize,
     ],

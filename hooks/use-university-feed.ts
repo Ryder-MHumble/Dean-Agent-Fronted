@@ -115,21 +115,71 @@ export function useUniversityFeed(
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function loadOverview() {
+      const overviewData = await fetchUniversityOverview();
+      if (cancelled || !overviewData) return;
+
+      startTransition(() => {
+        setOverview(overviewData);
+      });
+    }
+
+    loadOverview();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSources() {
+      setSources([]);
+
+      const sourcesData = await fetchUniversitySources({
+        group: params?.group,
+      });
+      if (cancelled) return;
+
+      startTransition(() => {
+        if (sourcesData) {
+          setSources(
+            sourcesData.items
+              .filter((item) => item.is_enabled)
+              .map((item) => ({
+                ...item,
+                source_name: normalizeUniversityInstitutionName(
+                  item.source_name,
+                  item.source_id,
+                ),
+              })),
+          );
+        } else {
+          setSources([]);
+        }
+      });
+    }
+
+    loadSources();
+    return () => {
+      cancelled = true;
+    };
+  }, [params?.group]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFeed() {
       setIsLoading(true);
 
-      const [feedData, overviewData, sourcesData] = await Promise.all([
-        fetchUniversityFeed({
-          group: params?.group,
-          sourceIds: params?.sourceIds,
-          dateFrom: params?.dateFrom,
-          dateTo: params?.dateTo,
-          page,
-          pageSize,
-        }),
-        fetchUniversityOverview(),
-        fetchUniversitySources({ group: params?.group }),
-      ]);
+      const feedData = await fetchUniversityFeed({
+        group: params?.group,
+        sourceIds: params?.sourceIds,
+        dateFrom: params?.dateFrom,
+        dateTo: params?.dateTo,
+        page,
+        pageSize,
+      });
 
       if (cancelled) return;
 
@@ -147,31 +197,11 @@ export function useUniversityFeed(
           setTotalPages(1);
         }
 
-        if (overviewData) {
-          setOverview(overviewData);
-        }
-
-        if (sourcesData) {
-          setSources(
-            sourcesData.items
-              .filter((item) => item.is_enabled)
-              .map((item) => ({
-                ...item,
-                source_name: normalizeUniversityInstitutionName(
-                  item.source_name,
-                  item.source_id,
-                ),
-              })),
-          );
-        } else {
-          setSources([]);
-        }
-
         setIsLoading(false);
       });
     }
 
-    load();
+    loadFeed();
     return () => {
       cancelled = true;
     };

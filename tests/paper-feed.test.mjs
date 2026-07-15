@@ -145,6 +145,19 @@ test("keyword query uses the papers API q parameter", () => {
   );
 });
 
+test("paper query forwards publication date and venue filters", () => {
+  assert.equal(
+    buildPaperQueryParams({
+      sourceId: "neurips",
+      dateFrom: "2025-01-01",
+      dateTo: "2025-12-31",
+      page: 3,
+      pageSize: 20,
+    }).toString(),
+    "source_id=neurips&date_from=2025-01-01&date_to=2025-12-31&page=3&page_size=20&sort_by=publication_date&order=desc",
+  );
+});
+
 test("normalizePaper falls back to nested source links", () => {
   const paper = normalizePaper({
     paper_id: "p3",

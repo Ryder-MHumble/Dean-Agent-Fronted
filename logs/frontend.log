@@ -1,5 +1,5 @@
 
-> my-project@0.1.0 start
+> intelligence-fronted@0.1.0 start
 > next start --port 8000 --port 8080 --hostname 0.0.0.0
 
 ▲ Next.js 16.1.6
@@ -7,4 +7,4 @@
 - Network:       http://0.0.0.0:8080
 
 ✓ Starting...
-✓ Ready in 169ms
+✓ Ready in 226ms

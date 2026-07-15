@@ -312,7 +312,7 @@ export default function ResearchTracking() {
   }
 
   return (
-    <div className="flex flex-col" style={{ height: "calc(100vh - 12rem)" }}>
+    <div className="flex h-full min-h-0 flex-col">
       <div className="flex flex-wrap items-center justify-end gap-2 mb-3 shrink-0">
         <DateRangeFilter
           from={dateFrom}

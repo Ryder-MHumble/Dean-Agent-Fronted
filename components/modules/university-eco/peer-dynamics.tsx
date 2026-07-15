@@ -124,7 +124,8 @@ export default function PeerDynamics() {
     close,
     isOpen,
   } = useDetailView<PeerNewsItem>();
-  const [activeFilter, setActiveFilter] = useState<FilterTag>("all");
+  const [activeFilter, setActiveFilter] =
+    useState<FilterTag>("university_news");
   const [selectedSources, setSelectedSources] = useState<Set<string>>(
     new Set(),
   );
@@ -157,8 +158,6 @@ export default function PeerDynamics() {
   }>({});
   const [contentLoading, setContentLoading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-  const [coverImageMap, setCoverImageMap] = useState<Record<string, string>>({});
-  const coverLoadingIdsRef = useRef<Set<string>>(new Set());
 
   const handleOpen = useCallback(
     async (news: PeerNewsItem) => {
@@ -176,13 +175,6 @@ export default function PeerDynamics() {
               content: detail.content,
               images: detail.images,
             });
-            const coverSrc = detail.images?.[0]?.src;
-            if (coverSrc) {
-              setCoverImageMap((prev) => {
-                if (prev[news.id] === coverSrc) return prev;
-                return { ...prev, [news.id]: coverSrc };
-              });
-            }
           }
         } catch {
           // Silently fail - detail view will show fallback
@@ -197,65 +189,6 @@ export default function PeerDynamics() {
   const sortedNews = useMemo(() => {
     return [...items].sort(sortNewsByDateDesc);
   }, [items]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function hydrateCardCovers() {
-      const pending = sortedNews
-        .filter(
-          (item) =>
-            !(
-              item.thumbnail ||
-              item.images?.[0]?.src ||
-              coverImageMap[item.id] ||
-              coverLoadingIdsRef.current.has(item.id)
-            ),
-        )
-        .slice(0, 6);
-
-      if (pending.length === 0) return;
-
-      for (const item of pending) {
-        coverLoadingIdsRef.current.add(item.id);
-      }
-
-      const results = await Promise.all(
-        pending.map(async (item) => {
-          try {
-            const detail = await fetchUniversityArticle(item.id);
-            return {
-              id: item.id,
-              src: detail?.images?.[0]?.src ?? "",
-            };
-          } catch {
-            return { id: item.id, src: "" };
-          } finally {
-            coverLoadingIdsRef.current.delete(item.id);
-          }
-        }),
-      );
-
-      if (cancelled) return;
-
-      setCoverImageMap((prev) => {
-        const next = { ...prev };
-        let changed = false;
-        for (const result of results) {
-          if (result.src && next[result.id] !== result.src) {
-            next[result.id] = result.src;
-            changed = true;
-          }
-        }
-        return changed ? next : prev;
-      });
-    }
-
-    hydrateCardCovers();
-    return () => {
-      cancelled = true;
-    };
-  }, [sortedNews, coverImageMap]);
 
   const sourcesWithCount = useMemo(() => {
     if (sources.length > 0) {
@@ -362,16 +295,12 @@ export default function PeerDynamics() {
   useEffect(() => {
     setPage(1);
     setSelectedSources(new Set());
-    setCoverImageMap({});
-    coverLoadingIdsRef.current.clear();
     close();
     setArticleContent({});
   }, [activeFilter, close]);
 
   useEffect(() => {
     setPage(1);
-    setCoverImageMap({});
-    coverLoadingIdsRef.current.clear();
     close();
     setArticleContent({});
   }, [sourceIdsKey, dateFrom, dateTo, close]);
@@ -387,7 +316,7 @@ export default function PeerDynamics() {
   }
 
   return (
-    <div className="flex flex-col" style={{ height: "calc(100vh - 10rem)" }}>
+    <div className="flex h-full min-h-0 flex-col">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-3 mb-1 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -655,9 +584,7 @@ export default function PeerDynamics() {
                     <div className="flex items-start gap-3">
                       <ArticleCover
                         imageUrl={
-                          news.thumbnail ||
-                          news.images?.[0]?.src ||
-                          coverImageMap[news.id]
+                          news.thumbnail || news.images?.[0]?.src
                         }
                         fallbackText={(news.sourceName || "源").trim()}
                       />

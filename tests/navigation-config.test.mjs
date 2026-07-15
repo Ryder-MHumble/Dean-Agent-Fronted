@@ -13,8 +13,8 @@ const pageSource = readFileSync(
   new URL("../app/page.tsx", import.meta.url),
   "utf8",
 );
-const topBarSource = readFileSync(
-  new URL("../components/layout/top-bar.tsx", import.meta.url),
+const sidebarSource = readFileSync(
+  new URL("../components/layout/sidebar.tsx", import.meta.url),
   "utf8",
 );
 
@@ -40,8 +40,33 @@ test("intelligence data pages no longer render placeholder branches", () => {
   assert.doesNotMatch(pageSource, /<PlaceholderPage/);
 });
 
-test("source-pool control remains accessible on narrow screens", () => {
-  assert.match(topBarSource, /aria-label=["']情报引擎信源池["']/);
-  assert.match(topBarSource, /className=["']hidden sm:inline["']/);
-  assert.match(topBarSource, /className=["'][^"']*min-w-0[^"']*["']/);
+test("quick access lives in the sidebar instead of a global top bar", () => {
+  assert.doesNotMatch(pageSource, /<TopBar/);
+  assert.doesNotMatch(pageSource, /components\/layout\/top-bar/);
+  assert.doesNotMatch(sidebarSource, /情报引擎信源池/);
+  assert.doesNotMatch(sidebarSource, /INTELLIGENCE_SOURCE_POOL_URL/);
+  assert.doesNotMatch(sidebarSource, /\bDatabase\b/);
+  assert.match(sidebarSource, /aria-label=["']快速接入能力["']/);
+  assert.match(sidebarSource, /快速接入能力/);
+});
+
+test("sidebar exposes current-page curl and prompt copy actions", () => {
+  assert.match(sidebarSource, /activePage: string/);
+  assert.match(sidebarSource, /复制 curl 命令/);
+  assert.match(sidebarSource, /复制智能体提示词/);
+  assert.match(sidebarSource, /buildAccessCurl/);
+  assert.match(sidebarSource, /buildAccessPrompt/);
+  assert.match(sidebarSource, /copyTextToClipboard/);
+});
+
+test("sidebar restores the original logo and gradient brand treatment", () => {
+  assert.match(sidebarSource, /import Image from ["']next\/image["']/);
+  assert.match(sidebarSource, /src=["']\/Logo\.png["']/);
+  assert.match(sidebarSource, /alt=["']情报引擎["']/);
+  assert.match(sidebarSource, /情报\s*<span/);
+  assert.match(sidebarSource, /bg-gradient-to-r from-violet-500 to-cyan-500/);
+  assert.match(sidebarSource, />\s*引擎\s*<\/span>/);
+  assert.match(sidebarSource, />\s*智能创新中心\s*</);
+  assert.match(sidebarSource, /bg-white\/80 backdrop-blur-xl/);
+  assert.doesNotMatch(sidebarSource, />\s*智策云端\s*</);
 });

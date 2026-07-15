@@ -20,12 +20,19 @@ export interface PaperAuthor {
   author_name?: string | null;
 }
 
+export interface PaperAffiliation {
+  author_order?: number | null;
+  author_name?: string | null;
+  affiliation?: string | null;
+}
+
 export interface PaperApiRecord {
   paper_id?: string | null;
   id?: string | null;
   title?: string | null;
   abstract?: string | null;
   authors?: Array<string | PaperAuthor> | null;
+  affiliations?: PaperAffiliation[] | null;
   venue?: string | null;
   venue_year?: number | string | null;
   publication_date?: string | null;
@@ -38,6 +45,9 @@ export interface PaperApiRecord {
   arxiv_id?: string | null;
   source?: PaperSource | null;
   source_type?: string | null;
+  track?: string | null;
+  ingested_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface PaperRecord extends PaperApiRecord {
@@ -63,6 +73,8 @@ export interface PaperQuery {
   sourceId?: string;
   sourceName?: string;
   keyword?: string;
+  dateFrom?: string;
+  dateTo?: string;
   page?: number;
   pageSize?: number;
 }

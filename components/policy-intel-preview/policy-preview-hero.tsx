@@ -28,14 +28,6 @@ export default function PolicyPreviewHero({
 
   return (
     <header className={styles.hero}>
-      <Image
-        src="/images/policy-intel-preview-banner.png"
-        alt="蓝紫色智能政策情报分析图形"
-        fill
-        priority
-        className={styles.heroImage}
-        sizes="(max-width: 767px) 100vw, 1800px"
-      />
       <div className={styles.heroContent}>
         <h1>
           洞悉政策风向
@@ -53,6 +45,16 @@ export default function PolicyPreviewHero({
             </div>
           ))}
         </dl>
+      </div>
+      <div className={styles.heroArt} aria-hidden="true">
+        <Image
+          src="/images/policy-intel-preview-banner.png"
+          alt=""
+          fill
+          priority
+          className={styles.heroImage}
+          sizes="(max-width: 767px) 100vw, 920px"
+        />
       </div>
     </header>
   );

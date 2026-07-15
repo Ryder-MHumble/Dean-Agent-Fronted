@@ -1,23 +1,47 @@
 "use client";
 
-import { Database, Menu } from "lucide-react";
+import { Bot, ChevronDown, Copy, Menu, Terminal } from "lucide-react";
 import { AnimatedTitle } from "@/components/motion";
 import { Button } from "@/components/ui/button";
-
-export const INTELLIGENCE_SOURCE_POOL_URL =
-  "https://alidocs.dingtalk.com/i/nodes/1zknDm0WRaY6P9nAc2qm6Kaq8BQEx5rG?iframeQuery=entrance%3Ddata%26sheetId%3DhERWDMS%26viewId%3DqvGDAH2";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { copyTextToClipboard } from "@/lib/copy-text";
+import {
+  buildAccessCurl,
+  buildAccessPrompt,
+  getIntelligenceAccessConfig,
+} from "@/lib/intelligence-access";
+import { toast } from "sonner";
 
 interface TopBarProps {
+  activePage: string;
   title: string;
   subtitle?: string;
   onMenuClick?: () => void;
 }
 
 export function TopBar({
+  activePage,
   title,
   subtitle,
   onMenuClick,
 }: TopBarProps) {
+  const accessConfig = getIntelligenceAccessConfig(activePage);
+
+  const handleCopy = async (content: string, successMessage: string) => {
+    const copied = await copyTextToClipboard(content);
+    if (copied) {
+      toast.success(successMessage);
+      return;
+    }
+    toast.error("复制失败，请检查浏览器权限");
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/40 bg-white px-4 shadow-sm sm:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -34,17 +58,46 @@ export function TopBar({
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <Button asChild variant="outline" size="sm">
-          <a
-            href={INTELLIGENCE_SOURCE_POOL_URL}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="情报引擎信源池"
-          >
-            <Database className="h-4 w-4" />
-            <span className="hidden sm:inline">情报引擎信源池</span>
-          </a>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="当前页面快速接入"
+            >
+              <Terminal className="h-4 w-4" />
+              <span className="hidden lg:inline">当前页面快速接入</span>
+              <ChevronDown className="hidden h-3.5 w-3.5 sm:block" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+              当前页：{accessConfig.title}
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onSelect={() =>
+                void handleCopy(
+                  buildAccessCurl(accessConfig),
+                  "已复制当前页面 curl 命令",
+                )
+              }
+            >
+              <Copy className="h-4 w-4" />
+              复制 curl 命令
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() =>
+                void handleCopy(
+                  buildAccessPrompt(accessConfig),
+                  "已复制当前页面智能体提示词",
+                )
+              }
+            >
+              <Bot className="h-4 w-4" />
+              复制智能体提示词
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

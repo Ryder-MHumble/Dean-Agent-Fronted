@@ -2,11 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-test("policy preview is a dedicated route and does not replace the original module", () => {
+test("policy preview is a dedicated route and backs the original policy entry", () => {
   const route = readFileSync("app/policy-intel-preview/page.tsx", "utf8");
-  const original = readFileSync("components/modules/policy-intel/index.tsx", "utf8");
+  const app = readFileSync("app/page.tsx", "utf8");
   assert.match(route, /PolicyIntelPreview/);
-  assert.match(original, /export default function PolicyIntelModule/);
+  assert.match(app, /components\/policy-intel-preview\/policy-intel-preview/);
 });
 
 test("preview defaults to a persistent selected policy workspace", () => {
@@ -14,25 +14,24 @@ test("preview defaults to a persistent selected policy workspace", () => {
   assert.match(source, /getPolicyPreviewSelectedId/);
   assert.match(source, /loadingRequestKeyRef/);
   assert.match(source, /lastSortRef/);
-  assert.match(source, /PolicyPreviewHero/);
+  assert.doesNotMatch(source, /PolicyPreviewHero/);
   assert.match(source, /PolicyPreviewList/);
 });
 
-test("hero metrics use independent requests and preserve unknown states", () => {
+test("policy page renders only the core workspace without the old banner", () => {
   const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
-  const hero = readFileSync("components/policy-intel-preview/policy-preview-hero.tsx", "utf8");
-  assert.match(source, /isLoading: isPolicyTotalLoading/);
-  assert.match(source, /isUsingMock: isPolicyTotalMock/);
-  assert.match(source, /category: "政策机会"/);
-  assert.match(source, /isLoading: isOpportunityTotalLoading/);
-  assert.match(source, /isUsingMock: isOpportunityTotalMock/);
+  const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
+  assert.doesNotMatch(source, /isLoading: isPolicyTotalLoading/);
+  assert.doesNotMatch(source, /isUsingMock: isPolicyTotalMock/);
+  assert.doesNotMatch(source, /category: "政策机会"/);
+  assert.doesNotMatch(source, /isLoading: isOpportunityTotalLoading/);
+  assert.doesNotMatch(source, /isUsingMock: isOpportunityTotalMock/);
   assert.match(source, /fetchPolicySourceNameMap/);
-  assert.match(source, /useState<number \| null>\(null\)/);
-  assert.match(source, /sourceEntries\.length > 0 \? sourceEntries\.length : null/);
-  assert.match(source, /total=\{policyTotal\}/);
-  assert.match(source, /opportunityCount=\{opportunityTotal\}/);
-  assert.match(hero, /total: number \| null/);
-  assert.match(hero, /value === null \? "--"/);
+  assert.doesNotMatch(source, /sourceEntries\.length > 0 \? sourceEntries\.length : null/);
+  assert.match(source, /<section className=\{styles\.workbench\}/);
+  assert.match(css, /border:\s*0/);
+  assert.match(css, /border-radius:\s*0/);
+  assert.match(css, /box-shadow:\s*none/);
 });
 
 test("list shows only real relevance progress and disables stale items while loading", () => {
@@ -55,25 +54,67 @@ test("selection waits for loading and mobile focus can move to detail and return
 test("preview supports date range and policy source filtering", () => {
   const preview = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
   const list = readFileSync("components/policy-intel-preview/policy-preview-list.tsx", "utf8");
+  const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
   assert.match(preview, /dateRange: \{ from: dateFrom, to: dateTo \}/);
   assert.match(preview, /sourceIds: selectedSourceId \? \[selectedSourceId\] : undefined/);
   assert.match(list, /type="date"/);
   assert.match(list, /aria-label="政策信源"/);
   assert.match(list, /全部政策信源/);
+  assert.match(list, /SelectTrigger/);
+  assert.match(list, /ALL_SOURCE_VALUE/);
+  assert.doesNotMatch(list, /<select/);
+  assert.match(css, /previewSelectContent/);
+  assert.match(css, /background:\s*#f8faff/);
+  assert.match(css, /rgba\(248, 250, 255, 0\.98\)/);
+  assert.doesNotMatch(css, /background:\s*rgba\(73, 76, 82, 0\.96\)/);
   assert.doesNotMatch(list, /全量信源/);
   assert.match(list, /清除筛选/);
 });
 
-test("hero copy and workbench height follow the reviewed viewport contract", () => {
-  const hero = readFileSync("components/policy-intel-preview/policy-preview-hero.tsx", "utf8");
+test("preview reflows by available space without whole-page zoom", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
   const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
-  assert.match(hero, /洞悉政策风向/);
-  assert.match(hero, /把握未来机遇/);
-  assert.match(hero, /政策信源/);
-  assert.match(hero, /国家\/北京/);
-  assert.doesNotMatch(hero, /全量信源/);
+  assert.doesNotMatch(source, /ResizeObserver/);
+  assert.doesNotMatch(source, /layoutScale/);
+  assert.doesNotMatch(source, /--preview-scale|--preview-unscale/);
+  assert.doesNotMatch(css, /\bzoom\s*:/);
+  assert.doesNotMatch(css, /--preview-unscale/);
+  assert.match(css, /container-type:\s*inline-size/);
+  assert.match(css, /@container\s*\(max-width:/);
+  assert.match(css, /overflow-x:\s*hidden/);
+});
+
+test("timeline renders one date node for each date group", () => {
+  const list = readFileSync("components/policy-intel-preview/policy-preview-list.tsx", "utf8");
+  const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
+  assert.match(list, /startsDateGroup/);
+  assert.match(list, /items\[index - 1\]\?\.date !== item\.date/);
+  assert.match(list, /timelineGroupStart/);
+  assert.match(css, /\.timelineGroupStart \.timelineAxis i/);
+  assert.match(css, /display:\s*none;\s*width:\s*8px/s);
+});
+
+test("workbench height follows the no-banner viewport contract", () => {
+  const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
+  const workbenchBlock = css.match(/\.workbench\s*\{([^}]*)\}/)?.[1] ?? "";
+  const paneBlock = css.match(/\.listPane,\s*\.detailPane\s*\{([^}]*)\}/)?.[1] ?? "";
+  assert.doesNotMatch(css, /calc\(100dvh - 286px\)/);
+  assert.doesNotMatch(css, /calc\(100dvh - 316px\)/);
   assert.doesNotMatch(css, /min-height:\s*620px/);
-  assert.match(css, /height:\s*clamp\(/);
+  assert.match(css, /\.page\s*\{[\s\S]*?height:\s*var\(--app-content-height, 100dvh\)/);
+  assert.match(css, /\.canvas\s*\{[\s\S]*?height:\s*100%/);
+  assert.match(workbenchBlock, /height:\s*100%/);
+  assert.doesNotMatch(workbenchBlock, /height:\s*clamp\(/);
+  assert.match(paneBlock, /height:\s*100%/);
+});
+
+test("every animated application page keeps a full dynamic viewport height", () => {
+  const page = readFileSync("app/page.tsx", "utf8");
+  const motion = readFileSync("components/motion/index.tsx", "utf8");
+  assert.match(page, /min-h-\[100dvh\]/);
+  assert.match(page, /--app-content-height/);
+  assert.match(motion, /min-h-\[calc\(100dvh-5rem\)\]/);
+  assert.match(motion, /md:min-h-\[100dvh\]/);
 });
 
 test("policy detail exposes all reference modules without collapsibles", () => {

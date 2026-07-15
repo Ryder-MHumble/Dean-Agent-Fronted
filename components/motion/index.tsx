@@ -181,6 +181,7 @@ export function MotionPage({ children, pageKey }: MotionPageProps) {
           duration: DURATION.page,
           ease: EASE_OUT_EXPO,
         }}
+        className="min-h-[calc(100dvh-5rem)] md:min-h-[100dvh]"
       >
         {children}
       </motion.div>

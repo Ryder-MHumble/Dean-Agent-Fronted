@@ -166,7 +166,7 @@ export default function SentimentMonitor() {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="min-h-[var(--app-content-height,100dvh)] space-y-4">
         {/* Stat cards */}
         {overviewLoading ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

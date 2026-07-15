@@ -28,14 +28,14 @@ export default function ModuleLayout({
   );
 
   return (
-    <div className="p-5 space-y-4">
-      <MotionCard delay={0}>
+    <div className="h-[var(--app-content-height,100dvh)] min-h-0 p-5">
+      <MotionCard delay={0} className="h-full min-h-0">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="space-y-4"
+          className="flex h-full min-h-0 flex-col gap-4"
         >
-          <div className="rounded-xl bg-muted/30 p-1 overflow-x-auto">
+          <div className="shrink-0 overflow-x-auto rounded-xl bg-muted/30 p-1">
             <TabsList
               className="grid w-full bg-transparent h-auto gap-1 min-w-max lg:min-w-0"
               style={{
@@ -66,7 +66,11 @@ export default function ModuleLayout({
           {subPages.map((page) => {
             const Component = page.component;
             return (
-              <TabsContent key={page.id} value={page.id} className="mt-4">
+              <TabsContent
+                key={page.id}
+                value={page.id}
+                className="mt-0 min-h-0 flex-1"
+              >
                 <Component />
               </TabsContent>
             );

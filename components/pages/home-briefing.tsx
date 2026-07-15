@@ -31,7 +31,7 @@ export default function HomeBriefingPage({
   }
 
   return (
-    <div className="p-4 sm:p-5 space-y-3">
+    <div className="min-h-[var(--app-content-height,100dvh)] space-y-3 p-4 sm:p-5">
       <MotionCard delay={0}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">

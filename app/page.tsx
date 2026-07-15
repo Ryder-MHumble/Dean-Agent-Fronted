@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AppShell, { TopBar } from "@/components/app-shell";
+import AppShell from "@/components/app-shell";
 import MobileBottomNav from "@/components/shared/mobile-bottom-nav";
 import dynamic from "next/dynamic";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
@@ -12,7 +12,7 @@ const HomeModule = dynamic(() => import("@/components/modules/home"), {
   loading: () => <PageLoadingSkeleton />,
 });
 const PolicyIntelModule = dynamic(
-  () => import("@/components/modules/policy-intel"),
+  () => import("@/components/policy-intel-preview/policy-intel-preview"),
   { ssr: false, loading: () => <PageLoadingSkeleton /> },
 );
 const TechFrontierModule = dynamic(
@@ -46,7 +46,6 @@ const InternalExpertsModule = dynamic(
 );
 import { MotionPage, PageLoadingSkeleton } from "@/components/motion";
 import { Toaster } from "sonner";
-import { pageMeta } from "@/lib/mock-data/navigation";
 
 const visiblePages = new Set([
   "home",
@@ -64,7 +63,6 @@ export default function Page() {
   const [activePage, setActivePage] = useState("home");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const meta = pageMeta[activePage] || pageMeta.home;
 
   const handleNavigate = (page: string) => {
     if (!visiblePages.has(page)) return;
@@ -81,7 +79,7 @@ export default function Page() {
   }, [breakpoint]);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-[100dvh] bg-background">
       <AppShell
         activePage={activePage}
         onNavigate={handleNavigate}
@@ -92,16 +90,11 @@ export default function Page() {
       />
       <main
         className={cn(
-          "min-w-0 flex-1 pb-20 transition-[margin-left] duration-200 ease-out md:pb-0",
+          "min-w-0 flex-1 min-h-[100dvh] pb-20 transition-[margin-left] duration-200 ease-out md:pb-0",
           sidebarCollapsed ? "md:ml-[70px]" : "md:ml-[220px]",
         )}
       >
-        <TopBar
-          title={meta.title}
-          subtitle={meta.subtitle}
-          onMenuClick={() => setMobileOpen(true)}
-        />
-        <div className="min-h-[calc(100vh-64px)]">
+        <div className="min-h-[calc(100dvh-5rem)] [--app-content-height:calc(100dvh-5rem)] md:min-h-[100dvh] md:[--app-content-height:100dvh]">
           {activePage === "papers" && <PapersModule />}
           {activePage === "academic-achievements" && (
             <AcademicAchievementsModule />

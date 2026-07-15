@@ -14,6 +14,12 @@ import type {
 import { buildTechFrontierPostParams } from "@/lib/tech-frontier-feed";
 import { buildPaperQueryParams } from "@/lib/paper-feed";
 import type { PaperListResponse, PaperQuery } from "@/lib/types/papers";
+import { buildAchievementQueryParams } from "@/lib/achievement-feed";
+import type {
+  AchievementListResponse,
+  AchievementQuery,
+  AchievementStatsResponse,
+} from "@/lib/types/achievements";
 
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001"
@@ -44,6 +50,35 @@ export async function fetchPapers(
     });
     if (!res.ok) return null;
     return (await res.json()) as PaperListResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchZgcaAchievements(
+  query: AchievementQuery = {},
+): Promise<AchievementListResponse | null> {
+  try {
+    const params = buildAchievementQueryParams(query);
+    const res = await fetchWithTimeout(
+      `${API_BASE}/api/zgca-achievements/?${params}`,
+      { cache: "no-store", timeoutMs: 12000 },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as AchievementListResponse;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchZgcaAchievementStats(): Promise<AchievementStatsResponse | null> {
+  try {
+    const res = await fetchWithTimeout(
+      `${API_BASE}/api/zgca-achievements/stats`,
+      { cache: "no-store", timeoutMs: 12000 },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as AchievementStatsResponse;
   } catch {
     return null;
   }

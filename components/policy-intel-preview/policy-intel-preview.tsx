@@ -12,7 +12,6 @@ import type {
   PolicyFeedCategory,
   PolicyFeedItem,
 } from "@/lib/types/policy-intel";
-import PolicyPreviewHero from "./policy-preview-hero";
 import PolicyPreviewList from "./policy-preview-list";
 import PolicyPreviewDetail from "./policy-preview-detail";
 import styles from "./policy-intel-preview.module.css";
@@ -30,7 +29,6 @@ export default function PolicyIntelPreview() {
   const [sourceOptions, setSourceOptions] = useState<
     { id: string; label: string }[]
   >([]);
-  const [sourceCount, setSourceCount] = useState<number | null>(null);
   const detailRef = useRef<HTMLElement>(null);
   const lastSelectedButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -42,27 +40,6 @@ export default function PolicyIntelPreview() {
     page,
     pageSize: 20,
   });
-  const {
-    total: policyTotalValue,
-    generatedAt: policyGeneratedAt,
-    isLoading: isPolicyTotalLoading,
-    isUsingMock: isPolicyTotalMock,
-  } = usePolicyFeed({ page: 1, pageSize: 1 });
-  const {
-    total: opportunityTotalValue,
-    isLoading: isOpportunityTotalLoading,
-    isUsingMock: isOpportunityTotalMock,
-  } = usePolicyFeed({
-    category: "政策机会",
-    page: 1,
-    pageSize: 1,
-  });
-  const policyTotal =
-    isPolicyTotalLoading || isPolicyTotalMock ? null : policyTotalValue;
-  const opportunityTotal =
-    isOpportunityTotalLoading || isOpportunityTotalMock
-      ? null
-      : opportunityTotalValue;
   const requestKey = [
     page,
     searchQuery,
@@ -112,7 +89,6 @@ export default function PolicyIntelPreview() {
           .map(([id, label]) => ({ id, label }))
           .sort((a, b) => a.label.localeCompare(b.label, "zh-CN")),
       );
-      setSourceCount(sourceEntries.length > 0 ? sourceEntries.length : null);
     });
     return () => {
       cancelled = true;
@@ -123,7 +99,7 @@ export default function PolicyIntelPreview() {
     lastSelectedButtonRef.current = trigger;
     setSelectedId(item.id);
     setMobileDetailOpen(true);
-    if (window.matchMedia("(max-width: 767px)").matches) {
+    if (window.matchMedia("(max-width: 959px)").matches) {
       requestAnimationFrame(() => detailRef.current?.focus());
     }
   }
@@ -170,13 +146,6 @@ export default function PolicyIntelPreview() {
   return (
     <main className={styles.page}>
       <div className={styles.canvas}>
-        <PolicyPreviewHero
-          total={policyTotal}
-          opportunityCount={opportunityTotal}
-          sourceCount={sourceCount}
-          generatedAt={policyTotal === null ? null : policyGeneratedAt}
-        />
-
         <section className={styles.workbench} aria-label="政策情报工作台">
           <div
             className={`${styles.listPane} ${mobileDetailOpen ? styles.listPaneHidden : ""}`}

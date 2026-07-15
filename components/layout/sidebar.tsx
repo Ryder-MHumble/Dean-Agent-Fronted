@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import Image from "next/image";
+import {
+  Bot,
+  ChevronDown,
+  Copy,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings,
+  Terminal,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -9,8 +18,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { navGroups } from "@/lib/mock-data/navigation";
+import { copyTextToClipboard } from "@/lib/copy-text";
+import {
+  buildAccessCurl,
+  buildAccessPrompt,
+  getIntelligenceAccessConfig,
+} from "@/lib/intelligence-access";
+import { toast } from "sonner";
 import { NavItem } from "./nav-item";
 
 interface SidebarProps {
@@ -66,6 +89,16 @@ export default function Sidebar({
   };
 
   const showExpanded = !collapsed || (isMobile && mobileOpen);
+  const accessConfig = getIntelligenceAccessConfig(activePage);
+
+  const handleCopy = async (content: string, successMessage: string) => {
+    const copied = await copyTextToClipboard(content);
+    if (copied) {
+      toast.success(successMessage);
+      return;
+    }
+    toast.error("复制失败，请检查浏览器权限");
+  };
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -82,7 +115,7 @@ export default function Sidebar({
           x: isMobile && !mobileOpen ? "-100%" : "0%",
         }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed left-0 top-0 z-40 flex h-screen flex-col overflow-x-hidden border-r border-border/40 bg-white"
+        className="fixed left-0 top-0 z-40 flex h-screen flex-col overflow-x-hidden border-r border-border/40 bg-white/80 backdrop-blur-xl"
       >
         {/* Logo + Toggle */}
         <div
@@ -93,6 +126,14 @@ export default function Sidebar({
               : "flex-row items-center gap-2.5 px-5 py-5",
           )}
         >
+          <Image
+            src="/Logo.png"
+            alt="情报引擎"
+            width={48}
+            height={48}
+            className="shrink-0 rounded-xl"
+            priority
+          />
           <AnimatePresence>
             {showExpanded && (
               <motion.div
@@ -102,9 +143,14 @@ export default function Sidebar({
                 transition={{ duration: 0.18, ease: "easeOut" }}
                 className="flex-1 min-w-0 overflow-hidden"
               >
-                <p className="text-[15px] font-semibold text-foreground whitespace-nowrap">
-                  情报引擎
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <span className="whitespace-nowrap text-[15px] font-semibold text-foreground">
+                    情报
+                    <span className="bg-gradient-to-r from-violet-500 to-cyan-500 bg-clip-text text-transparent">
+                      引擎
+                    </span>
+                  </span>
+                </div>
                 <p className="text-[11px] text-muted-foreground whitespace-nowrap">
                   智能创新中心
                 </p>
@@ -171,7 +217,70 @@ export default function Sidebar({
         </nav>
 
         {/* Bottom section */}
-        <div className="border-t border-border/30 px-3 py-3">
+        <div className="space-y-1 border-t border-border/30 px-3 py-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="快速接入能力"
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-xl py-2 text-sm text-muted-foreground transition-all duration-200 hover:bg-muted/60 hover:text-foreground",
+                  !showExpanded ? "justify-center px-0" : "px-3",
+                )}
+              >
+                <Terminal className="h-4 w-4 shrink-0" />
+                <AnimatePresence>
+                  {showExpanded && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.18, ease: "easeOut" }}
+                      className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-left"
+                    >
+                      快速接入能力
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {showExpanded && (
+                  <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              side="right"
+              align="end"
+              sideOffset={10}
+              className="w-56"
+            >
+              <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                当前页：{accessConfig.title}
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onSelect={() =>
+                  void handleCopy(
+                    buildAccessCurl(accessConfig),
+                    "已复制当前页面 curl 命令",
+                  )
+                }
+              >
+                <Copy className="h-4 w-4" />
+                复制 curl 命令
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() =>
+                  void handleCopy(
+                    buildAccessPrompt(accessConfig),
+                    "已复制当前页面智能体提示词",
+                  )
+                }
+              >
+                <Bot className="h-4 w-4" />
+                复制智能体提示词
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <button

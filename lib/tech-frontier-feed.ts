@@ -9,6 +9,12 @@ export interface PaginatedTechFrontierPosts {
   totalPages: number;
 }
 
+export interface CollectedTechFrontierPostWindow {
+  items: TechFrontierPostItem[];
+  reportedTotal: number;
+  hasMore: boolean;
+}
+
 export interface SocialPostBrief {
   id: string;
   platform: string;
@@ -267,23 +273,45 @@ export function normalizeTechFrontierPost(
   };
 }
 
-export async function collectTechFrontierPostPages(
-  fetchPage: (page: number) => Promise<{ items: SocialPostBrief[] } | null>,
+interface TechFrontierPostPage {
+  items: SocialPostBrief[];
+  total?: number;
+  total_pages?: number;
+}
+
+export async function collectTechFrontierPostWindow(
+  fetchPage: (page: number) => Promise<TechFrontierPostPage | null>,
   pageSize: number,
   maxOffset = Number.POSITIVE_INFINITY,
-): Promise<TechFrontierPostItem[] | null> {
+  requiredItemCount = Number.POSITIVE_INFINITY,
+): Promise<CollectedTechFrontierPostWindow | null> {
   const collected: TechFrontierPostItem[] = [];
   const seenIds = new Set<string>();
   const seenPages = new Set<string>();
   let page = 1;
+  let hasMore = false;
 
   while (true) {
     const data = await fetchPage(page);
-    if (!data) return page === 1 ? null : collected;
-    if (data.items.length === 0) break;
+    if (!data) {
+      if (page === 1) return null;
+      hasMore = false;
+      break;
+    }
+    if (data.items.length === 0) {
+      hasMore = false;
+      break;
+    }
+
+    hasMore = Number.isFinite(data.total_pages)
+      ? page < Number(data.total_pages)
+      : data.items.length === pageSize;
 
     const pageIdentity = `${data.items[0]?.id ?? ""}|${data.items.at(-1)?.id ?? ""}`;
-    if (seenPages.has(pageIdentity)) break;
+    if (seenPages.has(pageIdentity)) {
+      hasMore = false;
+      break;
+    }
     seenPages.add(pageIdentity);
 
     for (const post of data.items) {
@@ -292,12 +320,38 @@ export async function collectTechFrontierPostPages(
       collected.push(normalizeTechFrontierPost(post));
     }
 
-    if (data.items.length < pageSize) break;
-    if (page * pageSize > maxOffset) break;
+    if (collected.length >= requiredItemCount) break;
+    if (data.items.length < pageSize) {
+      hasMore = false;
+      break;
+    }
+    if (page * pageSize > maxOffset) {
+      hasMore = false;
+      break;
+    }
     page += 1;
   }
 
-  return collected;
+  return {
+    items: collected,
+    reportedTotal: collected.length + (hasMore ? 1 : 0),
+    hasMore,
+  };
+}
+
+export async function collectTechFrontierPostPages(
+  fetchPage: (page: number) => Promise<TechFrontierPostPage | null>,
+  pageSize: number,
+  maxOffset = Number.POSITIVE_INFINITY,
+  requiredItemCount = Number.POSITIVE_INFINITY,
+): Promise<TechFrontierPostItem[] | null> {
+  const result = await collectTechFrontierPostWindow(
+    fetchPage,
+    pageSize,
+    maxOffset,
+    requiredItemCount,
+  );
+  return result?.items ?? null;
 }
 
 function getSortTime(
@@ -311,12 +365,13 @@ export function mergeTechFrontierPostPages(
   wechatItems: TechFrontierPostItem[],
   page: number,
   pageSize: number,
+  reportedTotal = xItems.length + wechatItems.length,
 ): PaginatedTechFrontierPosts {
   const merged = [...xItems, ...wechatItems].sort(
     (a, b) => getSortTime(b) - getSortTime(a),
   );
   const safePageSize = Math.max(1, pageSize);
-  const total = merged.length;
+  const total = Math.max(merged.length, reportedTotal);
   const totalPages = Math.max(1, Math.ceil(total / safePageSize));
   const safePage = Math.min(Math.max(1, page), totalPages);
   const start = (safePage - 1) * safePageSize;
@@ -335,20 +390,30 @@ export function summarizeTechFrontierPlatformFeed(
   wechatItems: TechFrontierPostItem[],
   page: number,
   pageSize: number,
+  reportedTotals?: Pick<
+    Record<TechFrontierPlatformFilter, number>,
+    "x" | "wechat_mp"
+  >,
 ) {
+  const xTotal = Math.max(xItems.length, reportedTotals?.x ?? 0);
+  const wechatTotal = Math.max(
+    wechatItems.length,
+    reportedTotals?.wechat_mp ?? 0,
+  );
   const pageData = mergeTechFrontierPostPages(
     xItems,
     wechatItems,
     page,
     pageSize,
+    xTotal + wechatTotal,
   );
 
   return {
     ...pageData,
     platformTotals: {
-      all: xItems.length + wechatItems.length,
-      x: xItems.length,
-      wechat_mp: wechatItems.length,
+      all: xTotal + wechatTotal,
+      x: xTotal,
+      wechat_mp: wechatTotal,
     } satisfies Record<TechFrontierPlatformFilter, number>,
   };
 }

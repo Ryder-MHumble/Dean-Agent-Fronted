@@ -1,44 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Building2,
   ExternalLink,
-  Filter,
   Loader2,
-  Search,
   UserRound,
   Calendar,
   FileText,
   Link2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import DataItemCard, {
+  ItemChevron,
+  accentConfig,
+} from "@/components/shared/data-item-card";
 import FeedPagination from "@/components/shared/feed-pagination";
 import DataFreshness from "@/components/shared/data-freshness";
+import { SearchInput } from "@/components/shared/forms/SearchInput";
+import MasterDetailView from "@/components/shared/master-detail-view";
+import { useDetailView } from "@/hooks/use-detail-view";
 import { useLeaders } from "@/hooks/use-leaders";
 import generatedAvatarMapping from "@/lib/generated/leader-avatars.json";
 import {
@@ -58,6 +40,19 @@ const domainLabels: Record<string, string> = {
   university: "高校",
   mixed: "混合",
 };
+
+const domainFilters: Array<{ value: DomainFilter; label: string }> = [
+  { value: "government", label: "政府领导" },
+  { value: "university", label: "高校领导" },
+  { value: "mixed", label: "混合画像" },
+  { value: "all", label: "全部领域" },
+];
+
+const statusFilters: Array<{ value: LeaderStatus; label: string }> = [
+  { value: "current", label: "现任" },
+  { value: "past", label: "离任" },
+  { value: "all", label: "全部状态" },
+];
 
 const avatarMapping = generatedAvatarMapping as Record<
   string,
@@ -196,67 +191,7 @@ function LeaderAvatar({
   );
 }
 
-function LeaderMobileCard({
-  leader,
-  onClick,
-}: {
-  leader: LeaderProfile;
-  onClick: () => void;
-}) {
-  const detailText = getLeaderSummary(leader);
-  const latestSource = leader.latest_source_url;
-
-  return (
-    <Card
-      className="shadow-card cursor-pointer hover:shadow-md transition-shadow"
-      onClick={onClick}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <LeaderAvatar leader={leader} size={40} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold">{leader.name}</span>
-              <LeaderDomainBadge domain={leader.leader_domain} />
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {getDisplayPositions(leader)}
-            </p>
-          </div>
-          {latestSource && (
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="h-8 px-2"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <a href={latestSource} target="_blank" rel="noreferrer">
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          )}
-        </div>
-        <div className="mt-3 grid gap-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-3.5 w-3.5" />
-            <span className="line-clamp-1">
-              {getDisplayOrgs(leader)}
-            </span>
-          </div>
-          <div>最近更新：{normalizeDate(leader.latest_event_date)}</div>
-        </div>
-        {detailText && (
-          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-            {detailText}
-          </p>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-/** Detail sheet content: timeline, events, bio, sources */
+/** Leader detail content: timeline, events, bio, sources */
 function LeaderDetailContent({ leader }: { leader: LeaderProfile }) {
   const detailText = getLeaderSummary(leader);
   const experiences = useMemo(
@@ -280,7 +215,7 @@ function LeaderDetailContent({ leader }: { leader: LeaderProfile }) {
   const sourceRefs = leader.source_refs || [];
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6">
       {/* 履历时间线 */}
       {experiences.length > 0 && (
         <section>
@@ -466,10 +401,8 @@ export default function TalentRadarModule() {
   const [domain, setDomain] = useState<DomainFilter>("government");
   const [statusFilter, setStatusFilter] = useState<LeaderStatus>("current");
   const [page, setPage] = useState(1);
-  const [selectedLeader, setSelectedLeader] = useState<LeaderProfile | null>(
-    null,
-  );
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const { selectedItem, open, close, isOpen } = useDetailView<LeaderProfile>();
+  const listRef = useRef<HTMLDivElement>(null);
 
   const activeDomain = domain === "all" ? undefined : domain;
   const { items, isLoading, total, totalPages, pageSize } = useLeaders({
@@ -504,11 +437,13 @@ export default function TalentRadarModule() {
 
   const needsReviewCount = items.filter(getQualityNeedsReview).length;
 
-  const applyFilters = () => {
-    setKeyword(keywordInput.trim());
+  const applyFilters = useCallback((nextKeyword = keywordInput) => {
+    setKeyword(nextKeyword.trim());
     setName(nameInput.trim());
     setOrganization(organizationInput.trim());
-  };
+    setPage(1);
+    close();
+  }, [close, keywordInput, nameInput, organizationInput]);
 
   const clearFilters = () => {
     setKeywordInput("");
@@ -519,288 +454,243 @@ export default function TalentRadarModule() {
     setOrganization("");
     setDomain("government");
     setStatusFilter("current");
+    setPage(1);
+    close();
   };
 
-  const openLeaderDetail = (leader: LeaderProfile) => {
-    setSelectedLeader(leader);
-    setSheetOpen(true);
+  const handleDomainChange = (nextDomain: DomainFilter) => {
+    setDomain(nextDomain);
+    setPage(1);
+    close();
+  };
+
+  const handleStatusChange = (nextStatus: LeaderStatus) => {
+    setStatusFilter(nextStatus);
+    setPage(1);
+    close();
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+    close();
+    requestAnimationFrame(() => {
+      listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    });
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-4 px-4 pb-20 pt-4 md:h-[calc(100vh-4rem)] md:overflow-hidden md:px-5 md:pb-2 md:pt-5">
-      <div>
-        <div className="grid gap-3 rounded-lg border border-border/70 bg-background p-4 shadow-sm">
-          <div className="grid gap-2 lg:grid-cols-4 lg:items-end xl:grid-cols-[minmax(150px,1.1fr)_minmax(120px,0.8fr)_minmax(150px,1fr)_120px_110px_auto_auto_minmax(220px,auto)]">
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                关键词
-              </span>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={keywordInput}
-                  onChange={(event) => setKeywordInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") applyFilters();
-                  }}
-                  placeholder="职务、履历、来源"
-                  className="pl-9"
-                />
-              </div>
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                人名
-              </span>
-              <Input
-                value={nameInput}
-                onChange={(event) => setNameInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") applyFilters();
-                }}
-                placeholder="例如 张玉卓"
-              />
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                所属机构
-              </span>
-              <Input
-                value={organizationInput}
-                onChange={(event) => setOrganizationInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") applyFilters();
-                }}
-                placeholder="例如 科学技术部"
-              />
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                领域
-              </span>
-              <Select
-                value={domain}
-                onValueChange={(value) => setDomain(value as DomainFilter)}
+    <div className="flex h-[var(--app-content-height,100dvh)] flex-col gap-4 overflow-hidden px-5 pb-1 pt-5">
+      <Card className="relative z-10 shrink-0 rounded-xl shadow-sm">
+        <CardContent className="space-y-3 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <SearchInput
+              value={keywordInput}
+              onChange={setKeywordInput}
+              onSearch={applyFilters}
+              placeholder="搜索职务、履历、来源..."
+              className="min-w-[16rem] flex-1"
+              inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
+              buttonClassName="h-9 rounded-lg"
+            />
+            <Input
+              value={nameInput}
+              onChange={(event) => setNameInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") applyFilters();
+              }}
+              placeholder="姓名"
+              aria-label="姓名"
+              className="h-9 w-full rounded-lg text-sm sm:w-36"
+            />
+            <Input
+              value={organizationInput}
+              onChange={(event) => setOrganizationInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") applyFilters();
+              }}
+              placeholder="所属机构"
+              aria-label="所属机构"
+              className="h-9 w-full rounded-lg text-sm sm:w-48"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {domainFilters.map((filter) => (
+              <button
+                key={filter.value}
+                type="button"
+                onClick={() => handleDomainChange(filter.value)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  domain === filter.value
+                    ? "bg-blue-100 text-blue-700 shadow-sm"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted",
+                )}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="government">政府领导</SelectItem>
-                  <SelectItem value="university">高校领导</SelectItem>
-                  <SelectItem value="mixed">混合画像</SelectItem>
-                  <SelectItem value="all">全部</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-xs font-medium text-muted-foreground">
-                状态
-              </span>
-              <Select
-                value={statusFilter}
-                onValueChange={(value) =>
-                  setStatusFilter(value as LeaderStatus)
-                }
+                {filter.label}
+              </button>
+            ))}
+            <div className="h-4 w-px bg-border" />
+            {statusFilters.map((filter) => (
+              <button
+                key={filter.value}
+                type="button"
+                onClick={() => handleStatusChange(filter.value)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  statusFilter === filter.value
+                    ? "bg-slate-200 text-slate-800"
+                    : "text-muted-foreground hover:bg-muted",
+                )}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="current">现任</SelectItem>
-                  <SelectItem value="past">离任</SelectItem>
-                  <SelectItem value="all">全部</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <Button type="button" onClick={applyFilters} className="gap-2">
-              <Filter className="h-4 w-4" />
-              筛选
-            </Button>
-            <Button type="button" variant="outline" onClick={clearFilters}>
-              重置
-            </Button>
-            <div className="flex min-h-10 flex-wrap items-center gap-2 lg:justify-end">
-              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              <Badge variant="secondary" className="text-xs">
-                共 {total} 条
-              </Badge>
-              {needsReviewCount > 0 && (
-                <Badge
-                  variant="outline"
-                  className="border-amber-200 bg-amber-50 text-xs text-amber-700"
-                >
-                  {needsReviewCount} 条待核验
-                </Badge>
+                {filter.label}
+              </button>
+            ))}
+            <span className="text-[11px] text-muted-foreground">
+              共 {total} 条
+            </span>
+            {needsReviewCount > 0 && (
+              <span className="text-[11px] text-amber-700">
+                当前页 {needsReviewCount} 条待核验
+              </span>
+            )}
+            {(keyword || name || organization || domain !== "government" ||
+              statusFilter !== "current") && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-[11px] text-blue-600 hover:underline"
+              >
+                清除筛选
+              </button>
+            )}
+            <div className="ml-auto flex items-center gap-2">
+              {isLoading && items.length > 0 && (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
               )}
               <DataFreshness updatedAt={latestUpdatedAt} />
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="md:min-h-0 md:flex-1 md:overflow-hidden">
-        <div className="flex flex-col rounded-lg border border-border/70 bg-background shadow-sm md:h-full md:min-h-0 md:overflow-hidden">
-          <div className="hidden min-h-0 flex-1 overflow-auto md:block">
-            <Table>
-              <TableHeader className="sticky top-0 z-10 bg-muted">
-                <TableRow>
-                  <TableHead className="w-[180px]">姓名</TableHead>
-                  <TableHead>当前职务</TableHead>
-                  <TableHead>所属机构</TableHead>
-                  <TableHead className="max-w-[200px]">简介</TableHead>
-                  <TableHead className="w-[120px]">领域</TableHead>
-                  <TableHead className="w-[130px]">最近事件</TableHead>
-                  <TableHead className="w-[90px] text-right">来源</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((leader) => {
+      <Card className="min-h-0 flex-1 overflow-hidden rounded-xl shadow-sm">
+        <MasterDetailView
+          className="h-full"
+          listContentClassName="min-h-0 overflow-hidden"
+          isOpen={isOpen}
+          onClose={close}
+          detailHeader={
+            selectedItem
+              ? {
+                  title: (
+                    <div className="flex items-center gap-3">
+                      <LeaderAvatar leader={selectedItem} size={44} />
+                      <div className="min-w-0">
+                        <h2 className="text-lg font-semibold leading-snug">
+                          {selectedItem.name}
+                        </h2>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <LeaderDomainBadge domain={selectedItem.leader_domain} />
+                          <span className="text-xs text-muted-foreground">
+                            {getDisplayPositions(selectedItem)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ),
+                  subtitle: (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {getDisplayOrgs(selectedItem)}
+                    </p>
+                  ),
+                  sourceUrl: selectedItem.latest_source_url ?? undefined,
+                }
+              : undefined
+          }
+          detailContent={
+            selectedItem ? <LeaderDetailContent leader={selectedItem} /> : null
+          }
+        >
+          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 p-3">
+            <div
+              ref={listRef}
+              aria-busy={isLoading}
+              className={cn(
+                "min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1 transition-opacity",
+                isLoading && items.length > 0 && "opacity-60",
+              )}
+            >
+              {isLoading && items.length === 0 ? (
+                <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  数据加载中
+                </div>
+              ) : items.length === 0 ? (
+                <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
+                  暂无匹配的外部领导
+                </div>
+              ) : (
+                items.map((leader) => {
+                  const summary = getLeaderSummary(leader);
                   return (
-                    <TableRow
+                    <DataItemCard
                       key={leader.id}
-                      onClick={() => openLeaderDetail(leader)}
-                      className="cursor-pointer hover:bg-muted/50"
+                      isSelected={selectedItem?.id === leader.id}
+                      onClick={() => open(leader)}
+                      accentColor="blue"
+                      className="p-3.5"
                     >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <LeaderAvatar leader={leader} />
-                          <div className="min-w-0">
-                            <div className="font-medium">{leader.name}</div>
-                            {leader.gender && (
-                              <div className="text-xs text-muted-foreground">
-                                {leader.gender}
-                              </div>
-                            )}
+                      <div className="flex items-start gap-3">
+                        <LeaderAvatar leader={leader} size={40} />
+                        <div className="min-w-0 flex-1">
+                          <div className="mb-1.5 flex items-start justify-between gap-3">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <h3
+                                className={cn(
+                                  "truncate text-sm font-semibold text-foreground transition-colors",
+                                  accentConfig.blue.title,
+                                )}
+                              >
+                                {leader.name}
+                              </h3>
+                              <LeaderDomainBadge domain={leader.leader_domain} />
+                            </div>
+                            <ItemChevron accentColor="blue" />
+                          </div>
+                          <p className="mb-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                            {summary || "简介待补充"}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
+                            <span className="max-w-[35%] truncate font-medium text-foreground/80">
+                              {getDisplayPositions(leader)}
+                            </span>
+                            <span className="max-w-[40%] truncate">
+                              {getDisplayOrgs(leader)}
+                            </span>
+                            <span className="ml-auto shrink-0">
+                              {normalizeDate(leader.latest_event_date)}
+                            </span>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell className="max-w-[260px]">
-                        <div
-                          className="truncate font-medium"
-                          title={getDisplayPositions(leader)}
-                        >
-                          {getDisplayPositions(leader)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[280px]">
-                        <div className="line-clamp-2">
-                          {getDisplayOrgs(leader)}
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[200px]">
-                        <div
-                          className="truncate text-sm text-muted-foreground"
-                          title={getLeaderSummary(leader)}
-                        >
-                          {getLeaderSummary(leader) || "—"}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <LeaderDomainBadge domain={leader.leader_domain} />
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {normalizeDate(leader.latest_event_date)}
-                      </TableCell>
-                      <TableCell
-                        className="text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {leader.latest_source_url ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            asChild
-                            className="h-8 px-2"
-                          >
-                            <a
-                              href={leader.latest_source_url}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            无
-                          </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </DataItemCard>
                   );
-                })}
-              </TableBody>
-            </Table>
-            {!isLoading && items.length === 0 && (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                暂无匹配的外部领导
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3 p-3 md:hidden">
-            {items.map((leader) => (
-              <LeaderMobileCard
-                key={leader.id}
-                leader={leader}
-                onClick={() => openLeaderDetail(leader)}
-              />
-            ))}
-            {!isLoading && items.length === 0 && (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                暂无匹配的外部领导
-              </div>
-            )}
-          </div>
-
-          <div className="border-t border-border/70 p-3">
+                })
+              )}
+            </div>
             <FeedPagination
               page={page}
               pageSize={pageSize}
               total={total}
               totalPages={totalPages}
               isLoading={isLoading}
-              onPageChange={setPage}
+              onPageChange={handlePageChange}
               className="w-full"
             />
           </div>
-        </div>
-      </div>
-
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent
-          side="right"
-          className="w-full overflow-y-auto sm:max-w-lg"
-        >
-          {selectedLeader && (
-            <>
-              <SheetHeader className="border-b border-border/60 pb-4">
-                <div className="flex items-center gap-3">
-                  <LeaderAvatar leader={selectedLeader} size={48} />
-                  <div className="min-w-0">
-                    <SheetTitle className="text-lg">
-                      {selectedLeader.name}
-                    </SheetTitle>
-                    <div className="mt-1 flex items-center gap-2">
-                      <LeaderDomainBadge
-                        domain={selectedLeader.leader_domain}
-                      />
-                      <span className="text-sm text-muted-foreground">
-                        {getDisplayPositions(selectedLeader)}
-                      </span>
-                    </div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">
-                      {getDisplayOrgs(selectedLeader)}
-                    </div>
-                  </div>
-                </div>
-              </SheetHeader>
-              <LeaderDetailContent leader={selectedLeader} />
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+        </MasterDetailView>
+      </Card>
     </div>
   );
 }

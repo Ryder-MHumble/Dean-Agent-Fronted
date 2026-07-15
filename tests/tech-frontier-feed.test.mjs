@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
+  collectTechFrontierPostWindow,
   collectTechFrontierPostPages,
   buildTechFrontierPostParams,
   isTechFrontierFeedPost,
@@ -86,6 +88,111 @@ test("collectTechFrontierPostPages stops before the backend maximum offset", asy
 
   assert.deepEqual(requestedPages, [1, 2]);
   assert.equal(result?.length, 4);
+});
+
+test("collectTechFrontierPostPages stops after page one has enough filtered rows", async () => {
+  const requestedPages = [];
+  const result = await collectTechFrontierPostPages(
+    async (page) => {
+      requestedPages.push(page);
+      return {
+        items: Array.from({ length: 20 }, (_, index) => ({
+          id: `x-${page}-${index}`,
+          platform: "x",
+          post_type: "tweet",
+          source_id: "x",
+          author_username: "author",
+          content_text: `post ${index}`,
+        })),
+      };
+    },
+    20,
+    2000,
+    20,
+  );
+
+  assert.deepEqual(requestedPages, [1]);
+  assert.equal(result?.length, 20);
+});
+
+test("collectTechFrontierPostWindow preserves the backend next-page signal", async () => {
+  const requestedPages = [];
+  const result = await collectTechFrontierPostWindow(
+    async (page) => {
+      requestedPages.push(page);
+      return {
+        total: 21,
+        total_pages: 2,
+        items: Array.from({ length: 20 }, (_, index) => ({
+          id: `x-${index}`,
+          platform: "x",
+          post_type: "tweet",
+          source_id: "x",
+          author_username: "author",
+          content_text: `post ${index}`,
+        })),
+      };
+    },
+    20,
+    2000,
+    20,
+  );
+
+  assert.deepEqual(requestedPages, [1]);
+  assert.equal(result?.items.length, 20);
+  assert.equal(result?.reportedTotal, 21);
+  assert.equal(result?.hasMore, true);
+});
+
+test("collectTechFrontierPostWindow does not expose pages beyond the loaded window", async () => {
+  const result = await collectTechFrontierPostWindow(
+    async () => ({
+      total: 5000,
+      total_pages: 250,
+      items: Array.from({ length: 20 }, (_, index) => ({
+        id: `x-${index}`,
+        platform: "x",
+        post_type: "tweet",
+        source_id: "x",
+        author_username: "author",
+        content_text: `post ${index}`,
+      })),
+    }),
+    20,
+    2000,
+    20,
+  );
+
+  assert.equal(result?.reportedTotal, 21);
+  assert.equal(result?.hasMore, true);
+});
+
+test("collectTechFrontierPostWindow closes pagination at the maximum offset", async () => {
+  const requestedPages = [];
+  const result = await collectTechFrontierPostWindow(
+    async (page) => {
+      requestedPages.push(page);
+      return {
+        total: 5000,
+        total_pages: 250,
+        items: Array.from({ length: 20 }, (_, index) => ({
+          id: `x-${page}-${index}`,
+          platform: "x",
+          post_type: "tweet",
+          source_id: "x",
+          author_username: "author",
+          content_text: `post ${index}`,
+        })),
+      };
+    },
+    20,
+    40,
+  );
+
+  assert.deepEqual(requestedPages, [1, 2, 3]);
+  assert.equal(result?.items.length, 60);
+  assert.equal(result?.reportedTotal, 60);
+  assert.equal(result?.hasMore, false);
 });
 
 test("normalizeTechFrontierPost maps X posts into card-ready items", () => {
@@ -294,4 +401,57 @@ test("summarizeTechFrontierPlatformFeed counts loaded platform rows instead of b
   assert.equal(summary.total, 44);
   assert.equal(summary.totalPages, 3);
   assert.equal(summary.items.length, 20);
+});
+
+test("summarizeTechFrontierPlatformFeed keeps progressive totals navigable", () => {
+  const xItems = Array.from({ length: 20 }, (_, index) => ({
+    id: `x-${index}`,
+    platform: "x",
+    publishedAt: `2026-05-20T${String(20 - index).padStart(2, "0")}:00:00Z`,
+  }));
+  const wechatItems = Array.from({ length: 20 }, (_, index) => ({
+    id: `wechat-${index}`,
+    platform: "wechat_mp",
+    publishedAt: `2026-05-19T${String(20 - index).padStart(2, "0")}:00:00Z`,
+  }));
+
+  const xOnly = summarizeTechFrontierPlatformFeed(xItems, [], 1, 20, {
+    x: 21,
+    wechat_mp: 0,
+  });
+  const combined = summarizeTechFrontierPlatformFeed(
+    xItems,
+    wechatItems,
+    1,
+    20,
+    { x: 21, wechat_mp: 21 },
+  );
+
+  assert.equal(xOnly.total, 21);
+  assert.equal(xOnly.totalPages, 2);
+  assert.deepEqual(combined.platformTotals, {
+    all: 42,
+    x: 21,
+    wechat_mp: 21,
+  });
+  assert.equal(combined.total, 42);
+  assert.equal(combined.totalPages, 3);
+});
+
+test("tech frontier pagination labels progressive totals as estimates", () => {
+  const paginationSource = readFileSync(
+    new URL("../components/shared/feed-pagination.tsx", import.meta.url),
+    "utf8",
+  );
+  const pageSource = readFileSync(
+    new URL(
+      "../components/modules/tech-frontier/tech-frontier-page.tsx",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  assert.match(paginationSource, /totalIsEstimate/);
+  assert.match(paginationSource, /至少/);
+  assert.match(pageSource, /<FeedPagination[\s\S]*totalIsEstimate/);
 });

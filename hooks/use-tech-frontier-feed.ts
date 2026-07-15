@@ -3,15 +3,14 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { fetchSocialPostDetail, fetchSocialPosts } from "@/lib/api";
 import {
-  collectTechFrontierPostPages,
-  normalizeTechFrontierPost,
+  collectTechFrontierPostWindow,
   summarizeTechFrontierPlatformFeed,
   type SocialPostDetail,
   type TechFrontierPlatformFilter,
   type TechFrontierPostItem,
 } from "@/lib/tech-frontier-feed";
 
-const FULL_FEED_PAGE_SIZE = 200;
+const MAX_FEED_PAGE_SIZE = 200;
 const MAX_FEED_OFFSET = 2000;
 
 interface UseTechFrontierFeedParams {
@@ -46,7 +45,9 @@ async function fetchAllPlatformPosts(
   platform: Exclude<TechFrontierPlatformFilter, "all">,
   params: UseTechFrontierFeedParams,
 ) {
-  return collectTechFrontierPostPages(
+  const requiredItemCount = Math.max(1, params.page * params.pageSize);
+  const requestPageSize = Math.min(MAX_FEED_PAGE_SIZE, requiredItemCount);
+  return collectTechFrontierPostWindow(
     (page) =>
       fetchSocialPosts({
         platform,
@@ -54,10 +55,11 @@ async function fetchAllPlatformPosts(
         dateFrom: params.dateFrom,
         dateTo: params.dateTo,
         page,
-        pageSize: FULL_FEED_PAGE_SIZE,
+        pageSize: requestPageSize,
       }),
-    FULL_FEED_PAGE_SIZE,
+    requestPageSize,
     MAX_FEED_OFFSET,
+    requiredItemCount,
   );
 }
 
@@ -69,26 +71,38 @@ async function fetchTechFrontierPage(params: UseTechFrontierFeedParams) {
 
   if (!xItems || !wechatItems) return null;
 
+  const reportedTotals = {
+    x: xItems.reportedTotal,
+    wechat_mp: wechatItems.reportedTotal,
+  };
+
   const allSummary = summarizeTechFrontierPlatformFeed(
-    xItems,
-    wechatItems,
+    xItems.items,
+    wechatItems.items,
     params.page,
     params.pageSize,
+    reportedTotals,
   );
 
   if (params.platform === "all") {
     return {
       ...allSummary,
-      generatedAt: getLatestTimestamp([...xItems, ...wechatItems]),
+      generatedAt: getLatestTimestamp([...xItems.items, ...wechatItems.items]),
     };
   }
 
-  const selectedItems = params.platform === "x" ? xItems : wechatItems;
+  const selectedItems =
+    params.platform === "x" ? xItems.items : wechatItems.items;
   const selectedPage = summarizeTechFrontierPlatformFeed(
-    params.platform === "x" ? xItems : [],
-    params.platform === "wechat_mp" ? wechatItems : [],
+    params.platform === "x" ? xItems.items : [],
+    params.platform === "wechat_mp" ? wechatItems.items : [],
     params.page,
     params.pageSize,
+    {
+      x: params.platform === "x" ? xItems.reportedTotal : 0,
+      wechat_mp:
+        params.platform === "wechat_mp" ? wechatItems.reportedTotal : 0,
+    },
   );
 
   return {
@@ -206,62 +220,4 @@ export function useTechFrontierPostDetail(postId?: string | null) {
   }, [postId]);
 
   return { detail, isLoading };
-}
-
-export function useTechFrontierAuthorAvatars(items: TechFrontierPostItem[]) {
-  const [avatarByPostId, setAvatarByPostId] = useState<Record<string, string>>(
-    {},
-  );
-  const itemKey = useMemo(
-    () =>
-      items
-        .filter((item) => item.platform === "x")
-        .map((item) => `${item.id}:${item.authorAvatarUrl ?? ""}`)
-        .join("|"),
-    [items],
-  );
-
-  useEffect(() => {
-    const missingItems = items.filter(
-      (item) =>
-        item.platform === "x" &&
-        !item.authorAvatarUrl &&
-        !avatarByPostId[item.id],
-    );
-
-    if (missingItems.length === 0) return;
-
-    let cancelled = false;
-
-    async function loadAvatars() {
-      const entries = await Promise.all(
-        missingItems.map(async (item) => {
-          const detail = await fetchSocialPostDetail(item.id);
-          if (!detail) return null;
-          const avatarUrl = normalizeTechFrontierPost(detail).authorAvatarUrl;
-          return avatarUrl ? [item.id, avatarUrl] : null;
-        }),
-      );
-
-      if (cancelled) return;
-
-      const nextEntries = entries.filter(
-        (entry): entry is [string, string] => entry !== null,
-      );
-      if (nextEntries.length === 0) return;
-
-      setAvatarByPostId((current) => ({
-        ...current,
-        ...Object.fromEntries(nextEntries),
-      }));
-    }
-
-    loadAvatars();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [itemKey, items, avatarByPostId]);
-
-  return avatarByPostId;
 }

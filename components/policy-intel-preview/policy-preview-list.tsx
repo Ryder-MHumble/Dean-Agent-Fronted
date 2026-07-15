@@ -1,6 +1,13 @@
 import { CalendarDays, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRef } from "react";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   getPolicyPreviewScore,
   type PolicyPreviewSort,
 } from "@/lib/policy-preview";
@@ -47,6 +54,15 @@ const CATEGORIES: (PolicyFeedCategory | "全部")[] = [
   "领导讲话",
   "政策机会",
 ];
+const ALL_SOURCE_VALUE = "__all_policy_sources__";
+
+function formatTimelineDate(date: string) {
+  const [year, month, day] = date.split("-");
+  return {
+    primary: month && day ? `${month}-${day}` : date,
+    secondary: year || "",
+  };
+}
 
 export default function PolicyPreviewList({
   items,
@@ -115,31 +131,62 @@ export default function PolicyPreviewList({
               }}
             />
           </label>
-          <select
-            value={category}
-            aria-label="政策分类"
-            onChange={(event) =>
-              onCategoryChange(event.target.value as PolicyFeedCategory | "全部")
-            }
-          >
-            {CATEGORIES.map((option) => (
-              <option value={option} key={option}>
-                {option === "全部" ? "全部分类" : option}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedSourceId}
-            aria-label="政策信源"
-            onChange={(event) => onSourceChange(event.target.value)}
-          >
-            <option value="">全部政策信源</option>
-            {sources.map((source) => (
-              <option value={source.id} key={source.id}>
-                {source.label}
-              </option>
-            ))}
-          </select>
+          <div className={styles.selectCluster}>
+            <Select
+              value={category}
+              onValueChange={(value) =>
+                onCategoryChange(value as PolicyFeedCategory | "全部")
+              }
+            >
+              <SelectTrigger className={styles.previewSelectTrigger} aria-label="政策分类">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent
+                className={styles.previewSelectContent}
+                sideOffset={6}
+              >
+                {CATEGORIES.map((option) => (
+                  <SelectItem
+                    value={option}
+                    key={option}
+                    className={styles.previewSelectItem}
+                  >
+                    {option === "全部" ? "全部分类" : option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedSourceId || ALL_SOURCE_VALUE}
+              onValueChange={(value) =>
+                onSourceChange(value === ALL_SOURCE_VALUE ? "" : value)
+              }
+            >
+              <SelectTrigger className={styles.previewSelectTrigger} aria-label="政策信源">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent
+                className={styles.previewSelectContent}
+                sideOffset={6}
+              >
+                <SelectItem
+                  value={ALL_SOURCE_VALUE}
+                  className={styles.previewSelectItem}
+                >
+                  全部政策信源
+                </SelectItem>
+                {sources.map((source) => (
+                  <SelectItem
+                    value={source.id}
+                    key={source.id}
+                    className={styles.previewSelectItem}
+                  >
+                    {source.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <button type="button" className={styles.searchButton} onClick={submitSearch}>
             搜索
           </button>
@@ -196,8 +243,27 @@ export default function PolicyPreviewList({
               const score = getPolicyPreviewScore(item);
               const hasScore = item.matchScore != null || item.relevance != null;
               const source = item.sourceName ?? item.source_name ?? item.source;
+              const timelineDate = formatTimelineDate(item.date);
+              const startsDateGroup = index === 0 || items[index - 1]?.date !== item.date;
               return (
-                <li key={item.id}>
+                <li
+                  key={item.id}
+                  className={[
+                    startsDateGroup ? styles.timelineGroupStart : "",
+                    selectedId === item.id ? styles.selectedTimelineItem : "",
+                  ].filter(Boolean).join(" ")}
+                >
+                  <span className={styles.itemTime} aria-hidden="true">
+                    {startsDateGroup ? (
+                      <>
+                        <strong>{timelineDate.primary}</strong>
+                        <small>{timelineDate.secondary}</small>
+                      </>
+                    ) : null}
+                  </span>
+                  <span className={styles.timelineAxis} aria-hidden="true">
+                    <i />
+                  </span>
                   <button
                     type="button"
                     className={`${styles.policyItem} ${selectedId === item.id ? styles.selectedItem : ""}`}
@@ -205,9 +271,9 @@ export default function PolicyPreviewList({
                     disabled={isLoading}
                     onClick={(event) => onSelect(item, event.currentTarget)}
                   >
-                    <span className={styles.itemIndex}>{String(index + 1).padStart(2, "0")}</span>
                     <span className={styles.itemBody}>
                       <span className={styles.itemMeta}>
+                        <span className={styles.itemIndex}>{String(index + 1).padStart(2, "0")}</span>
                         <span>{source}</span>
                         <time dateTime={item.date}>{item.date}</time>
                       </span>

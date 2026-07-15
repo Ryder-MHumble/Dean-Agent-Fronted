@@ -65,6 +65,10 @@ export function buildPaperQueryParams(
 
   const keyword = query.keyword?.trim();
   if (keyword) params.set("q", keyword);
+  const dateFrom = query.dateFrom?.trim();
+  if (dateFrom) params.set("date_from", dateFrom);
+  const dateTo = query.dateTo?.trim();
+  if (dateTo) params.set("date_to", dateTo);
 
   params.set("page", String(Math.max(1, query.page ?? 1)));
   params.set(
