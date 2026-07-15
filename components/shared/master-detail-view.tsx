@@ -33,6 +33,8 @@ interface MasterDetailViewProps {
   className?: string;
   /** Class for the desktop list content wrapper */
   listContentClassName?: string;
+  /** Opt-in styling for intelligence report pages */
+  variant?: "default" | "intelligence";
 }
 
 export default function MasterDetailView({
@@ -45,13 +47,15 @@ export default function MasterDetailView({
   listWidth = 50,
   className,
   listContentClassName,
+  variant = "default",
 }: MasterDetailViewProps) {
   const breakpoint = useBreakpoint();
+  const isIntelligence = variant === "intelligence";
 
   // Mobile: full-screen detail overlay
   if (breakpoint === "mobile") {
     return (
-      <div className={cn("relative", className)}>
+      <div className={cn("relative", isIntelligence && "bg-white", className)}>
         {children}
         <AnimatePresence>
           {isOpen && (
@@ -60,13 +64,22 @@ export default function MasterDetailView({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.3, ease: EASE }}
-              className="fixed inset-0 z-50 flex flex-col bg-background"
+              className={cn(
+                "fixed inset-0 z-50 flex flex-col bg-background",
+                isIntelligence && "bg-white",
+              )}
             >
               {/* Mobile header */}
-              <div className="flex items-center gap-3 border-b px-4 py-3">
+              <div
+                className={cn(
+                  "flex items-center gap-3 border-b px-4 py-3",
+                  isIntelligence && "border-[#e5e9f0] bg-white",
+                )}
+              >
                 <button
                   onClick={onClose}
                   className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted/60 transition-colors"
+                  aria-label="返回列表"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
@@ -90,7 +103,12 @@ export default function MasterDetailView({
                 <div className="p-4">{detailContent}</div>
               </ScrollArea>
               {detailFooter && (
-                <div className="border-t bg-background px-4 py-3">
+                <div
+                  className={cn(
+                    "border-t bg-background px-4 py-3",
+                    isIntelligence && "border-[#e5e9f0] bg-white",
+                  )}
+                >
                   {detailFooter}
                 </div>
               )}
@@ -104,7 +122,7 @@ export default function MasterDetailView({
   // Tablet: overlay panel without dark backdrop
   if (breakpoint === "tablet") {
     return (
-      <div className={cn("relative", className)}>
+      <div className={cn("relative", isIntelligence && "bg-white", className)}>
         {children}
         <AnimatePresence>
           {isOpen && (
@@ -113,13 +131,17 @@ export default function MasterDetailView({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.3, ease: EASE }}
-              className="absolute right-0 top-0 z-30 flex h-full w-[70%] flex-col border-l bg-background shadow-2xl"
+              className={cn(
+                "absolute right-0 top-0 z-30 flex h-full w-[70%] flex-col border-l bg-background shadow-2xl",
+                isIntelligence && "border-[#e5e9f0] bg-white",
+              )}
             >
               <DetailPanelInner
                 detailHeader={detailHeader}
                 detailContent={detailContent}
                 detailFooter={detailFooter}
                 onClose={onClose}
+                variant={variant}
               />
             </motion.div>
           )}
@@ -130,7 +152,13 @@ export default function MasterDetailView({
 
   // Desktop: side-by-side split
   return (
-    <div className={cn("flex h-full w-full overflow-hidden", className)}>
+    <div
+      className={cn(
+        "flex h-full w-full overflow-hidden",
+        isIntelligence && "bg-white",
+        className,
+      )}
+    >
       {/* List pane */}
       <motion.div
         animate={{ width: isOpen ? `${listWidth}%` : "100%" }}
@@ -150,13 +178,17 @@ export default function MasterDetailView({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 24 }}
             transition={{ duration: 0.28, ease: EASE }}
-            className="flex flex-1 min-h-0 flex-col overflow-hidden border-l border-border/60 bg-background shadow-lg"
+            className={cn(
+              "flex flex-1 min-h-0 flex-col overflow-hidden border-l border-border/60 bg-background shadow-lg",
+              isIntelligence && "border-[#e5e9f0] bg-white",
+            )}
           >
             <DetailPanelInner
               detailHeader={detailHeader}
               detailContent={detailContent}
               detailFooter={detailFooter}
               onClose={onClose}
+              variant={variant}
             />
           </motion.div>
         )}
@@ -171,16 +203,24 @@ function DetailPanelInner({
   detailContent,
   detailFooter,
   onClose,
+  variant,
 }: {
   detailHeader?: MasterDetailViewProps["detailHeader"];
   detailContent: ReactNode;
   detailFooter?: ReactNode;
   onClose: () => void;
+  variant: NonNullable<MasterDetailViewProps["variant"]>;
 }) {
   return (
     <>
       {/* Sticky header */}
-      <div className="flex items-start justify-between gap-3 border-b bg-background/95 backdrop-blur-sm px-6 py-4">
+      <div
+        className={cn(
+          "flex items-start justify-between gap-3 border-b bg-background/95 backdrop-blur-sm px-6 py-4",
+          variant === "intelligence" &&
+            "border-[#e5e9f0] bg-white backdrop-blur-none",
+        )}
+      >
         <div className="flex-1 min-w-0">
           {detailHeader?.title}
           {detailHeader?.subtitle}
@@ -191,7 +231,10 @@ function DetailPanelInner({
               href={detailHeader.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-7 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-[11px] font-medium text-blue-600 hover:bg-blue-100 transition-colors"
+              className={cn(
+                "flex h-7 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 text-[11px] font-medium text-blue-600 hover:bg-blue-100 transition-colors",
+                variant === "intelligence" && "border-[#e5e9f0]",
+              )}
             >
               <ExternalLink className="h-3 w-3" />
               跳转原文
@@ -200,6 +243,7 @@ function DetailPanelInner({
           <button
             onClick={onClose}
             className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted/60 transition-colors"
+            aria-label="关闭详情"
           >
             <X className="h-4 w-4 text-muted-foreground" />
           </button>
@@ -213,7 +257,14 @@ function DetailPanelInner({
 
       {/* Fixed footer */}
       {detailFooter && (
-        <div className="border-t bg-background px-6 py-4">{detailFooter}</div>
+        <div
+          className={cn(
+            "border-t bg-background px-6 py-4",
+            variant === "intelligence" && "border-[#e5e9f0] bg-white",
+          )}
+        >
+          {detailFooter}
+        </div>
       )}
     </>
   );

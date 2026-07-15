@@ -18,9 +18,12 @@ interface FeedPaginationProps {
 export default function FeedPagination({
   page,
   totalPages,
+  total,
+  pageSize,
   onPageChange,
   className,
   isLoading = false,
+  totalIsEstimate = false,
 }: FeedPaginationProps) {
   const safeTotalPages = Math.max(1, totalPages);
   const safePage = Math.min(Math.max(1, page), safeTotalPages);
@@ -35,11 +38,18 @@ export default function FeedPagination({
     <nav
       data-feed-pagination=""
       aria-label="列表分页"
+      title={`每页 ${pageSize.toLocaleString("zh-CN")} 条`}
       className={cn(
         "flex items-center justify-center gap-3 rounded-lg border-t border-border/60 bg-background/80 px-2 py-1.5",
         className,
       )}
     >
+      <span className="text-xs text-[#667085]">
+        {totalIsEstimate
+          ? `至少 ${total.toLocaleString("zh-CN")} 条`
+          : `共 ${total.toLocaleString("zh-CN")} 条`}
+      </span>
+
       <Button
         type="button"
         variant="outline"
