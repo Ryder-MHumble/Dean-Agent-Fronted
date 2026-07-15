@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   HoverCard,
   HoverCardContent,
@@ -15,20 +14,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import DataItemCard, {
-  ItemChevron,
-  accentConfig,
-} from "@/components/shared/data-item-card";
 import DateRangeFilter from "@/components/shared/date-range-filter";
 import FeedPagination from "@/components/shared/feed-pagination";
 import { SearchInput } from "@/components/shared/forms/SearchInput";
-import MasterDetailView from "@/components/shared/master-detail-view";
+import {
+  IntelligenceDetailHeader,
+  IntelligenceSection,
+} from "@/components/shared/intelligence-detail";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { usePaperFeed } from "@/hooks/use-paper-feed";
 import { getPaperCategorySourceQueries } from "@/lib/paper-feed";
 import { cn } from "@/lib/utils";
 import type { PaperCategory, PaperRecord } from "@/lib/types/papers";
-import { ExternalLink, FileText, Loader2 } from "lucide-react";
+import { ChevronRight, ExternalLink, FileText, Loader2 } from "lucide-react";
 
 const PAGE_SIZE = 20;
 const API_BASE = (
@@ -222,21 +223,6 @@ function PaperAuthorHoverCard({ author }: { author: string }) {
   );
 }
 
-function DetailSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-2 border-b border-border/60 pb-4 last:border-b-0">
-      <h3 className="text-sm font-semibold text-[#1a3a5c]">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
 function PaperDetail({ paper }: { paper: PaperRecord }) {
   const affiliations = getAffiliations(paper);
   const authors = getAuthorNames(paper);
@@ -247,8 +233,8 @@ function PaperDetail({ paper }: { paper: PaperRecord }) {
   ].filter(Boolean);
 
   return (
-    <div className="space-y-4">
-      <DetailSection title="作者">
+    <div className="space-y-5">
+      <IntelligenceSection title="作者">
         <div className="flex flex-wrap gap-x-2 gap-y-1 text-sm leading-6 text-muted-foreground">
           {authors.length > 0
             ? authors.map((author) => (
@@ -256,10 +242,10 @@ function PaperDetail({ paper }: { paper: PaperRecord }) {
               ))
             : "作者信息待补充"}
         </div>
-      </DetailSection>
+      </IntelligenceSection>
 
       {affiliations.length > 0 && (
-        <DetailSection title="机构">
+        <IntelligenceSection title="机构">
           <div className="flex flex-wrap gap-1.5">
             {affiliations.map((affiliation) => (
               <Badge key={affiliation} variant="secondary" className="text-xs">
@@ -267,23 +253,23 @@ function PaperDetail({ paper }: { paper: PaperRecord }) {
               </Badge>
             ))}
           </div>
-        </DetailSection>
+        </IntelligenceSection>
       )}
 
-      <DetailSection title="摘要">
+      <IntelligenceSection title="摘要">
         <p className="whitespace-pre-line text-sm leading-6 text-muted-foreground">
           {paper.abstract?.trim() || "摘要待补充"}
         </p>
-      </DetailSection>
+      </IntelligenceSection>
 
       {identifiers.length > 0 && (
-        <DetailSection title="标识信息">
+        <IntelligenceSection title="标识信息">
           <div className="space-y-1 text-xs text-muted-foreground">
             {identifiers.map((identifier) => (
               <p key={identifier}>{identifier}</p>
             ))}
           </div>
-        </DetailSection>
+        </IntelligenceSection>
       )}
 
       {paper.pdfUrl && (
@@ -302,6 +288,26 @@ function PaperDetail({ paper }: { paper: PaperRecord }) {
   );
 }
 
+function PaperDetailHeader({ paper }: { paper: PaperRecord }) {
+  return (
+    <IntelligenceDetailHeader
+      badges={
+        <Badge variant="outline" className="text-[10px]">
+          {getSourceLabel(paper)}
+        </Badge>
+      }
+      title={paper.title}
+      meta={
+        <div className="flex flex-wrap items-center gap-2">
+          <span>{paper.venueText}</span>
+          <span>&middot;</span>
+          <span>{getPublicationLabel(paper)}</span>
+        </div>
+      }
+    />
+  );
+}
+
 function PaperRow({
   paper,
   isSelected,
@@ -312,22 +318,16 @@ function PaperRow({
   onClick: () => void;
 }) {
   return (
-    <DataItemCard
-      isSelected={isSelected}
+    <IntelligenceListItem
+      selected={isSelected}
       onClick={onClick}
-      accentColor="blue"
-      className="p-3.5"
+      className="group p-3.5"
     >
       <div className="mb-1.5 flex items-start justify-between gap-3">
-        <h3
-          className={cn(
-            "line-clamp-1 min-w-0 flex-1 text-sm font-semibold leading-5 text-foreground transition-colors",
-            accentConfig.blue.title,
-          )}
-        >
+        <h3 className="line-clamp-1 min-w-0 flex-1 text-sm font-semibold leading-5 text-foreground transition-colors group-hover:text-[#3156d8]">
           {paper.title}
         </h3>
-        <ItemChevron accentColor="blue" />
+        <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
       </div>
       <p className="mb-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
         {paper.abstract?.trim() || "摘要待补充"}
@@ -340,7 +340,7 @@ function PaperRow({
         <span>{paper.venueText}</span>
         <span className="ml-auto shrink-0">{getPublicationLabel(paper)}</span>
       </div>
-    </DataItemCard>
+    </IntelligenceListItem>
   );
 }
 
@@ -426,63 +426,12 @@ export default function PaperList({
     ));
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <Card className="relative z-10 shrink-0 rounded-xl shadow-sm">
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <SearchInput
-              value={searchInput}
-              onChange={setSearchInput}
-              onSearch={(value) => {
-                setSearchQuery(value);
-                resetPageAndDetail();
-              }}
-              placeholder="搜索论文标题、摘要、作者..."
-              className="min-w-[16rem] flex-1"
-              inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
-              buttonClassName="h-9 rounded-lg"
-            />
-            <DateRangeFilter
-              from={dateFrom}
-              to={dateTo}
-              onFromChange={(value) => {
-                setDateFrom(value);
-                resetPageAndDetail();
-              }}
-              onToChange={(value) => {
-                setDateTo(value);
-                resetPageAndDetail();
-              }}
-              onClear={() => {
-                setDateFrom("");
-                setDateTo("");
-                resetPageAndDetail();
-              }}
-              className="w-full min-w-0 md:w-auto md:shrink-0"
-            />
-            {sourceOptions.length > 0 && (
-              <Select
-                value={selectedSourceId || "all"}
-                onValueChange={(value) => {
-                  setSelectedSourceId(value === "all" ? "" : value);
-                  resetPageAndDetail();
-                }}
-              >
-                <SelectTrigger className="h-9 w-full rounded-lg text-xs md:w-40">
-                  <SelectValue placeholder="刊会筛选" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部刊会</SelectItem>
-                  {sourceOptions.map((source) => (
-                    <SelectItem key={source.value} value={source.value}>
-                      {source.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
+    <>
+      <IntelligenceToolbar
+        title="前沿论文"
+        total={feed.isSampled ? undefined : feed.total}
+        actions={accessNote}
+        supplemental={
           <div className="flex flex-wrap items-center gap-2">
             {!category &&
               categoryTabs.map((tab) => (
@@ -500,45 +449,82 @@ export default function PaperList({
                   {tab.label}
                 </button>
               ))}
-            <span className="text-[11px] text-muted-foreground">
-              {feed.isSampled ? "精选聚合" : "共"} {feed.total} 条
-            </span>
-            <div className="ml-auto">{accessNote}</div>
+            {feed.isSampled && (
+              <span className="text-[11px] text-muted-foreground">
+                精选聚合 {feed.total} 条
+              </span>
+            )}
           </div>
-        </CardContent>
-      </Card>
+        }
+      >
+        <SearchInput
+          value={searchInput}
+          onChange={setSearchInput}
+          onSearch={(value) => {
+            setSearchQuery(value);
+            resetPageAndDetail();
+          }}
+          placeholder="搜索论文标题、摘要、作者..."
+          className="min-w-[16rem] flex-1"
+          inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
+          buttonClassName="h-9 rounded-lg"
+        />
+        <DateRangeFilter
+          from={dateFrom}
+          to={dateTo}
+          onFromChange={(value) => {
+            setDateFrom(value);
+            resetPageAndDetail();
+          }}
+          onToChange={(value) => {
+            setDateTo(value);
+            resetPageAndDetail();
+          }}
+          onClear={() => {
+            setDateFrom("");
+            setDateTo("");
+            resetPageAndDetail();
+          }}
+          className="w-full min-w-0 md:w-auto md:shrink-0"
+        />
+        {sourceOptions.length > 0 && (
+          <Select
+            value={selectedSourceId || "all"}
+            onValueChange={(value) => {
+              setSelectedSourceId(value === "all" ? "" : value);
+              resetPageAndDetail();
+            }}
+          >
+            <SelectTrigger className="h-9 w-full rounded-lg text-xs md:w-40">
+              <SelectValue placeholder="刊会筛选" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部刊会</SelectItem>
+              {sourceOptions.map((source) => (
+                <SelectItem key={source.value} value={source.value}>
+                  {source.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </IntelligenceToolbar>
 
-      <Card className="min-h-0 flex-1 overflow-hidden rounded-xl shadow-sm">
-        <MasterDetailView
-          className="h-full"
-          listContentClassName="min-h-0 overflow-hidden"
-          isOpen={isOpen}
-          onClose={close}
-          detailHeader={
-            selectedItem
-              ? {
-                  title: (
-                    <h2 className="text-lg font-semibold leading-snug">
-                      {selectedItem.title}
-                    </h2>
-                  ),
-                  subtitle: (
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <Badge variant="outline" className="text-[10px]">
-                        {getSourceLabel(selectedItem)}
-                      </Badge>
-                      <span>{selectedItem.venueText}</span>
-                      <span>&middot;</span>
-                      <span>{getPublicationLabel(selectedItem)}</span>
-                    </div>
-                  ),
-                  sourceUrl: selectedItem.sourceUrl ?? undefined,
-                }
-              : undefined
-          }
-          detailContent={selectedItem ? <PaperDetail paper={selectedItem} /> : null}
-        >
-          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 p-3">
+      <IntelligenceWorkspace
+        listContentClassName="min-h-0 overflow-hidden"
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedItem
+            ? {
+                title: <PaperDetailHeader paper={selectedItem} />,
+                sourceUrl: selectedItem.sourceUrl ?? undefined,
+              }
+            : undefined
+        }
+        detailContent={selectedItem ? <PaperDetail paper={selectedItem} /> : null}
+      >
+          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
             <div
               ref={listRef}
               aria-busy={feed.isLoading}
@@ -591,8 +577,7 @@ export default function PaperList({
               className="w-full"
             />
           </div>
-        </MasterDetailView>
-      </Card>
-    </div>
+      </IntelligenceWorkspace>
+    </>
   );
 }

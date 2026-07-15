@@ -1,11 +1,12 @@
 "use client";
 
 import SkillAccessNote from "@/components/shared/skill-access-note";
+import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
 import AcademicAchievementList from "./academic-achievement-list";
 
 export default function AcademicAchievementsModule() {
   return (
-    <div className="h-[var(--app-content-height,100dvh)] overflow-hidden bg-[#f7f8fa] px-5 pb-1 pt-5">
+    <IntelligencePageShell>
       <AcademicAchievementList
         accessNote={
           <SkillAccessNote
@@ -14,6 +15,6 @@ export default function AcademicAchievementsModule() {
           />
         }
       />
-    </div>
+    </IntelligencePageShell>
   );
 }

@@ -75,3 +75,17 @@ test("policy and social intelligence use the unified shell", () => {
   assert.doesNotMatch(social, /YouTube|youtube/);
   assert.doesNotMatch(social, /\/logos\/(?:x|wechat)\.svg/);
 });
+
+test("paper data pages use the unified shell and detail hierarchy", () => {
+  for (const path of [
+    "../components/modules/papers/paper-list.tsx",
+    "../components/modules/internal-shared/academic-achievement-list.tsx",
+  ]) {
+    const source = read(path);
+    assert.match(source, /<IntelligenceToolbar/);
+    assert.match(source, /<IntelligenceWorkspace/);
+    assert.match(source, /<IntelligenceListItem/);
+    assert.match(source, /<IntelligenceDetailHeader/);
+    assert.match(source, /<IntelligenceSection/);
+  }
+});

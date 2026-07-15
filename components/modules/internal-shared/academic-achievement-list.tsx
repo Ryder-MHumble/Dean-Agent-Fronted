@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -17,13 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import DataItemCard, {
-  ItemChevron,
-  accentConfig,
-} from "@/components/shared/data-item-card";
 import FeedPagination from "@/components/shared/feed-pagination";
 import { SearchInput } from "@/components/shared/forms/SearchInput";
-import MasterDetailView from "@/components/shared/master-detail-view";
+import {
+  IntelligenceDetailHeader,
+  IntelligenceSection,
+} from "@/components/shared/intelligence-detail";
+import IntelligenceListItem from "@/components/shared/intelligence-list-item";
+import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
+import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { useZgcaAchievements } from "@/hooks/use-zgca-achievements";
 import {
@@ -40,7 +41,7 @@ import type {
   AchievementRecord,
   AchievementType,
 } from "@/lib/types/achievements";
-import { ExternalLink, FileText, Loader2 } from "lucide-react";
+import { ChevronRight, ExternalLink, FileText, Loader2 } from "lucide-react";
 
 const PAGE_SIZE = 20;
 const API_BASE = (
@@ -126,21 +127,6 @@ function getAchievementContext(item: AchievementRecord): string {
     item.project_name?.trim() ||
     sourceLabels[item.source_system ?? ""] ||
     "来源待补充"
-  );
-}
-
-function DetailSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-2 border-b border-border/60 pb-4 last:border-b-0">
-      <h3 className="text-sm font-semibold text-[#1a3a5c]">{title}</h3>
-      {children}
-    </section>
   );
 }
 
@@ -287,29 +273,29 @@ function AchievementDetail({ item }: { item: AchievementRecord }) {
   ].filter(Boolean);
 
   return (
-    <div className="space-y-4">
-      <DetailSection title="作者">
+    <div className="space-y-5">
+      <IntelligenceSection title="作者">
         <AchievementAuthorList item={item} />
-      </DetailSection>
+      </IntelligenceSection>
 
-      <DetailSection title="摘要">
+      <IntelligenceSection title="摘要">
         <p className="whitespace-pre-line text-sm leading-6 text-muted-foreground">
           {item.abstract?.trim() || item.notes?.trim() || "暂无补充说明"}
         </p>
-      </DetailSection>
+      </IntelligenceSection>
 
       {(item.project_name || item.project_leader || item.project_batch) && (
-        <DetailSection title="项目信息">
+        <IntelligenceSection title="项目信息">
           <div className="space-y-1 text-sm text-muted-foreground">
             {item.project_name && <p>项目名称：{item.project_name}</p>}
             {item.project_leader && <p>项目负责人：{item.project_leader}</p>}
             {item.project_batch && <p>项目批次：{item.project_batch}</p>}
           </div>
-        </DetailSection>
+        </IntelligenceSection>
       )}
 
       {item.sources.length > 0 && (
-        <DetailSection title="来源记录">
+        <IntelligenceSection title="来源记录">
           <div className="space-y-2">
             {item.sources.map((source, index) => {
               const url = typeof source.url === "string" ? source.url : null;
@@ -342,17 +328,17 @@ function AchievementDetail({ item }: { item: AchievementRecord }) {
               );
             })}
           </div>
-        </DetailSection>
+        </IntelligenceSection>
       )}
 
       {identifiers.length > 0 && (
-        <DetailSection title="标识信息">
+        <IntelligenceSection title="标识信息">
           <div className="space-y-1 text-xs text-muted-foreground">
             {identifiers.map((identifier) => (
               <p key={identifier}>{identifier}</p>
             ))}
           </div>
-        </DetailSection>
+        </IntelligenceSection>
       )}
 
       {item.pdf_url && (
@@ -368,6 +354,23 @@ function AchievementDetail({ item }: { item: AchievementRecord }) {
         </a>
       )}
     </div>
+  );
+}
+
+function AchievementDetailHeader({ item }: { item: AchievementRecord }) {
+  return (
+    <IntelligenceDetailHeader
+      badges={
+        <>
+          <AchievementTypeBadge type={item.achievement_type} />
+          <Badge variant="outline" className="text-[10px] font-medium">
+            {getAchievementSourceLabel(item)}
+          </Badge>
+        </>
+      }
+      title={item.title}
+      meta={<span>{getAchievementPrimaryDate(item)}</span>}
+    />
   );
 }
 
@@ -423,62 +426,12 @@ export default function AcademicAchievementList({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
-      <Card className="relative z-10 shrink-0 rounded-xl shadow-sm">
-        <CardContent className="space-y-3 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <SearchInput
-              value={searchInput}
-              onChange={setSearchInput}
-              onSearch={(value) => {
-                setKeyword(value);
-                resetView();
-              }}
-              placeholder="搜索成果名称..."
-              className="min-w-[16rem] flex-1"
-              inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
-              buttonClassName="h-9 rounded-lg"
-            />
-            <Select
-              value={year}
-              onValueChange={(value) => {
-                setYear(value);
-                resetView();
-              }}
-            >
-              <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-32">
-                <SelectValue placeholder="成果年份" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部年份</SelectItem>
-                {(feed.stats?.by_year ?? []).map((item) => (
-                  <SelectItem key={item.venue_year} value={String(item.venue_year)}>
-                    {item.venue_year} 年
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={sourceSystem}
-              onValueChange={(value) => {
-                setSourceSystem(value);
-                resetView();
-              }}
-            >
-              <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-40">
-                <SelectValue placeholder="数据来源" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">全部来源</SelectItem>
-                {(feed.stats?.by_source_system ?? []).map((item) => (
-                  <SelectItem key={item.source_system} value={item.source_system}>
-                    {sourceLabels[item.source_system] || item.source_system}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+    <>
+      <IntelligenceToolbar
+        title="两院学术成果"
+        total={feed.total}
+        actions={accessNote}
+        supplemental={
           <div className="flex flex-wrap items-center gap-2">
             {typeFilters.map((filter) => (
               <button
@@ -538,46 +491,78 @@ export default function AcademicAchievementList({
             >
               仅看已关联成员
             </button>
-            <span className="text-[11px] text-muted-foreground">
-              共 {feed.total} 条
-            </span>
-            <div className="ml-auto">{accessNote}</div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="min-h-0 flex-1 overflow-hidden rounded-xl shadow-sm">
-        <MasterDetailView
-          className="h-full"
-          listContentClassName="min-h-0 overflow-hidden"
-          isOpen={isOpen}
-          onClose={close}
-          detailHeader={
-            selectedItem
-              ? {
-                  title: (
-                    <h2 className="text-lg font-semibold leading-snug">
-                      {selectedItem.title}
-                    </h2>
-                  ),
-                  subtitle: (
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                      <AchievementTypeBadge type={selectedItem.achievement_type} />
-                      <Badge variant="outline" className="text-[10px] font-medium">
-                        {getAchievementSourceLabel(selectedItem)}
-                      </Badge>
-                      <span>{getAchievementPrimaryDate(selectedItem)}</span>
-                    </div>
-                  ),
-                  sourceUrl: selectedItem.detail_url ?? undefined,
-                }
-              : undefined
-          }
-          detailContent={
-            selectedItem ? <AchievementDetail item={selectedItem} /> : null
-          }
+        }
+      >
+        <SearchInput
+          value={searchInput}
+          onChange={setSearchInput}
+          onSearch={(value) => {
+            setKeyword(value);
+            resetView();
+          }}
+          placeholder="搜索成果名称..."
+          className="min-w-[16rem] flex-1"
+          inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
+          buttonClassName="h-9 rounded-lg"
+        />
+        <Select
+          value={year}
+          onValueChange={(value) => {
+            setYear(value);
+            resetView();
+          }}
         >
-          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 p-3">
+          <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-32">
+            <SelectValue placeholder="成果年份" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部年份</SelectItem>
+            {(feed.stats?.by_year ?? []).map((item) => (
+              <SelectItem key={item.venue_year} value={String(item.venue_year)}>
+                {item.venue_year} 年
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={sourceSystem}
+          onValueChange={(value) => {
+            setSourceSystem(value);
+            resetView();
+          }}
+        >
+          <SelectTrigger className="h-9 w-full rounded-lg text-xs sm:w-40">
+            <SelectValue placeholder="数据来源" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部来源</SelectItem>
+            {(feed.stats?.by_source_system ?? []).map((item) => (
+              <SelectItem key={item.source_system} value={item.source_system}>
+                {sourceLabels[item.source_system] || item.source_system}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </IntelligenceToolbar>
+
+      <IntelligenceWorkspace
+        listContentClassName="min-h-0 overflow-hidden"
+        isOpen={isOpen}
+        onClose={close}
+        detailHeader={
+          selectedItem
+            ? {
+                title: <AchievementDetailHeader item={selectedItem} />,
+                sourceUrl: selectedItem.detail_url ?? undefined,
+              }
+            : undefined
+        }
+        detailContent={
+          selectedItem ? <AchievementDetail item={selectedItem} /> : null
+        }
+      >
+          <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
             <div
               ref={listRef}
               aria-busy={feed.isLoading}
@@ -603,26 +588,20 @@ export default function AcademicAchievementList({
                 feed.items.map((item) => {
                   const members = getAchievementMemberNames(item);
                   return (
-                    <DataItemCard
+                    <IntelligenceListItem
                       key={item.id}
-                      isSelected={selectedItem?.id === item.id}
+                      selected={selectedItem?.id === item.id}
                       onClick={() => open(item)}
-                      accentColor="blue"
-                      className="p-3.5"
+                      className="group p-3.5"
                     >
                       <div className="mb-1.5 flex items-start justify-between gap-3">
                         <div className="flex min-w-0 flex-1 items-center gap-2">
                           <AchievementTypeBadge type={item.achievement_type} />
-                          <h3
-                            className={cn(
-                              "line-clamp-1 min-w-0 flex-1 text-sm font-semibold leading-5 text-foreground transition-colors",
-                              accentConfig.blue.title,
-                            )}
-                          >
+                          <h3 className="line-clamp-1 min-w-0 flex-1 text-sm font-semibold leading-5 text-foreground transition-colors group-hover:text-[#3156d8]">
                             {item.title}
                           </h3>
                         </div>
-                        <ItemChevron accentColor="blue" />
+                        <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
                       </div>
                       <p className="mb-2 line-clamp-2 text-xs leading-5 text-muted-foreground">
                         {getAchievementDescription(item)}
@@ -645,7 +624,7 @@ export default function AcademicAchievementList({
                           {getAchievementPrimaryDate(item)}
                         </span>
                       </div>
-                    </DataItemCard>
+                    </IntelligenceListItem>
                   );
                 })
               )}
@@ -660,8 +639,7 @@ export default function AcademicAchievementList({
               className="w-full"
             />
           </div>
-        </MasterDetailView>
-      </Card>
-    </div>
+      </IntelligenceWorkspace>
+    </>
   );
 }

@@ -52,13 +52,21 @@ test("application content can shrink around horizontally scrollable report table
 });
 
 test("active intelligence modules use the full app content height", () => {
-  const fixedHeightModules = [
+  const shellModules = [
     "../components/modules/papers/index.tsx",
     "../components/modules/internal-shared/academic-achievements.tsx",
+  ];
+  const fixedHeightModules = [
     "../components/modules/internal-shared/internal-experts.tsx",
     "../components/modules/tech-frontier/tech-frontier-page.tsx",
     "../components/modules/talent-radar/index.tsx",
   ];
+
+  for (const path of shellModules) {
+    const source = readSource(path);
+    assert.match(source, /<IntelligencePageShell/);
+    assert.doesNotMatch(source, /calc\(100vh-4rem\)/);
+  }
 
   for (const path of fixedHeightModules) {
     const source = readSource(path);
@@ -134,7 +142,8 @@ test("report surfaces use compact report styling and shared pagination", () => {
     "../components/modules/internal-shared/internal-experts.tsx",
   );
 
-  assert.ok((paperListSource.match(/rounded-xl[^"\n]*shadow-sm/g) ?? []).length >= 2);
+  assert.match(paperListSource, /<IntelligenceToolbar/);
+  assert.match(paperListSource, /<IntelligenceWorkspace/);
   assert.ok((expertsSource.match(/rounded-xl[^"\n]*shadow-sm/g) ?? []).length >= 2);
   assert.match(
     expertsSource,
@@ -178,16 +187,27 @@ test("paper page follows the policy intelligence filter and detail pattern", () 
 
   assert.match(paperListSource, /<SearchInput/);
   assert.match(paperListSource, /<DateRangeFilter/);
-  assert.match(paperListSource, /<MasterDetailView/);
-  assert.match(paperListSource, /<DataItemCard/);
+  assert.match(paperListSource, /<IntelligenceToolbar/);
+  assert.match(paperListSource, /<IntelligenceWorkspace/);
+  assert.match(paperListSource, /<IntelligenceListItem/);
+  assert.match(paperListSource, /<IntelligenceDetailHeader/);
+  assert.match(paperListSource, /<IntelligenceSection/);
   assert.match(paperListSource, /<FeedPagination/);
   assert.match(paperListSource, /作者/);
   assert.match(paperListSource, /摘要/);
   assert.match(paperListSource, /<PaperAuthorHoverCard/);
+  assert.match(paperListSource, /const scholarCache = new Map/);
+  assert.match(paperListSource, /SCHOLAR_GRAPH_URL/);
+  assert.match(paperListSource, /href=\{graphUrl\}/);
   assert.match(paperListSource, /keyword=/);
+  assert.match(
+    paperListSource,
+    /total=\{feed\.isSampled \? undefined : feed\.total\}/,
+  );
+  assert.match(paperListSource, /精选聚合[\s\S]{0,40}\{feed\.total\} 条/);
   assert.ok(
-    paperListSource.indexOf('<DetailSection title="作者">') <
-      paperListSource.indexOf('<DetailSection title="摘要">'),
+    paperListSource.indexOf('<IntelligenceSection title="作者">') <
+      paperListSource.indexOf('<IntelligenceSection title="摘要">'),
   );
 });
 
@@ -200,17 +220,26 @@ test("academic achievements use the dedicated warehouse list-detail page", () =>
   );
 
   assert.match(listSource, /<SearchInput/);
-  assert.match(listSource, /<MasterDetailView/);
-  assert.match(listSource, /<DataItemCard/);
+  assert.match(listSource, /<IntelligenceToolbar/);
+  assert.match(listSource, /<IntelligenceWorkspace/);
+  assert.match(listSource, /<IntelligenceListItem/);
+  assert.match(listSource, /<IntelligenceDetailHeader/);
+  assert.match(listSource, /<IntelligenceSection/);
   assert.match(listSource, /<FeedPagination/);
-  assert.doesNotMatch(listSource, /<DetailSection title="成果详情">/);
-  assert.doesNotMatch(listSource, /<DetailSection title="两院成员">/);
+  assert.doesNotMatch(listSource, /<IntelligenceSection title="成果详情">/);
+  assert.doesNotMatch(listSource, /<IntelligenceSection title="两院成员">/);
   assert.match(listSource, /<AchievementAuthorList/);
+  assert.match(listSource, /useZgcaAchievements/);
+  assert.match(listSource, /const scholarIdentityCache = new Map/);
+  assert.match(listSource, /Promise\.all/);
   assert.match(listSource, /api\/scholars\/\$\{encodeURIComponent\(member\.scholar_id\)\}/);
   assert.match(listSource, /getAchievementSourceLabel/);
-  assert.match(listSource, /<DetailSection title="摘要">/);
+  assert.match(listSource, /<IntelligenceSection title="摘要">/);
+  assert.match(listSource, /key=\{item\.id\}/);
+  assert.match(listSource, /sourceUrl: selectedItem\.detail_url/);
+  assert.match(listSource, /href=\{item\.pdf_url\}/);
   assert.equal(
-    (listSource.match(/<DetailSection title="作者">/g) ?? []).length,
+    (listSource.match(/<IntelligenceSection title="作者">/g) ?? []).length,
     1,
   );
   assert.match(listSource, /className="flex flex-wrap gap-2"/);
