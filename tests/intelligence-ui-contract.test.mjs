@@ -171,6 +171,29 @@ test("university and sentiment pages use the unified shell", () => {
   assert.doesNotMatch(sentimentDetail, /<Sheet|SheetContent|SheetHeader/);
 });
 
+test("sentiment supplemental content fits the narrow master pane", () => {
+  const sentiment = read(
+    "../components/modules/internal-mgmt/sentiment/index.tsx",
+  );
+  const report = read(
+    "../components/modules/internal-mgmt/sentiment/sentiment-report.tsx",
+  );
+
+  assert.doesNotMatch(sentiment, /xl:grid-cols-5/);
+  assert.match(sentiment, /sm:grid-cols-2/);
+  assert.doesNotMatch(report, /lg:grid-cols-\[minmax\(0,1fr\)_auto\]/);
+});
+
+test("university detail actions use the shared emphasis color", () => {
+  for (const path of [
+    "../components/modules/university-eco/peer-dynamics.tsx",
+    "../components/modules/university-eco/research-tracking.tsx",
+  ]) {
+    const source = read(path);
+    assert.match(source, /bg-\[#3156d8\]/);
+  }
+});
+
 test("sentiment list items and summary use compact report primitives", () => {
   const contentCard = read(
     "../components/modules/internal-mgmt/sentiment/content-card.tsx",

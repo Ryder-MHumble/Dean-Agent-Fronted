@@ -573,7 +573,7 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
           selectedNews && (
             <div className="flex gap-2">
               <Button
-                className="flex-1"
+                className="flex-1 bg-[#3156d8] text-white hover:bg-[#2948bd]"
                 onClick={() => {
                   toast.success("已加入重点跟踪");
                   close();

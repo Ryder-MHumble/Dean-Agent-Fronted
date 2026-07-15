@@ -168,7 +168,7 @@ function PopularContentList({
       <h2 className="mb-2 text-xs font-semibold text-[#1a3a5c]">
         热门内容前 5 条
       </h2>
-      <div className="grid gap-1 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-1 sm:grid-cols-2">
         {items.map((item, index) => {
           const totalEngagement =
             item.liked_count +

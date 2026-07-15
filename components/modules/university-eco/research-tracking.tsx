@@ -578,7 +578,7 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
           selectedOutput && (
             <div className="flex gap-2">
               <Button
-                className="flex-1"
+                className="flex-1 bg-[#3156d8] text-white hover:bg-[#2948bd]"
                 onClick={() => {
                   toast.success("已加入重点跟踪列表");
                   close();

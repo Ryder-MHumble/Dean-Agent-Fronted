@@ -8,10 +8,19 @@ import {
   buildTechFrontierPostParams,
   isTechFrontierFeedPost,
   mergeTechFrontierPostPages,
+  normalizeTechFrontierDisplayText,
   normalizeTechFrontierPost,
   summarizeTechFrontierPlatformFeed,
   toDateTimeBoundary,
 } from "../lib/tech-frontier-feed.ts";
+
+test("social display text converts escaped whitespace", () => {
+  assert.equal(
+    normalizeTechFrontierDisplayText("第一段\\r\\n第二段\\n\\t第三段"),
+    "第一段\n第二段\n\t第三段",
+  );
+  assert.equal(normalizeTechFrontierDisplayText(null), "");
+});
 
 test("collectTechFrontierPostPages keeps loaded rows when the backend rejects the terminal page", async () => {
   const pages = [

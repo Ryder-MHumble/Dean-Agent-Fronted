@@ -115,6 +115,12 @@ function toNumber(value: number | undefined): number {
   return Number.isFinite(value) ? Number(value) : 0;
 }
 
+export function normalizeTechFrontierDisplayText(
+  value: string | null | undefined,
+): string {
+  return value?.replace(/\\r\\n|\\n/g, "\n").replace(/\\t/g, "\t") ?? "";
+}
+
 function compactText(value: string, maxLength: number): string {
   const normalized = value.replace(/\s+/g, " ").trim();
   if (normalized.length <= maxLength) return normalized;

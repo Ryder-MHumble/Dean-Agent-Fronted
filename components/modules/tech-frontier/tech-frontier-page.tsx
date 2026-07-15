@@ -29,6 +29,7 @@ import {
   useTechFrontierPostDetail,
 } from "@/hooks/use-tech-frontier-feed";
 import {
+  normalizeTechFrontierDisplayText,
   normalizeTechFrontierPost,
   type SocialPostDetail,
   type TechFrontierPlatformFilter,
@@ -236,7 +237,7 @@ function XPostCard({
   selected: boolean;
   onClick: () => void;
 }) {
-  const text = item.content || item.summary;
+  const text = normalizeTechFrontierDisplayText(item.content || item.summary);
   const shouldShowExpand =
     text.length > 95 || text.split(/\r?\n/).filter(Boolean).length > 2;
 
@@ -326,8 +327,8 @@ function GenericPostCard({
           {item.postTypeLabel}
         </Badge>
       </div>
-      <p className="line-clamp-3 text-sm leading-6 text-slate-600">
-        {item.summary}
+      <p className="line-clamp-3 whitespace-pre-line text-sm leading-6 text-slate-600">
+        {normalizeTechFrontierDisplayText(item.summary)}
       </p>
       <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
         <span>{item.categoryLabel}</span>
@@ -469,7 +470,9 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
         </div>
 
         <p className="mt-5 whitespace-pre-line text-base leading-8 text-slate-700">
-          {detailItem.content || detailItem.summary}
+          {normalizeTechFrontierDisplayText(
+            detailItem.content || detailItem.summary,
+          )}
         </p>
 
         {images.length > 0 && (
@@ -535,8 +538,8 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
                 <span className="font-medium text-slate-900">
                   {reply.author_display_name || reply.author_username}
                 </span>
-                <p className="mt-1 leading-6 text-slate-600">
-                  {reply.content_text}
+                <p className="mt-1 whitespace-pre-line leading-6 text-slate-600">
+                  {normalizeTechFrontierDisplayText(reply.content_text)}
                 </p>
               </div>
             ))}

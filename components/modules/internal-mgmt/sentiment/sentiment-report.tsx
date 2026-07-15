@@ -78,7 +78,7 @@ export function SentimentReport({ overview }: SentimentReportProps) {
           };
 
   return (
-    <section className="grid gap-3 rounded-lg border border-[#e5e9f0] bg-[#f8fafc] p-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+    <section className="grid gap-3 rounded-lg border border-[#e5e9f0] bg-[#f8fafc] p-3">
       <div className="min-w-0">
         <div className="mb-1.5 flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-[#3156d8]" aria-hidden="true" />
@@ -91,7 +91,7 @@ export function SentimentReport({ overview }: SentimentReportProps) {
         </div>
       </div>
 
-      <div className="flex max-w-md flex-wrap content-start items-center gap-1.5 lg:justify-end">
+      <div className="flex flex-wrap content-start items-center gap-1.5">
         <Badge variant="outline" className={cn("gap-1 text-[10px]", activity.color)}>
           <Activity className="h-2.5 w-2.5" aria-hidden="true" />
           {activity.label}
