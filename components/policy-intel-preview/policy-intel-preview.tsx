@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { usePolicyFeed } from "@/hooks/use-policy-opportunities";
+import { fetchPolicySourceNameMap } from "@/lib/api";
 import {
   sortPolicyPreviewItems,
   type PolicyPreviewSort,
@@ -22,12 +23,31 @@ export default function PolicyIntelPreview() {
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [selectedSourceId, setSelectedSourceId] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [sourceOptions, setSourceOptions] = useState<
+    { id: string; label: string }[]
+  >([]);
+  const detailRef = useRef<HTMLElement>(null);
+  const lastSelectedButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const { items, isLoading, generatedAt, total, totalPages } = usePolicyFeed({
+  const { items, isLoading, total, totalPages } = usePolicyFeed({
     keyword: searchQuery || undefined,
     category: category === "全部" ? undefined : category,
+    sourceIds: selectedSourceId ? [selectedSourceId] : undefined,
+    dateRange: { from: dateFrom, to: dateTo },
     page,
     pageSize: 20,
+  });
+  const { total: policyTotal, generatedAt: policyGeneratedAt } = usePolicyFeed({
+    page: 1,
+    pageSize: 1,
+  });
+  const { total: opportunityTotal } = usePolicyFeed({
+    category: "政策机会",
+    page: 1,
+    pageSize: 1,
   });
 
   const sortedItems = useMemo(
@@ -38,35 +58,67 @@ export default function PolicyIntelPreview() {
     () => sortedItems.find((item) => item.id === selectedId) ?? null,
     [selectedId, sortedItems],
   );
-  const opportunityCount = items.filter(
-    (item) => item.category === "政策机会",
-  ).length;
-  const sourceCount = new Set(
-    items.map((item) => item.sourceName ?? item.source_name ?? item.source),
-  ).size;
 
   useEffect(() => {
-    setSelectedId(sortedItems[0]?.id ?? null);
+    if (isLoading) return;
+    setSelectedId((current) => {
+      if (current && sortedItems.some((item) => item.id === current)) {
+        return current;
+      }
+      return sortedItems[0]?.id ?? null;
+    });
     setMobileDetailOpen(false);
-  }, [page, searchQuery, category, sort, sortedItems[0]?.id]);
+  }, [isLoading, sortedItems]);
 
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, category]);
+  }, [searchQuery, category, selectedSourceId, dateFrom, dateTo]);
 
-  function selectItem(item: PolicyFeedItem) {
+  useEffect(() => {
+    let cancelled = false;
+    fetchPolicySourceNameMap().then((sourceMap) => {
+      if (cancelled) return;
+      setSourceOptions(
+        Object.entries(sourceMap)
+          .map(([id, label]) => ({ id, label }))
+          .sort((a, b) => a.label.localeCompare(b.label, "zh-CN")),
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function selectItem(item: PolicyFeedItem, trigger: HTMLButtonElement) {
+    lastSelectedButtonRef.current = trigger;
     setSelectedId(item.id);
-    setMobileDetailOpen(true);
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      setMobileDetailOpen(true);
+      requestAnimationFrame(() => detailRef.current?.focus());
+    }
+  }
+
+  function closeMobileDetail() {
+    setMobileDetailOpen(false);
+    requestAnimationFrame(() => lastSelectedButtonRef.current?.focus());
+  }
+
+  function clearFilters() {
+    setSearchQuery("");
+    setCategory("全部");
+    setSelectedSourceId("");
+    setDateFrom("");
+    setDateTo("");
   }
 
   return (
     <main className={styles.page}>
       <div className={styles.canvas}>
         <PolicyPreviewHero
-          total={total}
-          opportunityCount={opportunityCount}
-          sourceCount={sourceCount}
-          generatedAt={generatedAt}
+          total={policyTotal}
+          opportunityCount={opportunityTotal}
+          sourceCount={sourceOptions.length}
+          generatedAt={policyGeneratedAt}
         />
 
         <section
@@ -78,6 +130,10 @@ export default function PolicyIntelPreview() {
             selectedId={selectedId}
             sort={sort}
             category={category}
+            sources={sourceOptions}
+            selectedSourceId={selectedSourceId}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
             page={page}
             total={total}
             totalPages={totalPages}
@@ -85,15 +141,24 @@ export default function PolicyIntelPreview() {
             onSelect={selectItem}
             onSortChange={setSort}
             onCategoryChange={setCategory}
+            onSourceChange={setSelectedSourceId}
+            onDateFromChange={setDateFrom}
+            onDateToChange={setDateTo}
+            onClearFilters={clearFilters}
             onPageChange={setPage}
             onSearch={setSearchQuery}
           />
 
-          <article className={styles.detailPanel} aria-label="政策详情">
+          <article
+            ref={detailRef}
+            className={styles.detailPanel}
+            aria-label="政策详情"
+            tabIndex={-1}
+          >
             <button
               type="button"
               className={styles.mobileBack}
-              onClick={() => setMobileDetailOpen(false)}
+              onClick={closeMobileDetail}
             >
               <ChevronLeft aria-hidden="true" />
               返回政策列表

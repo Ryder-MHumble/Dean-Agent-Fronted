@@ -15,13 +15,21 @@ interface PolicyPreviewListProps {
   selectedId: string | null;
   sort: PolicyPreviewSort;
   category: PolicyFeedCategory | "全部";
+  sources: { id: string; label: string }[];
+  selectedSourceId: string;
+  dateFrom: string;
+  dateTo: string;
   page: number;
   total: number;
   totalPages: number;
   isLoading: boolean;
-  onSelect: (item: PolicyFeedItem) => void;
+  onSelect: (item: PolicyFeedItem, trigger: HTMLButtonElement) => void;
   onSortChange: (sort: PolicyPreviewSort) => void;
   onCategoryChange: (category: PolicyFeedCategory | "全部") => void;
+  onSourceChange: (sourceId: string) => void;
+  onDateFromChange: (value: string) => void;
+  onDateToChange: (value: string) => void;
+  onClearFilters: () => void;
   onPageChange: (page: number) => void;
   onSearch: (value: string) => void;
 }
@@ -45,6 +53,10 @@ export default function PolicyPreviewList({
   selectedId,
   sort,
   category,
+  sources,
+  selectedSourceId,
+  dateFrom,
+  dateTo,
   page,
   total,
   totalPages,
@@ -52,6 +64,10 @@ export default function PolicyPreviewList({
   onSelect,
   onSortChange,
   onCategoryChange,
+  onSourceChange,
+  onDateFromChange,
+  onDateToChange,
+  onClearFilters,
   onPageChange,
   onSearch,
 }: PolicyPreviewListProps) {
@@ -59,6 +75,11 @@ export default function PolicyPreviewList({
 
   function submitSearch() {
     onSearch(searchRef.current?.value.trim() ?? "");
+  }
+
+  function clearFilters() {
+    if (searchRef.current) searchRef.current.value = "";
+    onClearFilters();
   }
 
   return (
@@ -107,8 +128,43 @@ export default function PolicyPreviewList({
               </option>
             ))}
           </select>
+          <select
+            value={selectedSourceId}
+            aria-label="政策信源"
+            onChange={(event) => onSourceChange(event.target.value)}
+          >
+            <option value="">全部信源</option>
+            {sources.map((source) => (
+              <option value={source.id} key={source.id}>
+                {source.label}
+              </option>
+            ))}
+          </select>
           <button type="button" className={styles.searchButton} onClick={submitSearch}>
             搜索
+          </button>
+        </div>
+        <div className={styles.dateFilterRow}>
+          <label>
+            <span>起始日期</span>
+            <input
+              type="date"
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={(event) => onDateFromChange(event.target.value)}
+            />
+          </label>
+          <label>
+            <span>结束日期</span>
+            <input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(event) => onDateToChange(event.target.value)}
+            />
+          </label>
+          <button type="button" className={styles.clearButton} onClick={clearFilters}>
+            清除筛选
           </button>
         </div>
       </div>
@@ -122,6 +178,7 @@ export default function PolicyPreviewList({
           <ul className={styles.policyList}>
             {items.map((item, index) => {
               const score = getPolicyPreviewScore(item);
+              const hasScore = item.matchScore != null || item.relevance != null;
               const source = item.sourceName ?? item.source_name ?? item.source;
               return (
                 <li key={item.id}>
@@ -129,7 +186,8 @@ export default function PolicyPreviewList({
                     type="button"
                     className={`${styles.policyItem} ${selectedId === item.id ? styles.selectedItem : ""}`}
                     aria-current={selectedId === item.id ? "true" : undefined}
-                    onClick={() => onSelect(item)}
+                    disabled={isLoading}
+                    onClick={(event) => onSelect(item, event.currentTarget)}
                   >
                     <span className={styles.itemIndex}>{String(index + 1).padStart(2, "0")}</span>
                     <span className={styles.itemBody}>
@@ -141,13 +199,23 @@ export default function PolicyPreviewList({
                       <span className={styles.itemFooter}>
                         <span className={styles.category}>{item.category}</span>
                         <span className={styles.importance}>{item.importance}</span>
-                        <span className={styles.sparkline} aria-hidden="true">
-                          <i style={{ height: `${28 + ((score + 7) % 30)}%` }} />
-                          <i style={{ height: `${42 + ((score + 13) % 38)}%` }} />
-                          <i style={{ height: `${36 + ((score + 3) % 50)}%` }} />
-                          <i style={{ height: `${55 + (score % 35)}%` }} />
-                        </span>
-                        <span className={styles.score}>{score || "--"}</span>
+                        {hasScore ? (
+                          <span className={styles.relevance}>
+                            <span
+                              className={styles.relevanceTrack}
+                              role="progressbar"
+                              aria-label="政策相关度"
+                              aria-valuemin={0}
+                              aria-valuemax={100}
+                              aria-valuenow={score}
+                            >
+                              <i style={{ width: `${Math.min(100, Math.max(0, score))}%` }} />
+                            </span>
+                            <span className={styles.score}>{score}</span>
+                          </span>
+                        ) : (
+                          <span className={styles.score}>--</span>
+                        )}
                       </span>
                     </span>
                   </button>

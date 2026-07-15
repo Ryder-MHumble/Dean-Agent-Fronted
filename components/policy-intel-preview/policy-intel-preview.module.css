@@ -95,9 +95,8 @@
 .workbench {
   display: grid;
   grid-template-columns: minmax(380px, 40%) minmax(0, 1fr);
-  min-height: 620px;
-  height: calc(100dvh - 336px);
-  max-height: 880px;
+  min-height: 0;
+  height: clamp(432px, calc(100dvh - 336px), 880px);
   overflow: hidden;
   border: 1px solid var(--preview-line);
   border-radius: 0 0 12px 12px;
@@ -151,6 +150,7 @@
 
 .sortTabs button,
 .searchButton,
+.clearButton,
 .pagination button,
 .mobileBack {
   font: inherit;
@@ -181,7 +181,7 @@
 
 .filterRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 112px auto;
+  grid-template-columns: minmax(0, 1fr) 106px 112px auto;
   gap: 7px;
   margin-top: 10px;
 }
@@ -226,6 +226,55 @@
   color: #465066;
   font: inherit;
   font-size: 12px;
+}
+
+.dateFilterRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.dateFilterRow label {
+  display: grid;
+  min-width: 0;
+  height: 32px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+  padding: 0 7px;
+  border: 1px solid var(--preview-line);
+  border-radius: 8px;
+  color: var(--preview-muted);
+  font-size: 10px;
+}
+
+.dateFilterRow input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #465066;
+  font: inherit;
+  font-size: 10px;
+}
+
+.clearButton {
+  height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--preview-line);
+  border-radius: 8px;
+  background: #fff;
+  color: #596378;
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.clearButton:hover {
+  border-color: #aeb4ff;
+  color: #3f49c4;
 }
 
 .searchButton {
@@ -279,6 +328,11 @@
 .policyItem:hover {
   border-color: #d9dcf6;
   background: #fafaff;
+}
+
+.policyItem:disabled {
+  opacity: 0.62;
+  cursor: wait;
 }
 
 .selectedItem {
@@ -347,18 +401,26 @@
   color: #5963c4;
 }
 
-.sparkline {
+.relevance {
   display: inline-flex;
-  width: 34px;
-  height: 16px;
-  align-items: flex-end;
-  gap: 2px;
+  width: 74px;
+  align-items: center;
+  gap: 6px;
   margin-left: auto;
 }
 
-.sparkline i {
-  width: 6px;
-  border-radius: 2px 2px 0 0;
+.relevanceTrack {
+  width: 44px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3e6ef;
+}
+
+.relevanceTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
   background: #8790ef;
 }
 
@@ -368,6 +430,10 @@
   font-size: 12px;
   font-weight: 700;
   text-align: right;
+}
+
+.itemFooter > .score {
+  margin-left: auto;
 }
 
 .listStatus {
@@ -457,11 +523,13 @@
 
 .sortTabs button:focus-visible,
 .searchButton:focus-visible,
+.clearButton:focus-visible,
 .policyItem:focus-visible,
 .pagination button:focus-visible,
 .mobileBack:focus-visible,
 .searchField:focus-within,
-.filterRow select:focus-visible {
+.filterRow select:focus-visible,
+.dateFilterRow input:focus-visible {
   outline: 3px solid rgba(89, 101, 232, 0.24);
   outline-offset: 2px;
 }
@@ -492,10 +560,18 @@
   }
 
   .filterRow {
-    grid-template-columns: minmax(0, 1fr) 104px;
+    grid-template-columns: minmax(0, 1fr) 104px 112px;
   }
 
   .searchButton {
+    grid-column: auto;
+  }
+
+  .dateFilterRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clearButton {
     grid-column: 1 / -1;
   }
 }
@@ -591,5 +667,21 @@
 
   .filterRow {
     grid-template-columns: minmax(0, 1fr) 102px;
+  }
+
+  .filterRow select:nth-of-type(2) {
+    grid-column: 1 / 2;
+  }
+
+  .searchButton {
+    grid-column: 2 / 3;
+  }
+
+  .dateFilterRow {
+    grid-template-columns: 1fr;
+  }
+
+  .clearButton {
+    grid-column: auto;
   }
 }

@@ -18,7 +18,7 @@ export default function PolicyPreviewHero({
   const metrics = [
     { label: "政策总量", value: total.toLocaleString("zh-CN") },
     { label: "政策机会", value: opportunityCount.toLocaleString("zh-CN") },
-    { label: "本页信源", value: sourceCount.toLocaleString("zh-CN") },
+    { label: "全量信源", value: sourceCount.toLocaleString("zh-CN") },
     { label: "数据更新", value: formatPolicyPreviewTimestamp(generatedAt) },
   ];
 
@@ -34,8 +34,8 @@ export default function PolicyPreviewHero({
       />
       <div className={styles.heroContent}>
         <h1>
-          政策情报
-          <span>研判工作台</span>
+          洞悉政策风向
+          <span>把握未来机遇</span>
         </h1>
         <p className={styles.heroSubtitle}>国家政策 · 北京政策 · 领导讲话 · 政策机会</p>
         <dl className={styles.metrics}>
