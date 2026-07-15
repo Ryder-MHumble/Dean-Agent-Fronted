@@ -27,7 +27,7 @@
 - Create `components/shared/intelligence-workspace.tsx`: standard card surface around `MasterDetailView` with the 44/56 split.
 - Create `components/shared/intelligence-list-item.tsx`: shared selected, hover, keyboard-focus, and disabled states.
 - Create `components/shared/intelligence-detail.tsx`: shared detail header content and section layout.
-- Modify `components/shared/master-detail-view.tsx`: consistent surfaces, close controls, focus labels, and no glass styling.
+- Modify `components/shared/master-detail-view.tsx`: add an opt-in `variant="intelligence"` for consistent surfaces and no glass styling, plus compatible close/focus labels; preserve the default appearance for range-external consumers.
 - Modify `components/shared/feed-pagination.tsx`: shared pagination summary and the existing estimated-total contract.
 - Modify each covered module only where needed to consume the shared primitives.
 - Modify `app/page.tsx`: keep all eight business pages outside the entrance-animation wrapper while leaving the overview page unchanged.
@@ -413,6 +413,7 @@ git commit -m "feat: unify leader and expert pages"
 - Modify: `components/modules/university-eco/peer-dynamics.tsx`
 - Modify: `components/modules/university-eco/research-tracking.tsx`
 - Modify: `components/modules/internal-mgmt/sentiment/index.tsx`
+- Modify: `components/modules/internal-mgmt/sentiment/content-card.tsx`
 - Modify: `components/modules/internal-mgmt/sentiment/detail-panel.tsx`
 - Modify: `components/modules/internal-mgmt/sentiment/sentiment-report.tsx`
 - Modify: `tests/intelligence-pages.test.mjs`
