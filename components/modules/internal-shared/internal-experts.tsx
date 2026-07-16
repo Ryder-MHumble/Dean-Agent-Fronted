@@ -114,7 +114,7 @@ function ExpertDetail({ expert }: { expert: ExpertRecord }) {
         </a>
         <SkillAccessNote
           label="配置专家推荐技能"
-          href="https://skills.zgci.org/space/global/liangyuan-expert-recommender"
+          href="https://skills.zgci.org/space/global/liangyuan-expert-recommender?returnTo=%2Fdashboard%2Fskills"
         />
       </div>
     </div>
@@ -214,7 +214,7 @@ export default function InternalExpertsModule() {
                 </a>
                 <SkillAccessNote
                   label="配置专家推荐技能"
-                  href="https://skills.zgci.org/space/global/liangyuan-expert-recommender"
+                  href="https://skills.zgci.org/space/global/liangyuan-expert-recommender?returnTo=%2Fdashboard%2Fskills"
                 />
               </>
             }

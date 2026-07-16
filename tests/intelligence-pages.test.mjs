@@ -123,7 +123,7 @@ test("paper and internal pages expose the required data links", () => {
   );
   assert.match(
     achievementsSource,
-    /https:\/\/skills\.zgci\.org\/space\/global\/zgca-paper-author-query/,
+    /https:\/\/skills\.zgci\.org\/space\/global\/zgca-paper-author-query\?returnTo=%2Fdashboard%2Fskills/,
   );
   assert.match(achievementsSource, /<AcademicAchievementList/);
   assert.match(
@@ -132,7 +132,7 @@ test("paper and internal pages expose the required data links", () => {
   );
   assert.match(
     expertsSource,
-    /https:\/\/skills\.zgci\.org\/space\/global\/liangyuan-expert-recommender/,
+    /https:\/\/skills\.zgci\.org\/space\/global\/liangyuan-expert-recommender\?returnTo=%2Fdashboard%2Fskills/,
   );
 });
 

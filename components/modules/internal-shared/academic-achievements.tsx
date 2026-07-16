@@ -11,7 +11,7 @@ export default function AcademicAchievementsModule() {
         accessNote={
           <SkillAccessNote
             label="配置论文作者查询 skill"
-            href="https://skills.zgci.org/space/global/zgca-paper-author-query"
+            href="https://skills.zgci.org/space/global/zgca-paper-author-query?returnTo=%2Fdashboard%2Fskills"
           />
         }
       />
