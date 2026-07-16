@@ -32,6 +32,7 @@ import { IntelligenceDetailHeader } from "@/components/shared/intelligence-detai
 import IntelligenceListItem from "@/components/shared/intelligence-list-item";
 import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
+import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { useUniversityFeed } from "@/hooks/use-university-feed";
 import { fetchUniversityArticle } from "@/lib/api";
@@ -98,7 +99,7 @@ function ArticleCover({
 
   if (!imageUrl || imgFailed) {
     return (
-      <div className="flex h-20 w-32 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sm font-semibold text-blue-700">
+      <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-xs font-semibold text-blue-700">
         {fallbackText.slice(0, 1)}
       </div>
     );
@@ -110,7 +111,7 @@ function ArticleCover({
       alt="文章封面"
       loading="lazy"
       onError={() => setImgFailed(true)}
-      className="h-20 w-32 shrink-0 rounded-xl object-cover border border-border/50"
+      className="h-16 w-24 shrink-0 rounded-lg object-cover border border-border/50"
     />
   );
 }
@@ -122,6 +123,10 @@ function getNewsDateTimestamp(value?: string) {
 
 function sortNewsByDateDesc(a: PeerNewsItem, b: PeerNewsItem) {
   return getNewsDateTimestamp(b.date) - getNewsDateTimestamp(a.date);
+}
+
+function getPeerNewsKey(item: PeerNewsItem) {
+  return item.id;
 }
 
 export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
@@ -165,11 +170,14 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
   }>({});
   const [contentLoading, setContentLoading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const detailRequestIdRef = useRef(0);
 
   const handleOpen = useCallback(
     async (news: PeerNewsItem) => {
+      const requestId = ++detailRequestIdRef.current;
       open(news);
       setArticleContent({});
+      setContentLoading(false);
 
       if (news.content) return;
 
@@ -177,7 +185,7 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
         setContentLoading(true);
         try {
           const detail = await fetchUniversityArticle(news.id);
-          if (detail) {
+          if (detail && detailRequestIdRef.current === requestId) {
             setArticleContent({
               content: detail.content,
               images: detail.images,
@@ -186,7 +194,9 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
         } catch {
           // Silently fail - detail view will show fallback
         } finally {
-          setContentLoading(false);
+          if (detailRequestIdRef.current === requestId) {
+            setContentLoading(false);
+          }
         }
       }
     },
@@ -242,6 +252,15 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
     if (effectiveSources.size === 0) return sortedNews;
     return sortedNews.filter((item) => effectiveSources.has(item.sourceId));
   }, [sortedNews, effectiveSources]);
+
+  useAutoSelectDetail({
+    items: filteredBySourceNews,
+    selectedItem: selectedNews,
+    select: handleOpen,
+    close,
+    getKey: getPeerNewsKey,
+    isLoading,
+  });
 
   const activeSourceCount = effectiveSources.size;
 
@@ -326,11 +345,14 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
-      <IntelligenceToolbar
-        title="高校生态"
-        total={total}
-        updatedAt={generatedAt ? new Date(generatedAt) : undefined}
-      >
+      <IntelligenceWorkspace
+        listHeader={
+          <IntelligenceToolbar
+            variant="embedded"
+            title="高校生态"
+            total={total}
+            updatedAt={generatedAt ? new Date(generatedAt) : undefined}
+          >
         <div className="w-full space-y-3">
           {tabs}
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -376,7 +398,7 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
                 setDateFrom("");
                 setDateTo("");
               }}
-              className="w-full min-w-0 md:w-auto md:shrink-0"
+              className="w-full min-w-0"
             />
             {sourcesWithCount.length > 0 && (
               <div
@@ -504,9 +526,8 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
             </div>
           )}
         </div>
-      </IntelligenceToolbar>
-
-      <IntelligenceWorkspace
+          </IntelligenceToolbar>
+        }
         listContentClassName="min-h-0 overflow-hidden"
         isOpen={isOpen}
         onClose={close}
@@ -606,6 +627,7 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
                 <DateGroupedList
                   items={filteredBySourceNews}
                   emptyMessage="暂无同行动态"
+                  variant="timeline"
                   animated={false}
                   renderItem={(news) => (
                     <IntelligenceListItem
@@ -613,7 +635,7 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
                       onClick={() => handleOpen(news)}
                       className="group overflow-hidden p-0"
                     >
-                      <div className="px-4 py-3 sm:px-5 sm:py-4">
+                      <div className="px-3 py-2.5 sm:px-4 sm:py-3">
                         <div className="flex items-start gap-3">
                           <ArticleCover
                             imageUrl={news.thumbnail || news.images?.[0]?.src}
@@ -622,23 +644,23 @@ export default function PeerDynamics({ tabs }: { tabs: ReactNode }) {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start gap-3">
                               <div className="min-w-0 flex-1">
-                                <h4 className="text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-[#3156d8]">
+                                <h4 className="text-sm font-semibold leading-5 text-foreground transition-colors group-hover:text-[#3156d8]">
                                   {news.title}
                                 </h4>
                                 {news.summary && (
-                                  <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
                                     {news.summary}
                                   </p>
                                 )}
                               </div>
                               <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
                             </div>
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
                               <GroupBadge group={news.group} />
-                              <span className="inline-flex max-w-full items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                              <span className="inline-flex max-w-full items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
                                 来源：{news.sourceName || "未知来源"}
                               </span>
-                              <span className="ml-auto text-xs text-muted-foreground">
+                              <span className="ml-auto text-[11px] text-muted-foreground">
                                 {news.displayDate || news.date || "未知日期"}
                               </span>
                             </div>

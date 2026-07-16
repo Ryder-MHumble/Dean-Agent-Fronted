@@ -51,11 +51,26 @@ test("selection waits for loading and mobile focus can move to detail and return
   assert.match(source, /tabIndex=\{-1\}/);
 });
 
-test("policy overlay focus follows the shared workspace breakpoint", () => {
+test("policy overlay keeps only mobile list-first while tablet opens the default detail", () => {
   const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
   assert.match(source, /useBreakpoint/);
-  assert.match(source, /breakpoint !== "desktop"/);
+  assert.match(source, /const isMobileViewport = breakpoint === "mobile"/);
+  assert.match(source, /const isOverlayViewport = breakpoint !== "desktop"/);
+  assert.match(
+    source,
+    /function selectItem[\s\S]{0,260}if \(isOverlayViewport\) \{[\s\S]{0,120}detailRef\.current\?\.focus\(\)/,
+  );
+  assert.match(source, /resetToFirst && window\.innerWidth < 768/);
   assert.doesNotMatch(source, /max-width: 959px/);
+});
+
+test("policy close clears the selection so breakpoint changes cannot reopen it", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
+  assert.match(
+    source,
+    /function closeMobileDetail\(\) \{[\s\S]{0,180}setMobileDetailOpen\(false\);\s*setSelectedId\(null\);/,
+  );
+  assert.doesNotMatch(source, /if \(!isMobileViewport\) setSelectedId\(null\)/);
 });
 
 test("preview supports date range and policy source filtering", () => {
@@ -76,6 +91,27 @@ test("preview supports date range and policy source filtering", () => {
   assert.doesNotMatch(css, /background:\s*rgba\(73, 76, 82, 0\.96\)/);
   assert.doesNotMatch(list, /全量信源/);
   assert.match(list, /清除筛选/);
+});
+
+test("policy search input and action stay grouped before select filters", () => {
+  const source = readFileSync("components/policy-intel-preview/policy-preview-list.tsx", "utf8");
+  const filterStart = source.indexOf('<div className={styles.filterRow}>');
+  const filterEnd = source.indexOf('<div className={styles.dateFilterRow}>');
+  const filterSource = source.slice(filterStart, filterEnd);
+
+  assert.ok(filterStart >= 0 && filterEnd > filterStart);
+  assert.match(
+    filterSource,
+    /<div className=\{styles\.searchCluster\}>[\s\S]*styles\.searchField[\s\S]*styles\.searchButton[\s\S]*<\/div>[\s\S]*styles\.selectCluster/,
+  );
+});
+
+test("policy date fields can shrink at the narrow desktop breakpoint", () => {
+  const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
+  assert.match(
+    css,
+    /@container \(max-width: 620px\)[\s\S]*?\.dateField\s*\{\s*min-width:\s*0;/,
+  );
 });
 
 test("preview reflows by available space without whole-page zoom", () => {

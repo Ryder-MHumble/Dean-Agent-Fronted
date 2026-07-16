@@ -65,20 +65,38 @@ test("university toolbars remain visible while list data loads", () => {
       source,
       /if \(isLoading[^)]*\)[\s\S]{0,120}return <Skeleton/,
     );
-    assert.ok(source.indexOf("<IntelligenceToolbar") >= 0);
-    assert.ok(
-      source.indexOf("<IntelligenceToolbar") <
-        source.indexOf("<IntelligenceWorkspace"),
+    assert.match(
+      source,
+      /<IntelligenceWorkspace[\s\S]{0,300}listHeader=\{\s*<IntelligenceToolbar\s+variant="embedded"/,
     );
     assert.ok(source.indexOf("<Skeleton") > source.indexOf("<IntelligenceWorkspace"));
   }
 });
 
-test("university date groups opt out of entrance animation", () => {
+test("university date groups use the exact-date timeline without entrance animation", () => {
   assert.match(dateGroupedListSource, /animated\?: boolean/);
   assert.match(dateGroupedListSource, /animated = true/);
-  assert.match(dateGroupedListSource, /animated \?/);
+  assert.match(dateGroupedListSource, /variant\?: "cards" \| "timeline"/);
+  assert.match(dateGroupedListSource, /variant === "timeline"/);
+  assert.match(dateGroupedListSource, /groupByCalendarDate/);
+  assert.match(dateGroupedListSource, /Calendar/);
+  assert.match(dateGroupedListSource, /bg-\[#e5e9f0\]/);
   for (const source of [peerDynamicsSource, researchTrackingSource]) {
-    assert.match(source, /<DateGroupedList[\s\S]{0,160}animated=\{false\}/);
+    assert.match(
+      source,
+      /<DateGroupedList[\s\S]{0,180}variant="timeline"[\s\S]{0,80}animated=\{false\}/,
+    );
+  }
+});
+
+test("university detail requests ignore stale article responses", () => {
+  for (const source of [peerDynamicsSource, researchTrackingSource]) {
+    assert.match(source, /const detailRequestIdRef = useRef\(0\)/);
+    assert.match(source, /const requestId = \+\+detailRequestIdRef\.current/);
+    assert.match(source, /detailRequestIdRef\.current === requestId/);
+    assert.match(
+      source,
+      /finally \{[\s\S]{0,160}detailRequestIdRef\.current === requestId[\s\S]{0,120}setContentLoading\(false\)/,
+    );
   }
 });

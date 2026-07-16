@@ -22,6 +22,7 @@ import IntelligenceListItem from "@/components/shared/intelligence-list-item";
 import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
 import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
+import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { useLeaders } from "@/hooks/use-leaders";
 import generatedAvatarMapping from "@/lib/generated/leader-avatars.json";
@@ -34,6 +35,10 @@ import type { LeaderAvatarRecord, LeaderProfile } from "@/lib/types/leaders";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
+
+function getLeaderKey(leader: LeaderProfile) {
+  return leader.id;
+}
 
 type DomainFilter = "all" | LeaderDomain;
 
@@ -441,6 +446,15 @@ export default function TalentRadarModule() {
     pageSize: PAGE_SIZE,
   });
 
+  useAutoSelectDetail({
+    items,
+    selectedItem,
+    select: open,
+    close,
+    getKey: getLeaderKey,
+    isLoading,
+  });
+
   useEffect(() => {
     setPage(1);
   }, [keyword, name, organization, domain, statusFilter]);
@@ -506,11 +520,14 @@ export default function TalentRadarModule() {
 
   return (
     <IntelligencePageShell className="h-[var(--app-content-height,100dvh)] overflow-hidden">
-      <IntelligenceToolbar
-        title="外部领导"
-        total={total}
-        updatedAt={latestUpdatedAt}
-        supplemental={
+      <IntelligenceWorkspace
+        listHeader={
+          <IntelligenceToolbar
+            variant="embedded"
+            title="外部领导"
+            total={total}
+            updatedAt={latestUpdatedAt}
+            supplemental={
           <div className="flex flex-wrap items-center gap-2">
             {domainFilters.map((filter) => (
               <button
@@ -562,8 +579,8 @@ export default function TalentRadarModule() {
               <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
             )}
           </div>
-        }
-      >
+            }
+          >
         <SearchInput
           value={keywordInput}
           onChange={setKeywordInput}
@@ -593,9 +610,8 @@ export default function TalentRadarModule() {
           aria-label="所属机构"
           className="h-9 w-full rounded-lg text-sm sm:w-48"
         />
-      </IntelligenceToolbar>
-
-      <IntelligenceWorkspace
+          </IntelligenceToolbar>
+        }
         listContentClassName="min-h-0 overflow-hidden"
         isOpen={isOpen}
         onClose={close}

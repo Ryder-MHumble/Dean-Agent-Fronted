@@ -15,9 +15,13 @@ test("shared intelligence UI exposes the approved page primitives", () => {
 
   assert.match(shell, /bg-\[#f7f8fa\]/);
   assert.match(shell, /--app-content-height/);
-  assert.match(toolbar, /text-\[28px\]|text-2xl/);
+  assert.match(toolbar, /variant\?: "standalone" \| "embedded"/);
+  assert.match(toolbar, /variant === "embedded"/);
+  assert.match(toolbar, /text-\[24px\]|text-2xl/);
   assert.match(toolbar, /共.*条/);
-  assert.match(workspace, /listWidth=\{44\}|listWidth \?\? 44/);
+  assert.match(workspace, /listHeader\?: ReactNode/);
+  assert.match(workspace, /\{listHeader &&/);
+  assert.match(workspace, /listWidth=\{40\}|listWidth \?\? 40/);
   assert.match(item, /focus-visible:ring-2/);
   assert.match(item, /bg-\[#f1f4ff\]/);
   assert.match(detail, /text-\[#1a3a5c\]/);
@@ -127,15 +131,22 @@ test("shared toolbar supports estimated totals and social intelligence opts in",
   assert.doesNotMatch(social, /\bmark\b/);
 });
 
-test("social intelligence only auto-opens results outside mobile", () => {
+test("social intelligence uses result-driven default selection without forcing reopen after close", () => {
   const social = read(
     "../components/modules/tech-frontier/tech-frontier-page.tsx",
   );
+  const autoSelect = read("../hooks/use-auto-select-detail.ts");
 
-  assert.match(social, /const breakpoint = useBreakpoint\(\)/);
-  assert.match(
-    social,
-    /breakpoint !== "mobile"[\s\S]{0,160}open\(visibleItems\[0\]\)/,
+  assert.match(social, /useAutoSelectDetail/);
+  assert.match(social, /items:\s*visibleItems/);
+  assert.doesNotMatch(social, /open\(visibleItems\[0\]\)/);
+  assert.match(autoSelect, /window\.innerWidth/);
+  assert.match(autoSelect, /const selectedItemRef = useRef/);
+  assert.doesNotMatch(autoSelect, /useBreakpoint/);
+  assert.doesNotMatch(
+    autoSelect,
+    /\[[^\]]*selectedItem[^\]]*\]/,
+    "user close must not retrigger auto selection for the same items",
   );
 });
 
@@ -212,11 +223,14 @@ test("policy and social intelligence use the unified shell", () => {
     assert.match(source, /<IntelligencePageShell/);
     assert.match(source, /<IntelligenceWorkspace/);
   }
-  assert.match(policyList, /<IntelligenceToolbar/);
+  assert.match(policyList, /<IntelligenceToolbar[\s\S]{0,120}variant="embedded"/);
   assert.match(policyList, /<IntelligenceListItem/);
   assert.match(policyDetail, /<IntelligenceDetailHeader/);
   assert.match(policyDetail, /<IntelligenceSection/);
-  assert.match(social, /<IntelligenceToolbar/);
+  assert.match(
+    social,
+    /<IntelligenceWorkspace[\s\S]{0,300}listHeader=\{\s*<IntelligenceToolbar\s+variant="embedded"/,
+  );
   assert.match(social, /<IntelligenceListItem/);
   assert.doesNotMatch(social, /hover:-translate-y/);
   assert.doesNotMatch(social, /YouTube|youtube/);
@@ -229,8 +243,10 @@ test("paper data pages use the unified shell and detail hierarchy", () => {
     "../components/modules/internal-shared/academic-achievement-list.tsx",
   ]) {
     const source = read(path);
-    assert.match(source, /<IntelligenceToolbar/);
-    assert.match(source, /<IntelligenceWorkspace/);
+    assert.match(
+      source,
+      /<IntelligenceWorkspace[\s\S]{0,300}listHeader=\{\s*<IntelligenceToolbar\s+variant="embedded"/,
+    );
     assert.match(source, /<IntelligenceListItem/);
     assert.match(source, /<IntelligenceDetailHeader/);
     assert.match(source, /<IntelligenceSection/);
@@ -244,8 +260,10 @@ test("leader and expert pages use the unified people layout", () => {
   ]) {
     const source = read(path);
     assert.match(source, /<IntelligencePageShell/);
-    assert.match(source, /<IntelligenceToolbar/);
-    assert.match(source, /<IntelligenceWorkspace/);
+    assert.match(
+      source,
+      /<IntelligenceWorkspace[\s\S]{0,300}listHeader=\{\s*<IntelligenceToolbar\s+variant="embedded"/,
+    );
     assert.match(source, /<IntelligenceListItem/);
     assert.match(source, /<IntelligenceDetailHeader/);
     assert.match(source, /<IntelligenceSection/);
@@ -269,10 +287,13 @@ test("university and sentiment pages use the unified shell", () => {
   assert.match(university, /<Tabs/);
   assert.doesNotMatch(university, /ModuleLayout/);
   for (const source of [peers, research, sentiment]) {
-    assert.match(source, /<IntelligenceToolbar|toolbar=/);
-    assert.match(source, /<IntelligenceWorkspace/);
+    assert.match(
+      source,
+      /<IntelligenceWorkspace[\s\S]{0,300}listHeader=\{\s*<IntelligenceToolbar\s+variant="embedded"/,
+    );
   }
   assert.doesNotMatch(sentiment, /<Sheet|<DetailPanel/);
+  assert.match(sentiment, /preserveSelectedOutsideItems/);
   assert.match(sentiment, /<IntelligenceListItem|<ContentCard/);
   assert.match(sentiment, /<FeedPagination/);
   assert.match(sentimentDetail, /IntelligenceDetailHeader/);
@@ -325,12 +346,49 @@ test("sentiment insights scroll inside the workspace instead of expanding the to
   const reportStart = sentiment.indexOf("<SentimentReport");
   const popularStart = sentiment.indexOf("<PopularContentList");
 
-  assert.ok(toolbarStart >= 0 && workspaceStart > toolbarStart);
-  assert.doesNotMatch(
-    sentiment.slice(toolbarStart, workspaceStart),
-    /<SentimentReport|<PopularContentList/,
+  assert.ok(workspaceStart >= 0 && toolbarStart > workspaceStart);
+  assert.match(
+    sentiment.slice(workspaceStart, toolbarStart + 200),
+    /listHeader=\{/,
   );
   assert.ok(reportStart > workspaceStart);
   assert.ok(popularStart > reportStart);
   assert.ok(sentiment.indexOf("<FeedPagination") > popularStart);
+});
+
+test("all non-policy business pages synchronize the first non-mobile detail", () => {
+  for (const path of [
+    "../components/modules/tech-frontier/tech-frontier-page.tsx",
+    "../components/modules/papers/paper-list.tsx",
+    "../components/modules/internal-shared/academic-achievement-list.tsx",
+    "../components/modules/talent-radar/index.tsx",
+    "../components/modules/internal-shared/internal-experts.tsx",
+    "../components/modules/university-eco/peer-dynamics.tsx",
+    "../components/modules/university-eco/research-tracking.tsx",
+    "../components/modules/internal-mgmt/sentiment/index.tsx",
+  ]) {
+    assert.match(read(path), /useAutoSelectDetail/);
+  }
+
+  const policy = read("../components/policy-intel-preview/policy-intel-preview.tsx");
+  assert.match(policy, /const isMobileViewport = breakpoint === "mobile"/);
+  assert.match(policy, /window\.innerWidth < 768/);
+});
+
+test("social and university list typography stays compact in the narrow master pane", () => {
+  const social = read(
+    "../components/modules/tech-frontier/tech-frontier-page.tsx",
+  );
+  const peers = read("../components/modules/university-eco/peer-dynamics.tsx");
+  const research = read(
+    "../components/modules/university-eco/research-tracking.tsx",
+  );
+
+  assert.match(social, /whitespace-pre-line text-\[13px\] leading-\[22px\]/);
+  assert.match(social, /whitespace-pre-line text-sm leading-6 text-slate-700/);
+  assert.doesNotMatch(social, /whitespace-pre-line text-base leading-8/);
+  for (const source of [peers, research]) {
+    assert.match(source, /h-16 w-24/);
+    assert.match(source, /<h4 className="text-sm font-semibold/);
+  }
 });

@@ -263,10 +263,11 @@ test("internal experts use the shared policy intelligence list-detail pattern", 
   assert.doesNotMatch(expertsSource, /<Table|TableRow|TableCell/);
   assert.match(expertsSource, /研究方向/);
   assert.match(expertsSource, /学科方向/);
-  assert.match(expertsSource, /key=\{`\$\{expert\.name\}-\$\{expert\.organization\}`\}/);
+  assert.match(expertsSource, /function getExpertKey\(expert: ExpertRecord\)/);
+  assert.match(expertsSource, /key=\{getExpertKey\(expert\)\}/);
   assert.match(
     expertsSource,
-    /selectedItem\?\.name === expert\.name &&[\s\S]{0,100}selectedItem\?\.organization === expert\.organization/,
+    /getExpertKey\(selectedItem\) === getExpertKey\(expert\)/,
   );
   assert.match(expertsSource, /expert\.updatedAt &&/);
   assert.match(

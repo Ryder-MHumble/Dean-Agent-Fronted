@@ -23,7 +23,7 @@ import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
 import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { SkeletonPolicyIntel } from "@/components/shared/skeleton-states";
-import { useBreakpoint } from "@/hooks/use-breakpoint";
+import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { useDetailView } from "@/hooks/use-detail-view";
 import {
   useTechFrontierFeed,
@@ -39,6 +39,10 @@ import {
 import { cn, formatNumber } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
+
+function getTechFrontierPostKey(item: TechFrontierPostItem) {
+  return item.id;
+}
 
 const PLATFORM_FILTERS: {
   value: TechFrontierPlatformFilter;
@@ -252,11 +256,11 @@ function XPostCard({
           <AuthorAvatar item={item} size="md" />
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-1.5">
-              <strong className="truncate text-base font-semibold leading-none text-slate-950">
+              <strong className="truncate text-sm font-semibold leading-none text-slate-950">
                 {item.authorName}
               </strong>
               <span className="text-sky-500">✓</span>
-              <span className="truncate text-sm text-slate-400">
+              <span className="truncate text-xs text-slate-400">
                 @{item.authorHandle}
               </span>
             </div>
@@ -268,7 +272,7 @@ function XPostCard({
         </div>
       </div>
 
-      <p className="mt-4 line-clamp-2 whitespace-pre-line text-[15px] leading-7 text-slate-600">
+      <p className="mt-4 line-clamp-2 whitespace-pre-line text-[13px] leading-[22px] text-slate-600">
         {text}
       </p>
 
@@ -327,7 +331,7 @@ function GenericPostCard({
           {item.postTypeLabel}
         </Badge>
       </div>
-      <p className="line-clamp-3 whitespace-pre-line text-sm leading-6 text-slate-600">
+      <p className="line-clamp-3 whitespace-pre-line text-[13px] leading-[22px] text-slate-600">
         {normalizeTechFrontierDisplayText(item.summary)}
       </p>
       <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
@@ -449,14 +453,14 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
             )}
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-1.5">
-                <strong className="truncate text-base font-semibold text-slate-950">
+                <strong className="truncate text-sm font-semibold text-slate-950">
                   {detailItem.authorName}
                 </strong>
                 {detailItem.platform === "x" && (
                   <span className="text-sky-500">✓</span>
                 )}
               </div>
-              <p className="truncate text-sm text-slate-400">
+              <p className="truncate text-xs text-slate-400">
                 @{detailItem.authorHandle}
               </p>
             </div>
@@ -469,7 +473,7 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
           </div>
         </div>
 
-        <p className="mt-5 whitespace-pre-line text-base leading-8 text-slate-700">
+        <p className="mt-5 whitespace-pre-line text-sm leading-6 text-slate-700">
           {normalizeTechFrontierDisplayText(
             detailItem.content || detailItem.summary,
           )}
@@ -553,7 +557,6 @@ function OriginalPostDetail({ item }: { item: TechFrontierPostItem }) {
 export default function TechFrontierPage() {
   const { selectedItem, open, close, isOpen } =
     useDetailView<TechFrontierPostItem>();
-  const breakpoint = useBreakpoint();
   const listRef = useRef<HTMLDivElement>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -590,140 +593,137 @@ export default function TechFrontierPage() {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
 
-  useEffect(() => {
-    if (visibleItems.length === 0) {
-      close();
-      return;
-    }
+  useAutoSelectDetail({
+    items: visibleItems,
+    selectedItem,
+    select: open,
+    close,
+    getKey: getTechFrontierPostKey,
+    isLoading,
+  });
 
-    if (
-      selectedItem &&
-      !visibleItems.some((item) => item.id === selectedItem.id)
-    ) {
-      close();
-      return;
-    }
-
-    if (!selectedItem && breakpoint !== "mobile") {
-      open(visibleItems[0]);
-    }
-  }, [breakpoint, close, open, selectedItem, visibleItems]);
-
-  const resetPage = useCallback(() => {
+  const resetPageAndDetail = useCallback(() => {
+    close();
     setPage(1);
-  }, []);
+  }, [close]);
 
   const handleSearchSubmit = useCallback(
     (value: string) => {
-      resetPage();
+      resetPageAndDetail();
       setSearchQuery(value);
     },
-    [resetPage],
+    [resetPageAndDetail],
   );
 
   const handlePlatformChange = useCallback(
     (nextPlatform: TechFrontierPlatformFilter) => {
-      resetPage();
+      resetPageAndDetail();
       setActivePlatform(nextPlatform);
     },
-    [resetPage],
+    [resetPageAndDetail],
   );
 
   const handleDateFromChange = useCallback(
     (value: string) => {
-      resetPage();
+      resetPageAndDetail();
       setDateFrom(value);
     },
-    [resetPage],
+    [resetPageAndDetail],
   );
 
   const handleDateToChange = useCallback(
     (value: string) => {
-      resetPage();
+      resetPageAndDetail();
       setDateTo(value);
     },
-    [resetPage],
+    [resetPageAndDetail],
   );
 
   const handleDateClear = useCallback(() => {
-    resetPage();
+    resetPageAndDetail();
     setDateFrom("");
     setDateTo("");
-  }, [resetPage]);
+  }, [resetPageAndDetail]);
 
-  const handlePageChange = useCallback((nextPage: number) => {
-    setPage(nextPage);
-    requestAnimationFrame(() => {
-      listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }, []);
+  const handlePageChange = useCallback(
+    (nextPage: number) => {
+      close();
+      setPage(nextPage);
+      requestAnimationFrame(() => {
+        listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    },
+    [close],
+  );
 
   return (
     <IntelligencePageShell className="h-[var(--app-content-height,100dvh)]">
-      <IntelligenceToolbar
-        title="社媒情报"
-        total={total}
-        totalIsEstimate
-        updatedAt={generatedAt ? new Date(generatedAt) : undefined}
-        actions={
-          isDisconnected ? (
-            <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
-              <WifiOff className="h-3.5 w-3.5" />
-              后端未连接
-            </span>
-          ) : undefined
-        }
-      >
-        <SearchInput
-          value={searchInput}
-          onChange={setSearchInput}
-          onSearch={handleSearchSubmit}
-          placeholder="搜索 X、公众号前沿认知或作者"
-          className="min-w-[16rem] flex-1"
-          inputClassName="h-9 rounded-lg border-[#e5e9f0] bg-white text-sm"
-          buttonClassName="h-9 rounded-lg"
-        />
-
-        <DateRangeFilter
-          from={dateFrom}
-          to={dateTo}
-          onFromChange={handleDateFromChange}
-          onToChange={handleDateToChange}
-          onClear={handleDateClear}
-          className="w-full min-w-0 md:w-auto md:shrink-0"
-        />
-
-        <div className="flex items-center gap-1 rounded-lg bg-[#f2f4f7] p-1">
-          {PLATFORM_FILTERS.map(({ value, label, icon: Icon }) => {
-            const active = activePlatform === value;
-            const count = platformTotals[value];
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => handlePlatformChange(value)}
-                aria-pressed={active}
-                className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3156d8]",
-                  active
-                    ? "bg-[#1a3a5c] text-white"
-                    : "text-[#667085] hover:bg-white hover:text-[#1a3a5c]",
-                )}
-              >
-                {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
-                {label}
-                {count > 0 && (
-                  <span className="font-tabular opacity-80">
-                    至少 {formatNumber(count)}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </IntelligenceToolbar>
-
       <IntelligenceWorkspace
+        listHeader={
+          <IntelligenceToolbar
+            variant="embedded"
+            title="社媒情报"
+            total={total}
+            totalIsEstimate
+            updatedAt={generatedAt ? new Date(generatedAt) : undefined}
+            actions={
+              isDisconnected ? (
+                <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
+                  <WifiOff className="h-3.5 w-3.5" />
+                  后端未连接
+                </span>
+              ) : undefined
+            }
+          >
+            <SearchInput
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={handleSearchSubmit}
+              placeholder="搜索 X、公众号前沿认知或作者"
+              className="min-w-[16rem] flex-1"
+              inputClassName="h-9 rounded-lg border-[#e5e9f0] bg-white text-sm"
+              buttonClassName="h-9 rounded-lg"
+            />
+
+            <DateRangeFilter
+              from={dateFrom}
+              to={dateTo}
+              onFromChange={handleDateFromChange}
+              onToChange={handleDateToChange}
+              onClear={handleDateClear}
+              className="w-full min-w-0"
+            />
+
+            <div className="flex items-center gap-1 rounded-lg bg-[#f2f4f7] p-1">
+              {PLATFORM_FILTERS.map(({ value, label, icon: Icon }) => {
+                const active = activePlatform === value;
+                const count = platformTotals[value];
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => handlePlatformChange(value)}
+                    aria-pressed={active}
+                    className={cn(
+                      "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3156d8]",
+                      active
+                        ? "bg-[#1a3a5c] text-white"
+                        : "text-[#667085] hover:bg-white hover:text-[#1a3a5c]",
+                    )}
+                  >
+                    {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
+                    {label}
+                    {count > 0 && (
+                      <span className="font-tabular opacity-80">
+                        至少 {formatNumber(count)}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </IntelligenceToolbar>
+        }
         listContentClassName="min-h-0 overflow-hidden"
         isOpen={isOpen}
         onClose={close}
@@ -731,12 +731,12 @@ export default function TechFrontierPage() {
           selectedItem
             ? {
                 title: (
-                  <h2 className="line-clamp-2 text-lg font-semibold leading-snug text-[#1a3a5c]">
+                  <h2 className="line-clamp-2 text-base font-semibold leading-snug text-[#1a3a5c]">
                     {selectedItem.title}
                   </h2>
                 ),
                 subtitle: (
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[#667085]">
+                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#667085]">
                     <PlatformBadge item={selectedItem} />
                     <span>{selectedItem.authorName}</span>
                     <span>&middot;</span>

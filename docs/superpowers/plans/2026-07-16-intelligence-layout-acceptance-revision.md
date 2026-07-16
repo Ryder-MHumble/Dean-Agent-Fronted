@@ -168,7 +168,7 @@ Return the current item when its key remains visible; otherwise return the first
 
 - [ ] **Step 2: Implement the synchronization Hook**
 
-Use `useBreakpoint`, but read `window.innerWidth` inside the client effect so the initial desktop fallback cannot open a mobile detail. Keep the current selection in a ref and drive the synchronization effect from `items`, `isLoading`, and breakpoint changes rather than `selectedItem`; this lets an explicit user close remain closed until the result set changes. Call `select(next)` or `close()` only when a transition is required.
+Read `window.innerWidth` inside the client effect so the initial desktop fallback cannot open a mobile detail. Keep the current selection in a ref and drive the synchronization effect from the item-key signature and `isLoading`, not from `selectedItem` or breakpoint changes; this lets an explicit user close remain closed until the result set changes. Call `select(next)` or `close()` only when a transition is required.
 
 - [ ] **Step 3: Implement exact date grouping**
 

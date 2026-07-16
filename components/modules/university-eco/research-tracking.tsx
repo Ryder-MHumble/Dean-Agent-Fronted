@@ -37,6 +37,7 @@ import { IntelligenceDetailHeader } from "@/components/shared/intelligence-detai
 import IntelligenceListItem from "@/components/shared/intelligence-list-item";
 import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
+import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { normalizeUniversityInstitutionName } from "@/lib/university-source";
 
 function TypeBadge({ type }: { type: ResearchOutput["type"] }) {
@@ -86,7 +87,7 @@ function ArticleCover({
     return (
       <ItemAvatar
         text={fallbackText.slice(0, 1)}
-        className="h-20 w-32 rounded-xl bg-purple-50 text-purple-700"
+        className="h-16 w-24 rounded-lg bg-purple-50 text-purple-700"
       />
     );
   }
@@ -97,9 +98,13 @@ function ArticleCover({
       alt="成果封面"
       loading="lazy"
       onError={() => setImgFailed(true)}
-      className="h-20 w-32 shrink-0 rounded-xl object-cover border border-border/50"
+      className="h-16 w-24 shrink-0 rounded-lg object-cover border border-border/50"
     />
   );
+}
+
+function getResearchOutputKey(item: ResearchOutput) {
+  return item.id;
 }
 
 export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
@@ -141,18 +146,21 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
   }>({});
   const [contentLoading, setContentLoading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const detailRequestIdRef = useRef(0);
 
   const handleOpen = useCallback(
     async (output: ResearchOutput) => {
+      const requestId = ++detailRequestIdRef.current;
       open(output);
       setArticleContent({});
+      setContentLoading(false);
 
       if (output.content) return;
 
       setContentLoading(true);
       try {
         const detail = await fetchUniversityArticle(output.id);
-        if (detail) {
+        if (detail && detailRequestIdRef.current === requestId) {
           setArticleContent({
             content: detail.content,
             images: detail.images,
@@ -161,7 +169,9 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
       } catch {
         // Silently fail
       } finally {
-        setContentLoading(false);
+        if (detailRequestIdRef.current === requestId) {
+          setContentLoading(false);
+        }
       }
     },
     [open],
@@ -260,6 +270,15 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
     return sortedOutputs.filter((item) => effectiveSources.has(item.sourceId));
   }, [sortedOutputs, effectiveSources]);
 
+  useAutoSelectDetail({
+    items: filteredOutputs,
+    selectedItem: selectedOutput,
+    select: handleOpen,
+    close,
+    getKey: getResearchOutputKey,
+    isLoading,
+  });
+
   const activeSourceCount = effectiveSources.size;
 
   const openDropdown = useCallback(() => {
@@ -320,17 +339,20 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
-      <IntelligenceToolbar
-        title="高校生态"
-        total={itemCount}
-        updatedAt={generatedAt ? new Date(generatedAt) : undefined}
-        supplemental={
+      <IntelligenceWorkspace
+        listHeader={
+          <IntelligenceToolbar
+            variant="embedded"
+            title="高校生态"
+            total={itemCount}
+            updatedAt={generatedAt ? new Date(generatedAt) : undefined}
+            supplemental={
           <div className="grid grid-cols-3 divide-x divide-[#e5e9f0]">
             <div className="flex items-center gap-2 px-3 first:pl-0">
               <BookOpen className="h-4 w-4 text-blue-500" aria-hidden="true" />
               <div>
                 <p className="text-[11px] text-[#667085]">同行论文</p>
-                <p className="font-tabular text-base font-semibold text-[#1a3a5c]">
+                <p className="font-tabular text-sm font-semibold text-[#1a3a5c]">
                   {metrics.papers.toLocaleString("zh-CN")} 篇
                 </p>
               </div>
@@ -342,7 +364,7 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
               />
               <div>
                 <p className="text-[11px] text-[#667085]">新专利</p>
-                <p className="font-tabular text-base font-semibold text-[#1a3a5c]">
+                <p className="font-tabular text-sm font-semibold text-[#1a3a5c]">
                   {metrics.patents.toLocaleString("zh-CN")} 项
                 </p>
               </div>
@@ -351,14 +373,14 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
               <Trophy className="h-4 w-4 text-amber-500" aria-hidden="true" />
               <div>
                 <p className="text-[11px] text-[#667085]">重大获奖</p>
-                <p className="font-tabular text-base font-semibold text-[#1a3a5c]">
+                <p className="font-tabular text-sm font-semibold text-[#1a3a5c]">
                   {metrics.awards.toLocaleString("zh-CN")} 项
                 </p>
               </div>
             </div>
           </div>
-        }
-      >
+            }
+          >
         <div className="w-full space-y-3">
           {tabs}
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -371,7 +393,7 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
                 setDateFrom("");
                 setDateTo("");
               }}
-              className="w-full min-w-0 md:w-auto md:shrink-0"
+              className="w-full min-w-0"
             />
             {sourcesWithCount.length > 0 && (
               <div
@@ -499,9 +521,8 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
             </div>
           )}
         </div>
-      </IntelligenceToolbar>
-
-      <IntelligenceWorkspace
+          </IntelligenceToolbar>
+        }
         listContentClassName="min-h-0 overflow-hidden"
         isOpen={isOpen}
         onClose={close}
@@ -611,6 +632,7 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
               <DateGroupedList
                 items={filteredOutputs}
                 emptyMessage="暂无科研成果"
+                variant="timeline"
                 animated={false}
                 renderItem={(output) => (
                   <IntelligenceListItem
@@ -618,7 +640,7 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
                     onClick={() => handleOpen(output)}
                     className="group overflow-hidden p-0"
                   >
-                    <div className="px-4 py-3 sm:px-5 sm:py-4">
+                    <div className="px-3 py-2.5 sm:px-4 sm:py-3">
                       <div className="flex items-start gap-3">
                         <ArticleCover
                           imageUrl={output.images?.[0]?.src}
@@ -627,10 +649,10 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start gap-2">
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-[#3156d8]">
+                              <h4 className="text-sm font-semibold leading-5 text-foreground transition-colors group-hover:text-[#3156d8]">
                                 {output.title}
                               </h4>
-                              <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                              <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] text-muted-foreground">
                                 <span className="font-medium text-foreground/80">
                                   {output.institution}
                                 </span>
@@ -643,13 +665,13 @@ export default function ResearchTracking({ tabs }: { tabs: ReactNode }) {
                             <InfluenceBadge level={output.influence} />
                             <ChevronRight className="h-4 w-4 shrink-0 text-[#98a2b3] transition-colors group-hover:text-[#3156d8]" />
                           </div>
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
                             <TypeBadge type={output.type} />
-                            <span className="inline-flex max-w-full items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700">
+                            <span className="inline-flex max-w-full items-center rounded-md border border-purple-200 bg-purple-50 px-2 py-0.5 text-[11px] font-semibold text-purple-700">
                               来源：{output.sourceName || "未知来源"}
                             </span>
                           </div>
-                          <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">
+                          <p className="mt-1.5 line-clamp-1 text-[11px] leading-5 text-muted-foreground">
                             作者/团队：{output.authors}
                           </p>
                         </div>

@@ -7,6 +7,7 @@ import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { useSentimentFeed, useSentimentOverview } from "@/hooks/use-sentiment";
 import { getPlatformConfig } from "@/lib/config/platforms";
 import type {
@@ -21,7 +22,7 @@ import {
   MessageCircle,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ContentCard } from "./content-card";
 import {
   getSentimentDetailHeader,
@@ -36,6 +37,10 @@ const SORT_OPTIONS = [
   { value: "liked_count", label: "最热" },
   { value: "comment_count", label: "评论最多" },
 ];
+
+function getSentimentContentKey(item: SentimentContentItem) {
+  return item.content_id || String(item.id);
+}
 
 function PlatformChips({
   platforms,
@@ -226,6 +231,20 @@ export default function SentimentMonitor() {
     pageSize: PAGE_SIZE,
   });
 
+  const closeSelectedContent = useCallback(() => {
+    setSelectedContent(null);
+  }, []);
+
+  useAutoSelectDetail({
+    items: feed?.items ?? [],
+    selectedItem: selectedContent,
+    select: setSelectedContent,
+    close: closeSelectedContent,
+    getKey: getSentimentContentKey,
+    isLoading: feedLoading,
+    preserveSelectedOutsideItems: true,
+  });
+
   const handlePlatformChange = (nextPlatform: string) => {
     setPlatform(nextPlatform);
     setPage(1);
@@ -251,61 +270,63 @@ export default function SentimentMonitor() {
 
   return (
     <IntelligencePageShell>
-      <IntelligenceToolbar
-        title="两院舆情监测"
-        total={feed?.total ?? overview?.total_contents}
-        supplemental={
-          overviewLoading ? (
-            <OverviewSkeleton />
-          ) : overview ? (
-            <OverviewMetrics overview={overview} />
-          ) : null
-        }
-      >
-        <div className="w-full space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {overview && (
-              <PlatformChips
-                platforms={overview.platforms}
-                selected={platform}
-                onSelect={handlePlatformChange}
-              />
-            )}
-            <div className="flex items-center gap-1" aria-label="排序方式">
-              {SORT_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-pressed={sortBy === option.value}
-                  onClick={() => handleSortChange(option.value)}
-                  className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3156d8]",
-                    sortBy === option.value
-                      ? "bg-[#1a3a5c] text-white"
-                      : "text-[#667085] hover:bg-[#f1f4f8]",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <SearchInput
-            value={searchInput}
-            onChange={setSearchInput}
-            onSearch={handleSearch}
-            placeholder="搜索标题、内容或作者"
-            className="w-full"
-            inputClassName="h-9 rounded-lg border-[#e5e9f0] bg-[#f8fafc] text-sm focus:bg-white"
-            buttonClassName="h-9 rounded-lg"
-          />
-        </div>
-      </IntelligenceToolbar>
-
       <IntelligenceWorkspace
+        listHeader={
+          <IntelligenceToolbar
+            variant="embedded"
+            title="两院舆情监测"
+            total={feed?.total ?? overview?.total_contents}
+            supplemental={
+              overviewLoading ? (
+                <OverviewSkeleton />
+              ) : overview ? (
+                <OverviewMetrics overview={overview} />
+              ) : null
+            }
+          >
+            <div className="w-full space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {overview && (
+                  <PlatformChips
+                    platforms={overview.platforms}
+                    selected={platform}
+                    onSelect={handlePlatformChange}
+                  />
+                )}
+                <div className="flex items-center gap-1" aria-label="排序方式">
+                  {SORT_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={sortBy === option.value}
+                      onClick={() => handleSortChange(option.value)}
+                      className={cn(
+                        "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3156d8]",
+                        sortBy === option.value
+                          ? "bg-[#1a3a5c] text-white"
+                          : "text-[#667085] hover:bg-[#f1f4f8]",
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <SearchInput
+                value={searchInput}
+                onChange={setSearchInput}
+                onSearch={handleSearch}
+                placeholder="搜索标题、内容或作者"
+                className="w-full"
+                inputClassName="h-9 rounded-lg border-[#e5e9f0] bg-[#f8fafc] text-sm focus:bg-white"
+                buttonClassName="h-9 rounded-lg"
+              />
+            </div>
+          </IntelligenceToolbar>
+        }
         listContentClassName="min-h-0 overflow-hidden"
         isOpen={Boolean(selectedContent?.content_id)}
-        onClose={() => setSelectedContent(null)}
+        onClose={closeSelectedContent}
         detailHeader={
           selectedContent ? getSentimentDetailHeader(selectedContent) : undefined
         }

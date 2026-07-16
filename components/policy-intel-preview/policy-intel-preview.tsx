@@ -36,7 +36,8 @@ export default function PolicyIntelPreview() {
   const detailRef = useRef<HTMLElement>(null);
   const lastSelectedButtonRef = useRef<HTMLButtonElement | null>(null);
   const breakpoint = useBreakpoint();
-  const isCompactViewport = breakpoint !== "desktop";
+  const isMobileViewport = breakpoint === "mobile";
+  const isOverlayViewport = breakpoint !== "desktop";
 
   const { items, isLoading, total, totalPages } = usePolicyFeed({
     keyword: searchQuery || undefined,
@@ -79,9 +80,10 @@ export default function PolicyIntelPreview() {
     if (requestCompleted) loadingRequestKeyRef.current = null;
     const resetToFirst = requestCompleted || sortChanged;
 
-    setSelectedId((current) =>
-      getPolicyPreviewSelectedId(sortedItems, current, resetToFirst),
-    );
+    setSelectedId((current) => {
+      if (resetToFirst && window.innerWidth < 768) return null;
+      return getPolicyPreviewSelectedId(sortedItems, current, resetToFirst);
+    });
     if (resetToFirst) setMobileDetailOpen(false);
   }, [isLoading, requestKey, sort, sortedItems]);
 
@@ -105,14 +107,14 @@ export default function PolicyIntelPreview() {
     lastSelectedButtonRef.current = trigger;
     setSelectedId(item.id);
     setMobileDetailOpen(true);
-    if (isCompactViewport) {
+    if (isOverlayViewport) {
       requestAnimationFrame(() => detailRef.current?.focus());
     }
   }
 
   function closeMobileDetail() {
     setMobileDetailOpen(false);
-    if (!isCompactViewport) setSelectedId(null);
+    setSelectedId(null);
     requestAnimationFrame(() => lastSelectedButtonRef.current?.focus());
   }
 
@@ -154,7 +156,7 @@ export default function PolicyIntelPreview() {
     <IntelligencePageShell>
       <IntelligenceWorkspace
         isOpen={
-          selectedItem !== null && (!isCompactViewport || mobileDetailOpen)
+          selectedItem !== null && (!isMobileViewport || mobileDetailOpen)
         }
         onClose={closeMobileDetail}
         listContentClassName="min-h-0 overflow-hidden"

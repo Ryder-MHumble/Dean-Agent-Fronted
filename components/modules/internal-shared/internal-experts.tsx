@@ -15,6 +15,7 @@ import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
 import SkillAccessNote from "@/components/shared/skill-access-note";
 import { Badge } from "@/components/ui/badge";
+import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { useDetailView } from "@/hooks/use-detail-view";
 import expertSnapshot from "@/lib/generated/two-academies-experts.json";
 
@@ -45,6 +46,16 @@ const snapshotUpdatedAt = Number.isNaN(parsedSnapshotUpdatedAt.getTime())
 function formatDate(value: string): string {
   if (!value) return "时间待补充";
   return value.slice(0, 10);
+}
+
+function getExpertKey(expert: ExpertRecord) {
+  return [
+    expert.name,
+    expert.organization,
+    expert.department,
+    expert.title,
+    expert.role,
+  ].join("\u0000");
 }
 
 function ExpertDetail({ expert }: { expert: ExpertRecord }) {
@@ -164,6 +175,14 @@ export default function InternalExpertsModule() {
     effectivePage * PAGE_SIZE,
   );
 
+  useAutoSelectDetail({
+    items: visibleExperts,
+    selectedItem,
+    select: open,
+    close,
+    getKey: getExpertKey,
+  });
+
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
     close();
@@ -174,44 +193,46 @@ export default function InternalExpertsModule() {
 
   return (
     <IntelligencePageShell className="h-[var(--app-content-height,100dvh)] overflow-hidden">
-      <IntelligenceToolbar
-        title="两院专家库"
-        total={filteredExperts.length}
-        updatedAt={snapshotUpdatedAt}
-        actions={
-          <>
-            <a
-              href="http://10.1.132.21:5174/?tab=scholars"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-medium text-[#1a3a5c] underline-offset-4 hover:underline"
-            >
-              更多学者数据请访问 10.1.132.21:5174
-              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
-            <SkillAccessNote
-              label="配置专家推荐技能"
-              href="https://skills.zgci.org/space/global/liangyuan-expert-recommender"
-            />
-          </>
-        }
-      >
-        <SearchInput
-          value={searchInput}
-          onChange={setSearchInput}
-          onSearch={(value) => {
-            setQuery(value);
-            setPage(1);
-            close();
-          }}
-          placeholder="搜索姓名、单位、研究方向"
-          className="w-full"
-          inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
-          buttonClassName="h-9 rounded-lg"
-        />
-      </IntelligenceToolbar>
-
       <IntelligenceWorkspace
+        listHeader={
+          <IntelligenceToolbar
+            variant="embedded"
+            title="两院专家库"
+            total={filteredExperts.length}
+            updatedAt={snapshotUpdatedAt}
+            actions={
+              <>
+                <a
+                  href="http://10.1.132.21:5174/?tab=scholars"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-[#1a3a5c] underline-offset-4 hover:underline"
+                >
+                  更多学者数据请访问 10.1.132.21:5174
+                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                </a>
+                <SkillAccessNote
+                  label="配置专家推荐技能"
+                  href="https://skills.zgci.org/space/global/liangyuan-expert-recommender"
+                />
+              </>
+            }
+          >
+            <SearchInput
+              value={searchInput}
+              onChange={setSearchInput}
+              onSearch={(value) => {
+                setQuery(value);
+                setPage(1);
+                close();
+              }}
+              placeholder="搜索姓名、单位、研究方向"
+              className="w-full"
+              inputClassName="h-9 rounded-lg border-border/50 bg-muted/30 text-sm transition-colors focus:bg-white"
+              buttonClassName="h-9 rounded-lg"
+            />
+          </IntelligenceToolbar>
+        }
         listContentClassName="min-h-0 overflow-hidden"
         isOpen={isOpen}
         onClose={close}
@@ -240,10 +261,10 @@ export default function InternalExpertsModule() {
             ) : (
               visibleExperts.map((expert) => (
                 <IntelligenceListItem
-                  key={`${expert.name}-${expert.organization}`}
+                  key={getExpertKey(expert)}
                   selected={
-                    selectedItem?.name === expert.name &&
-                    selectedItem?.organization === expert.organization
+                    selectedItem !== null &&
+                    getExpertKey(selectedItem) === getExpertKey(expert)
                   }
                   onClick={() => open(expert)}
                   className="group p-3.5"

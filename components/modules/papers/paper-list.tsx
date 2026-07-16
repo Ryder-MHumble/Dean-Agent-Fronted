@@ -24,6 +24,7 @@ import {
 import IntelligenceListItem from "@/components/shared/intelligence-list-item";
 import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
+import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { useDetailView } from "@/hooks/use-detail-view";
 import { usePaperFeed } from "@/hooks/use-paper-feed";
 import { getPaperCategorySourceQueries } from "@/lib/paper-feed";
@@ -32,6 +33,11 @@ import type { PaperCategory, PaperRecord } from "@/lib/types/papers";
 import { ChevronRight, ExternalLink, FileText, Loader2 } from "lucide-react";
 
 const PAGE_SIZE = 20;
+
+function getPaperKey(paper: PaperRecord) {
+  return paper.paper_id || paper.title;
+}
+
 const API_BASE = (
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.1.132.21:8001"
 ).replace(/\/+$/, "");
@@ -384,6 +390,15 @@ export default function PaperList({
     pageSize: PAGE_SIZE,
   });
 
+  useAutoSelectDetail({
+    items: feed.items,
+    selectedItem,
+    select: open,
+    close,
+    getKey: getPaperKey,
+    isLoading: feed.isLoading,
+  });
+
   const dateGroups = useMemo(() => {
     if (!groupByPublicationDate) return [];
     const groups = new Map<string, PaperRecord[]>();
@@ -418,20 +433,25 @@ export default function PaperList({
   const renderRows = (papers: PaperRecord[]) =>
     papers.map((paper) => (
       <PaperRow
-        key={paper.paper_id || paper.title}
+        key={getPaperKey(paper)}
         paper={paper}
-        isSelected={selectedItem?.paper_id === paper.paper_id}
+        isSelected={
+          selectedItem ? getPaperKey(selectedItem) === getPaperKey(paper) : false
+        }
         onClick={() => open(paper)}
       />
     ));
 
   return (
     <>
-      <IntelligenceToolbar
-        title="前沿论文"
-        total={feed.isSampled ? undefined : feed.total}
-        actions={accessNote}
-        supplemental={
+      <IntelligenceWorkspace
+        listHeader={
+          <IntelligenceToolbar
+            variant="embedded"
+            title="前沿论文"
+            total={feed.isSampled ? undefined : feed.total}
+            actions={accessNote}
+            supplemental={
           <div className="flex flex-wrap items-center gap-2">
             {!category &&
               categoryTabs.map((tab) => (
@@ -455,8 +475,8 @@ export default function PaperList({
               </span>
             )}
           </div>
-        }
-      >
+            }
+          >
         <SearchInput
           value={searchInput}
           onChange={setSearchInput}
@@ -485,7 +505,7 @@ export default function PaperList({
             setDateTo("");
             resetPageAndDetail();
           }}
-          className="w-full min-w-0 md:w-auto md:shrink-0"
+          className="w-full min-w-0"
         />
         {sourceOptions.length > 0 && (
           <Select
@@ -508,9 +528,8 @@ export default function PaperList({
             </SelectContent>
           </Select>
         )}
-      </IntelligenceToolbar>
-
-      <IntelligenceWorkspace
+          </IntelligenceToolbar>
+        }
         listContentClassName="min-h-0 overflow-hidden"
         isOpen={isOpen}
         onClose={close}

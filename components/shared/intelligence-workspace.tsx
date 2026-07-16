@@ -1,14 +1,22 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import MasterDetailView from "@/components/shared/master-detail-view";
 import { cn } from "@/lib/utils";
 
-type Props = ComponentProps<typeof MasterDetailView>;
+type Props = Omit<
+  ComponentProps<typeof MasterDetailView>,
+  "children" | "variant"
+> & {
+  children: ReactNode;
+  listHeader?: ReactNode;
+};
 
 export default function IntelligenceWorkspace({
   className,
   listWidth,
+  listHeader,
+  children,
   ...props
 }: Props) {
   return (
@@ -19,9 +27,22 @@ export default function IntelligenceWorkspace({
       <MasterDetailView
         {...props}
         variant="intelligence"
-        listWidth={listWidth ?? 44}
+        listWidth={listWidth ?? 40}
         className={cn("h-full", className)}
-      />
+      >
+        {listHeader ? (
+          <div className="flex h-full min-h-0 flex-col">
+            {listHeader && (
+              <div className="relative z-10 shrink-0 bg-white">
+                {listHeader}
+              </div>
+            )}
+            <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
+          </div>
+        ) : (
+          children
+        )}
+      </MasterDetailView>
     </section>
   );
 }

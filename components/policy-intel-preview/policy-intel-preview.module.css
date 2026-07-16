@@ -50,10 +50,17 @@
   gap: 8px;
 }
 
+.searchCluster {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 260px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
 .searchField {
   display: flex;
-  min-width: 180px;
-  flex: 1 1 220px;
+  min-width: 0;
   align-items: center;
   gap: 8px;
   height: 38px;
@@ -525,22 +532,21 @@
 
   .filterRow {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .searchField,
+  .searchCluster,
   .selectCluster {
-    grid-column: 1 / -1;
     width: 100%;
   }
 
   .dateFilterRow {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   }
 
-  .clearButton {
-    grid-column: 1 / -1;
+  .dateField {
+    min-width: 0;
   }
 
   .policyList li {

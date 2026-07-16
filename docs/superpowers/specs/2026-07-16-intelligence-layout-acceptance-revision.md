@@ -80,7 +80,7 @@
 - `IntelligenceToolbar` 新增 `variant="embedded"`，只改变容器外观和窄栏换行，不改变现有内容 API。
 - `MasterDetailView` 的断点、动画、详情滚动和焦点生命周期保持不动。
 - `DateGroupedList` 新增显式时间轴模式，默认模式行为不变。
-- 新增一个小型默认详情同步 Hook，并将纯选择规则放在可单元测试的函数中；同步 effect 由结果项、加载状态和断点变化驱动，不由用户关闭后的 `selectedItem=null` 单独驱动。
+- 新增一个小型默认详情同步 Hook，并将纯选择规则放在可单元测试的函数中；同步 effect 只由结果项和加载状态驱动，执行时读取当前视口宽度，不由用户关闭后的 `selectedItem=null` 或单纯断点变化驱动。
 
 ## 验收标准
 
