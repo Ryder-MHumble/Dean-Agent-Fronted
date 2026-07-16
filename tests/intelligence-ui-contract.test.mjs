@@ -223,7 +223,9 @@ test("policy and social intelligence use the unified shell", () => {
     assert.match(source, /<IntelligencePageShell/);
     assert.match(source, /<IntelligenceWorkspace/);
   }
-  assert.match(policyList, /<IntelligenceToolbar[\s\S]{0,120}variant="embedded"/);
+  assert.match(policyList, /<IntelligenceToolbar/);
+  assert.doesNotMatch(policyList, /variant="embedded"/);
+  assert.match(policy, /listWidth=\{44\}/);
   assert.match(policyList, /<IntelligenceListItem/);
   assert.match(policyDetail, /<IntelligenceDetailHeader/);
   assert.match(policyDetail, /<IntelligenceSection/);
@@ -371,8 +373,8 @@ test("all non-policy business pages synchronize the first non-mobile detail", ()
   }
 
   const policy = read("../components/policy-intel-preview/policy-intel-preview.tsx");
-  assert.match(policy, /const isMobileViewport = breakpoint === "mobile"/);
-  assert.match(policy, /window\.innerWidth < 768/);
+  assert.match(policy, /const isCompactViewport = breakpoint !== "desktop"/);
+  assert.doesNotMatch(policy, /window\.innerWidth < 768/);
 });
 
 test("social and university list typography stays compact in the narrow master pane", () => {

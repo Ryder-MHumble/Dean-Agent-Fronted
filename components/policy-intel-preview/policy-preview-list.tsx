@@ -103,7 +103,6 @@ export default function PolicyPreviewList({
   return (
     <aside className={styles.listPanel} aria-label="政策列表">
       <IntelligenceToolbar
-        variant="embedded"
         title="政策动态"
         total={total}
         actions={
@@ -123,27 +122,18 @@ export default function PolicyPreviewList({
         }
       >
         <div className={styles.filterRow}>
-          <div className={styles.searchCluster}>
-            <label className={styles.searchField}>
-              <Search aria-hidden="true" />
-              <span className={styles.srOnly}>搜索政策</span>
-              <input
-                ref={searchRef}
-                type="search"
-                placeholder="搜索标题或关键词"
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") submitSearch();
-                }}
-              />
-            </label>
-            <button
-              type="button"
-              className={styles.searchButton}
-              onClick={submitSearch}
-            >
-              搜索
-            </button>
-          </div>
+          <label className={styles.searchField}>
+            <Search aria-hidden="true" />
+            <span className={styles.srOnly}>搜索政策</span>
+            <input
+              ref={searchRef}
+              type="search"
+              placeholder="搜索标题或关键词"
+              onKeyDown={(event) => {
+                if (event.key === "Enter") submitSearch();
+              }}
+            />
+          </label>
           <div className={styles.selectCluster}>
             <Select
               value={category}
@@ -200,6 +190,9 @@ export default function PolicyPreviewList({
               </SelectContent>
             </Select>
           </div>
+          <button type="button" className={styles.searchButton} onClick={submitSearch}>
+            搜索
+          </button>
         </div>
         <div className={styles.dateFilterRow}>
           <label className={styles.dateField}>

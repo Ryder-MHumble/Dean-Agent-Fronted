@@ -36,8 +36,7 @@ export default function PolicyIntelPreview() {
   const detailRef = useRef<HTMLElement>(null);
   const lastSelectedButtonRef = useRef<HTMLButtonElement | null>(null);
   const breakpoint = useBreakpoint();
-  const isMobileViewport = breakpoint === "mobile";
-  const isOverlayViewport = breakpoint !== "desktop";
+  const isCompactViewport = breakpoint !== "desktop";
 
   const { items, isLoading, total, totalPages } = usePolicyFeed({
     keyword: searchQuery || undefined,
@@ -80,10 +79,9 @@ export default function PolicyIntelPreview() {
     if (requestCompleted) loadingRequestKeyRef.current = null;
     const resetToFirst = requestCompleted || sortChanged;
 
-    setSelectedId((current) => {
-      if (resetToFirst && window.innerWidth < 768) return null;
-      return getPolicyPreviewSelectedId(sortedItems, current, resetToFirst);
-    });
+    setSelectedId((current) =>
+      getPolicyPreviewSelectedId(sortedItems, current, resetToFirst),
+    );
     if (resetToFirst) setMobileDetailOpen(false);
   }, [isLoading, requestKey, sort, sortedItems]);
 
@@ -107,14 +105,14 @@ export default function PolicyIntelPreview() {
     lastSelectedButtonRef.current = trigger;
     setSelectedId(item.id);
     setMobileDetailOpen(true);
-    if (isOverlayViewport) {
+    if (isCompactViewport) {
       requestAnimationFrame(() => detailRef.current?.focus());
     }
   }
 
   function closeMobileDetail() {
     setMobileDetailOpen(false);
-    setSelectedId(null);
+    if (!isCompactViewport) setSelectedId(null);
     requestAnimationFrame(() => lastSelectedButtonRef.current?.focus());
   }
 
@@ -155,8 +153,9 @@ export default function PolicyIntelPreview() {
   return (
     <IntelligencePageShell>
       <IntelligenceWorkspace
+        listWidth={44}
         isOpen={
-          selectedItem !== null && (!isMobileViewport || mobileDetailOpen)
+          selectedItem !== null && (!isCompactViewport || mobileDetailOpen)
         }
         onClose={closeMobileDetail}
         listContentClassName="min-h-0 overflow-hidden"

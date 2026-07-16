@@ -51,26 +51,25 @@ test("selection waits for loading and mobile focus can move to detail and return
   assert.match(source, /tabIndex=\{-1\}/);
 });
 
-test("policy overlay keeps only mobile list-first while tablet opens the default detail", () => {
+test("policy restores the original compact overlay behavior", () => {
   const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
   assert.match(source, /useBreakpoint/);
-  assert.match(source, /const isMobileViewport = breakpoint === "mobile"/);
-  assert.match(source, /const isOverlayViewport = breakpoint !== "desktop"/);
+  assert.match(source, /const isCompactViewport = breakpoint !== "desktop"/);
   assert.match(
     source,
-    /function selectItem[\s\S]{0,260}if \(isOverlayViewport\) \{[\s\S]{0,120}detailRef\.current\?\.focus\(\)/,
+    /function selectItem[\s\S]{0,260}if \(isCompactViewport\) \{[\s\S]{0,120}detailRef\.current\?\.focus\(\)/,
   );
-  assert.match(source, /resetToFirst && window\.innerWidth < 768/);
+  assert.doesNotMatch(source, /window\.innerWidth < 768/);
   assert.doesNotMatch(source, /max-width: 959px/);
 });
 
-test("policy close clears the selection so breakpoint changes cannot reopen it", () => {
+test("policy restores the original desktop-only selection clearing", () => {
   const source = readFileSync("components/policy-intel-preview/policy-intel-preview.tsx", "utf8");
   assert.match(
     source,
-    /function closeMobileDetail\(\) \{[\s\S]{0,180}setMobileDetailOpen\(false\);\s*setSelectedId\(null\);/,
+    /function closeMobileDetail\(\) \{[\s\S]{0,180}setMobileDetailOpen\(false\);\s*if \(!isCompactViewport\) setSelectedId\(null\);/,
   );
-  assert.doesNotMatch(source, /if \(!isMobileViewport\) setSelectedId\(null\)/);
+  assert.match(source, /listWidth=\{44\}/);
 });
 
 test("preview supports date range and policy source filtering", () => {
@@ -93,24 +92,23 @@ test("preview supports date range and policy source filtering", () => {
   assert.match(list, /清除筛选/);
 });
 
-test("policy search input and action stay grouped before select filters", () => {
+test("policy restores the original filter order", () => {
   const source = readFileSync("components/policy-intel-preview/policy-preview-list.tsx", "utf8");
   const filterStart = source.indexOf('<div className={styles.filterRow}>');
   const filterEnd = source.indexOf('<div className={styles.dateFilterRow}>');
   const filterSource = source.slice(filterStart, filterEnd);
 
   assert.ok(filterStart >= 0 && filterEnd > filterStart);
-  assert.match(
-    filterSource,
-    /<div className=\{styles\.searchCluster\}>[\s\S]*styles\.searchField[\s\S]*styles\.searchButton[\s\S]*<\/div>[\s\S]*styles\.selectCluster/,
-  );
+  assert.doesNotMatch(filterSource, /styles\.searchCluster/);
+  assert.match(filterSource, /styles\.searchField[\s\S]*styles\.selectCluster[\s\S]*styles\.searchButton/);
 });
 
-test("policy date fields can shrink at the narrow desktop breakpoint", () => {
+test("policy restores the original narrow filter reflow", () => {
   const css = readFileSync("components/policy-intel-preview/policy-intel-preview.module.css", "utf8");
+  assert.doesNotMatch(css, /\.searchCluster/);
   assert.match(
     css,
-    /@container \(max-width: 620px\)[\s\S]*?\.dateField\s*\{\s*min-width:\s*0;/,
+    /@container \(max-width: 620px\)[\s\S]*?\.filterRow\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) auto;/,
   );
 });
 
