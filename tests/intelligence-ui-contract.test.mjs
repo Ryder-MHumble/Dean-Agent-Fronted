@@ -153,15 +153,33 @@ test("social intelligence uses result-driven default selection without forcing r
 test("intelligence workspace opts into report styling without changing defaults", () => {
   const workspace = read("../components/shared/intelligence-workspace.tsx");
   const masterDetail = read("../components/shared/master-detail-view.tsx");
+  const policy = read("../components/policy-intel-preview/policy-intel-preview.tsx");
+  const integratedPages = [
+    "../components/modules/tech-frontier/tech-frontier-page.tsx",
+    "../components/modules/papers/paper-list.tsx",
+    "../components/modules/internal-shared/academic-achievement-list.tsx",
+    "../components/modules/talent-radar/index.tsx",
+    "../components/modules/internal-shared/internal-experts.tsx",
+    "../components/modules/university-eco/peer-dynamics.tsx",
+    "../components/modules/university-eco/research-tracking.tsx",
+    "../components/modules/internal-mgmt/sentiment/index.tsx",
+  ];
 
   assert.match(workspace, /variant="intelligence"/);
+  assert.match(workspace, /surface\?: "framed" \| "integrated"/);
+  assert.match(workspace, /surface = "framed"/);
+  assert.match(workspace, /surface=\{surface\}/);
   assert.match(masterDetail, /variant\?: "default" \| "intelligence"/);
+  assert.match(masterDetail, /surface\?: "framed" \| "integrated"/);
   assert.match(masterDetail, /variant = "default"/);
   assert.match(masterDetail, /variant === "intelligence"/);
-  assert.match(
-    masterDetail,
-    /variant === "intelligence"\s*\?\s*"border-\[#e5e9f0\] bg-white"\s*:\s*"bg-background\/95 backdrop-blur-sm"/,
-  );
+  assert.match(masterDetail, /surface = "framed"/);
+  assert.match(masterDetail, /surface === "integrated"/);
+  assert.match(masterDetail, /bg-\[#f7f8fa\] shadow-none/);
+  assert.doesNotMatch(policy, /surface="integrated"/);
+  for (const path of integratedPages) {
+    assert.match(read(path), /surface="integrated"/);
+  }
 });
 
 test("shared intelligence primitives expose stable QA selectors", () => {
@@ -281,9 +299,6 @@ test("university and sentiment pages use the unified shell", () => {
   const sentiment = read(
     "../components/modules/internal-mgmt/sentiment/index.tsx",
   );
-  const sentimentDetail = read(
-    "../components/modules/internal-mgmt/sentiment/detail-panel.tsx",
-  );
 
   assert.match(university, /<IntelligencePageShell/);
   assert.match(university, /<Tabs/);
@@ -295,12 +310,13 @@ test("university and sentiment pages use the unified shell", () => {
     );
   }
   assert.doesNotMatch(sentiment, /<Sheet|<DetailPanel/);
-  assert.match(sentiment, /preserveSelectedOutsideItems/);
+  assert.doesNotMatch(sentiment, /useAutoSelectDetail/);
+  assert.doesNotMatch(sentiment, /preserveSelectedOutsideItems/);
   assert.match(sentiment, /<IntelligenceListItem|<ContentCard/);
   assert.match(sentiment, /<FeedPagination/);
-  assert.match(sentimentDetail, /IntelligenceDetailHeader/);
-  assert.match(sentimentDetail, /IntelligenceSection/);
-  assert.doesNotMatch(sentimentDetail, /<Sheet|SheetContent|SheetHeader/);
+  assert.match(sentiment, /isOpen=\{false\}/);
+  assert.match(sentiment, /window\.open\(item\.content_url/);
+  assert.doesNotMatch(sentiment, /detail-panel/);
 });
 
 test("sentiment supplemental content fits the narrow master pane", () => {
@@ -358,7 +374,7 @@ test("sentiment insights scroll inside the workspace instead of expanding the to
   assert.ok(sentiment.indexOf("<FeedPagination") > popularStart);
 });
 
-test("all non-policy business pages synchronize the first non-mobile detail", () => {
+test("all non-policy business pages except sentiment synchronize the first non-mobile detail", () => {
   for (const path of [
     "../components/modules/tech-frontier/tech-frontier-page.tsx",
     "../components/modules/papers/paper-list.tsx",
@@ -367,10 +383,13 @@ test("all non-policy business pages synchronize the first non-mobile detail", ()
     "../components/modules/internal-shared/internal-experts.tsx",
     "../components/modules/university-eco/peer-dynamics.tsx",
     "../components/modules/university-eco/research-tracking.tsx",
-    "../components/modules/internal-mgmt/sentiment/index.tsx",
   ]) {
     assert.match(read(path), /useAutoSelectDetail/);
   }
+
+  const sentiment = read("../components/modules/internal-mgmt/sentiment/index.tsx");
+  assert.doesNotMatch(sentiment, /useAutoSelectDetail/);
+  assert.match(sentiment, /openOriginalPost/);
 
   const policy = read("../components/policy-intel-preview/policy-intel-preview.tsx");
   assert.match(policy, /const isCompactViewport = breakpoint !== "desktop"/);

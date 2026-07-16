@@ -35,6 +35,8 @@ interface MasterDetailViewProps {
   listContentClassName?: string;
   /** Opt-in styling for intelligence report pages */
   variant?: "default" | "intelligence";
+  /** Visual treatment for intelligence workspaces */
+  surface?: "framed" | "integrated";
 }
 
 export default function MasterDetailView({
@@ -48,9 +50,11 @@ export default function MasterDetailView({
   className,
   listContentClassName,
   variant = "default",
+  surface = "framed",
 }: MasterDetailViewProps) {
   const breakpoint = useBreakpoint();
   const isIntelligence = variant === "intelligence";
+  const isIntegrated = isIntelligence && surface === "integrated";
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const shouldRestoreFocusRef = useRef(false);
   const mobileBackButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -146,7 +150,13 @@ export default function MasterDetailView({
   // Mobile: full-screen detail overlay
   if (breakpoint === "mobile") {
     return (
-      <div className={cn("relative", isIntelligence && "bg-white", className)}>
+      <div
+        className={cn(
+          "relative",
+          isIntelligence && (isIntegrated ? "bg-[#f7f8fa]" : "bg-white"),
+          className,
+        )}
+      >
         {children}
         <AnimatePresence>
           {isOpen && (
@@ -157,14 +167,17 @@ export default function MasterDetailView({
               transition={{ duration: 0.3, ease: EASE }}
               className={cn(
                 "fixed inset-0 z-50 flex flex-col bg-background",
-                isIntelligence && "bg-white",
+                isIntelligence && (isIntegrated ? "bg-[#f7f8fa]" : "bg-white"),
               )}
             >
               {/* Mobile header */}
               <div
                 className={cn(
                   "flex items-center gap-3 border-b px-4 py-3",
-                  isIntelligence && "border-[#e5e9f0] bg-white",
+                  isIntelligence &&
+                    (isIntegrated
+                      ? "border-[#e5e9f0] bg-[#f7f8fa]"
+                      : "border-[#e5e9f0] bg-white"),
                 )}
               >
                 <button
@@ -198,7 +211,10 @@ export default function MasterDetailView({
                 <div
                   className={cn(
                     "border-t bg-background px-4 py-3",
-                    isIntelligence && "border-[#e5e9f0] bg-white",
+                    isIntelligence &&
+                      (isIntegrated
+                        ? "border-[#e5e9f0] bg-[#f7f8fa]"
+                        : "border-[#e5e9f0] bg-white"),
                   )}
                 >
                   {detailFooter}
@@ -214,7 +230,13 @@ export default function MasterDetailView({
   // Tablet: overlay panel without dark backdrop
   if (breakpoint === "tablet") {
     return (
-      <div className={cn("relative", isIntelligence && "bg-white", className)}>
+      <div
+        className={cn(
+          "relative",
+          isIntelligence && (isIntegrated ? "bg-[#f7f8fa]" : "bg-white"),
+          className,
+        )}
+      >
         {children}
         <AnimatePresence>
           {isOpen && (
@@ -225,7 +247,10 @@ export default function MasterDetailView({
               transition={{ duration: 0.3, ease: EASE }}
               className={cn(
                 "absolute right-0 top-0 z-30 flex h-full w-[70%] flex-col border-l bg-background shadow-2xl",
-                isIntelligence && "border-[#e5e9f0] bg-white",
+                isIntelligence &&
+                  (isIntegrated
+                    ? "border-[#e5e9f0] bg-[#f7f8fa] shadow-none"
+                    : "border-[#e5e9f0] bg-white"),
               )}
             >
               <DetailPanelInner
@@ -234,6 +259,7 @@ export default function MasterDetailView({
                 detailFooter={detailFooter}
                 onClose={closeDetail}
                 variant={variant}
+                surface={surface}
               />
             </motion.div>
           )}
@@ -247,7 +273,7 @@ export default function MasterDetailView({
     <div
       className={cn(
         "flex h-full w-full overflow-hidden",
-        isIntelligence && "bg-white",
+        isIntelligence && (isIntegrated ? "bg-[#f7f8fa]" : "bg-white"),
         className,
       )}
     >
@@ -272,7 +298,10 @@ export default function MasterDetailView({
             transition={{ duration: 0.28, ease: EASE }}
             className={cn(
               "flex flex-1 min-h-0 flex-col overflow-hidden border-l border-border/60 bg-background shadow-lg",
-              isIntelligence && "border-[#e5e9f0] bg-white",
+              isIntelligence &&
+                (isIntegrated
+                  ? "border-[#e5e9f0] bg-[#f7f8fa] shadow-none"
+                  : "border-[#e5e9f0] bg-white"),
             )}
           >
             <DetailPanelInner
@@ -281,6 +310,7 @@ export default function MasterDetailView({
               detailFooter={detailFooter}
               onClose={closeDetail}
               variant={variant}
+              surface={surface}
             />
           </motion.div>
         )}
@@ -296,21 +326,27 @@ function DetailPanelInner({
   detailFooter,
   onClose,
   variant,
+  surface,
 }: {
   detailHeader?: MasterDetailViewProps["detailHeader"];
   detailContent: ReactNode;
   detailFooter?: ReactNode;
   onClose: () => void;
   variant: NonNullable<MasterDetailViewProps["variant"]>;
+  surface: NonNullable<MasterDetailViewProps["surface"]>;
 }) {
+  const isIntegrated = variant === "intelligence" && surface === "integrated";
+
   return (
     <>
       {/* Sticky header */}
       <div
         className={cn(
           "flex items-start justify-between gap-3 border-b px-6 py-4",
-          variant === "intelligence"
-            ? "border-[#e5e9f0] bg-white"
+          isIntegrated
+            ? "border-[#e5e9f0] bg-[#f7f8fa]"
+            : variant === "intelligence"
+              ? "border-[#e5e9f0] bg-white"
             : "bg-background/95 backdrop-blur-sm",
         )}
       >
@@ -345,7 +381,9 @@ function DetailPanelInner({
 
       {/* Scrollable content */}
       <ScrollArea className="flex-1 min-h-0 [&_[data-radix-scroll-area-viewport]]:overscroll-contain">
-        <div className="p-6">{detailContent}</div>
+        <div className={cn("p-6", isIntegrated && "bg-[#f7f8fa]")}>
+          {detailContent}
+        </div>
       </ScrollArea>
 
       {/* Fixed footer */}
@@ -353,7 +391,9 @@ function DetailPanelInner({
         <div
           className={cn(
             "border-t bg-background px-6 py-4",
-            variant === "intelligence" && "border-[#e5e9f0] bg-white",
+            isIntegrated
+              ? "border-[#e5e9f0] bg-[#f7f8fa]"
+              : variant === "intelligence" && "border-[#e5e9f0] bg-white",
           )}
         >
           {detailFooter}

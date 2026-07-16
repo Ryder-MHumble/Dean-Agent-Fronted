@@ -445,6 +445,7 @@ export default function PaperList({
   return (
     <>
       <IntelligenceWorkspace
+        surface="integrated"
         listHeader={
           <IntelligenceToolbar
             variant="embedded"

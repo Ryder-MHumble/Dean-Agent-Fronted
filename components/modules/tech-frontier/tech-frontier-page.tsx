@@ -659,6 +659,7 @@ export default function TechFrontierPage() {
   return (
     <IntelligencePageShell className="h-[var(--app-content-height,100dvh)]">
       <IntelligenceWorkspace
+        surface="integrated"
         listHeader={
           <IntelligenceToolbar
             variant="embedded"

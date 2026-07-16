@@ -300,7 +300,7 @@ test("generated expert snapshot contains only approved public fields", () => {
   assert.doesNotMatch(JSON.stringify(snapshot), /电子邮箱|手机号|电话|@/);
 });
 
-test("sentiment keeps full-item selection and closes details on query changes", () => {
+test("sentiment opens original posts directly without a detail pane", () => {
   const sentiment = readSource(
     "../components/modules/internal-mgmt/sentiment/index.tsx",
   );
@@ -308,25 +308,13 @@ test("sentiment keeps full-item selection and closes details on query changes", 
     "../components/modules/internal-mgmt/sentiment/sentiment-report.tsx",
   );
 
-  assert.match(
-    sentiment,
-    /useState<SentimentContentItem \| null>\(null\)/,
-  );
-  assert.match(sentiment, /setSelectedContent\(item\)/);
-  assert.match(sentiment, /selectedContent\?\.content_id/);
-  for (const handler of [
-    "handlePlatformChange",
-    "handleSearch",
-    "handleSortChange",
-    "handlePageChange",
-  ]) {
-    assert.match(
-      sentiment,
-      new RegExp(
-        `(?:const|function) ${handler}[\\s\\S]{0,320}setSelectedContent\\(null\\)`,
-      ),
-    );
-  }
+  assert.match(sentiment, /surface="integrated"/);
+  assert.doesNotMatch(sentiment, /useState<SentimentContentItem \| null>/);
+  assert.doesNotMatch(sentiment, /setSelectedContent|selectedContent\?\.content_id/);
+  assert.match(sentiment, /const openOriginalPost = \(item: SentimentContentItem\)/);
+  assert.match(sentiment, /window\.open\(item\.content_url,\s*"_blank"/);
+  assert.match(sentiment, /isOpen=\{false\}/);
+  assert.doesNotMatch(sentiment, /detailHeader=|SentimentDetailContent|detail-panel/);
   assert.match(sentiment, /pageSize:\s*(?:15|PAGE_SIZE)/);
   assert.match(sentiment, /pageSize=\{(?:15|PAGE_SIZE)\}/);
   assert.match(sentiment, /overview\.top_content/);

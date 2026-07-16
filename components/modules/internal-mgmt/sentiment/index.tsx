@@ -5,9 +5,7 @@ import { SearchInput } from "@/components/shared/forms/SearchInput";
 import IntelligencePageShell from "@/components/shared/intelligence-page-shell";
 import IntelligenceToolbar from "@/components/shared/intelligence-toolbar";
 import IntelligenceWorkspace from "@/components/shared/intelligence-workspace";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAutoSelectDetail } from "@/hooks/use-auto-select-detail";
 import { useSentimentFeed, useSentimentOverview } from "@/hooks/use-sentiment";
 import { getPlatformConfig } from "@/lib/config/platforms";
 import type {
@@ -22,12 +20,8 @@ import {
   MessageCircle,
   TrendingUp,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { ContentCard } from "./content-card";
-import {
-  getSentimentDetailHeader,
-  SentimentDetailContent,
-} from "./detail-panel";
 import { SentimentReport } from "./sentiment-report";
 import { FeedSkeleton } from "./sentiment-skeleton";
 
@@ -37,10 +31,6 @@ const SORT_OPTIONS = [
   { value: "liked_count", label: "最热" },
   { value: "comment_count", label: "评论最多" },
 ];
-
-function getSentimentContentKey(item: SentimentContentItem) {
-  return item.content_id || String(item.id);
-}
 
 function PlatformChips({
   platforms,
@@ -159,12 +149,10 @@ function OverviewSkeleton() {
 
 function PopularContentList({
   items,
-  selectedContentId,
-  onSelect,
+  onOpen,
 }: {
   items: SentimentContentItem[];
-  selectedContentId: string | null;
-  onSelect: (item: SentimentContentItem) => void;
+  onOpen: (item: SentimentContentItem) => void;
 }) {
   if (items.length === 0) return null;
 
@@ -184,13 +172,10 @@ function PopularContentList({
             <button
               key={item.id}
               type="button"
-              aria-current={selectedContentId === item.content_id || undefined}
-              onClick={() => onSelect(item)}
+              onClick={() => onOpen(item)}
               className={cn(
                 "flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3156d8]",
-                selectedContentId === item.content_id
-                  ? "bg-[#f1f4ff]"
-                  : "hover:bg-[#f8fafc]",
+                "hover:bg-[#f8fafc]",
               )}
             >
               <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#eef2f6] font-tabular text-[10px] font-semibold text-[#1a3a5c]">
@@ -219,8 +204,6 @@ export default function SentimentMonitor() {
   const [searchInput, setSearchInput] = useState("");
   const [sortBy, setSortBy] = useState("publish_time");
   const [page, setPage] = useState(1);
-  const [selectedContent, setSelectedContent] =
-    useState<SentimentContentItem | null>(null);
 
   const { feed, isLoading: feedLoading } = useSentimentFeed({
     platform: platform || undefined,
@@ -231,46 +214,34 @@ export default function SentimentMonitor() {
     pageSize: PAGE_SIZE,
   });
 
-  const closeSelectedContent = useCallback(() => {
-    setSelectedContent(null);
-  }, []);
-
-  useAutoSelectDetail({
-    items: feed?.items ?? [],
-    selectedItem: selectedContent,
-    select: setSelectedContent,
-    close: closeSelectedContent,
-    getKey: getSentimentContentKey,
-    isLoading: feedLoading,
-    preserveSelectedOutsideItems: true,
-  });
-
   const handlePlatformChange = (nextPlatform: string) => {
     setPlatform(nextPlatform);
     setPage(1);
-    setSelectedContent(null);
   };
 
   const handleSearch = (nextKeyword: string) => {
     setKeyword(nextKeyword.trim());
     setPage(1);
-    setSelectedContent(null);
   };
 
   const handleSortChange = (nextSort: string) => {
     setSortBy(nextSort);
     setPage(1);
-    setSelectedContent(null);
   };
 
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
-    setSelectedContent(null);
+  };
+
+  const openOriginalPost = (item: SentimentContentItem) => {
+    if (!item.content_url) return;
+    window.open(item.content_url, "_blank", "noopener,noreferrer");
   };
 
   return (
     <IntelligencePageShell>
       <IntelligenceWorkspace
+        surface="integrated"
         listHeader={
           <IntelligenceToolbar
             variant="embedded"
@@ -325,16 +296,9 @@ export default function SentimentMonitor() {
           </IntelligenceToolbar>
         }
         listContentClassName="min-h-0 overflow-hidden"
-        isOpen={Boolean(selectedContent?.content_id)}
-        onClose={closeSelectedContent}
-        detailHeader={
-          selectedContent ? getSentimentDetailHeader(selectedContent) : undefined
-        }
-        detailContent={
-          <SentimentDetailContent
-            contentId={selectedContent?.content_id ?? null}
-          />
-        }
+        isOpen={false}
+        onClose={() => {}}
+        detailContent={null}
       >
         <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-3 bg-[#f7f8fa] p-4">
           <div
@@ -346,8 +310,7 @@ export default function SentimentMonitor() {
                 <SentimentReport overview={overview} />
                 <PopularContentList
                   items={overview.top_content}
-                  selectedContentId={selectedContent?.content_id ?? null}
-                  onSelect={setSelectedContent}
+                  onOpen={openOriginalPost}
                 />
               </div>
             )}
@@ -358,8 +321,7 @@ export default function SentimentMonitor() {
                 <ContentCard
                   key={item.id}
                   item={item}
-                  selected={selectedContent?.content_id === item.content_id}
-                  onClick={() => setSelectedContent(item)}
+                  onClick={() => openOriginalPost(item)}
                 />
               ))
             ) : (

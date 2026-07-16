@@ -521,6 +521,7 @@ export default function TalentRadarModule() {
   return (
     <IntelligencePageShell className="h-[var(--app-content-height,100dvh)] overflow-hidden">
       <IntelligenceWorkspace
+        surface="integrated"
         listHeader={
           <IntelligenceToolbar
             variant="embedded"

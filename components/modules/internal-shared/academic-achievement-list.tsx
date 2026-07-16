@@ -442,6 +442,7 @@ export default function AcademicAchievementList({
   return (
     <>
       <IntelligenceWorkspace
+        surface="integrated"
         listHeader={
           <IntelligenceToolbar
             variant="embedded"
